@@ -1,5 +1,6 @@
 
 .const fade_speed = 5
+.const bitmap     = $2000
 .const screenram  = $0400
 .const colorram   = $d800
 .const fade_pass_address = $6400
@@ -11,6 +12,19 @@
         bmi !-
 }
 
+.function toDD00(addr) {
+    .return [ >addr >> 6 ] ^ %11
+}
+.function toD018(screen, charset) {
+    .return screenToD018(screen) | charsetToD018(charset)
+}
+.function screenToD018(addr) {
+    .return [ [ addr & $3fff ] / $400 ] << 4
+}
+.function charsetToD018(addr) {
+    .return [ [ addr & $3fff ] / $800 ] << 1
+}
+
 .pc = $0801 "basic upstart"
 :BasicUpstart(start)
 
@@ -19,28 +33,47 @@ start:
 		sei
 		lda #$36
 		sta $01
-		:vblank()
-		lda #0
-		sta $d011
-		sta $d020
-		sta $d021
+		jsr vblank
 		ldx #0
+		stx $d011
+		stx $d020
 	!:
 	.for (var i=0; i<4; i++) {
-		lda $3f40+(i*$100),x
+		lda koala_source+$1f40+(i*$100),x
 		sta screenram+(i*$100),x
-		lda $4328+(i*$100),x
+		lda koala_source+$2328+(i*$100),x
 		sta colorram+(i*$100),x
 	}
 		inx
 		bne !-
-		lda #$18
+		lda koala_source+$2710
+		sta $d021
+!loop:
+smc_src:
+		lda koala_source+$1f3f
+smc_dest:
+		sta bitmap+$1f3f
+		dec smc_src+1
+		lda smc_src+1
+		cmp #$ff
+		bne !+
+		dec smc_src+2
+	!:
+		dec smc_dest+1
+		lda smc_dest+1
+		cmp #$ff
+		bne !+
+		dec smc_dest+2
+	!:
+		lda smc_dest+2
+		cmp #>(bitmap-1)
+		bne !loop-
+
+		lda #toD018(screenram, bitmap)
 		sta $d018
 		lda #$d8
 		sta $d016
-		lda $4710
-		sta $d021
-		:vblank()
+		jsr vblank
 		lda #$3b
 		sta $d011
 
@@ -54,7 +87,7 @@ start:
 		ldy #10
 !loop:
 		ldx #fade_speed
-	!:	:vblank()
+	!:	jsr vblank
 		dex
 		bne !-
 
@@ -65,12 +98,15 @@ start:
 
 		dey
 		bne !loop-
-
 		jmp $fce2
+
+vblank:
+        :vblank()
+        rts
 // --------------------------------
 .pc = * "generate_fade_pass"
 
-.const zp_start = $f0
+.const zp_start = $fb
 .const zp_screen_lo = zp_start + 0
 .const zp_screen_hi = zp_start + 1
 .const zp_d800_lo = zp_start + 2
@@ -202,7 +238,8 @@ t_fadecol:
 		.byte $00,$0d,$09,$0c,$02,$08,$00,$0f
 		.byte $02,$00,$08,$09,$04,$03,$04,$05
 // ------------------------------
-.pc = * "" virtual
+.pc = * "koala_source" virtual
+koala_source:
 .align $100
 .pc = * "t_color_fade" virtual
 t_color_fade:
