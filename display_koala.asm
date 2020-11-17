@@ -3,7 +3,7 @@
 .const bitmap     = $2000
 .const screenram  = $0400
 .const colorram   = $d800
-.const fade_pass_address = $6400
+.const fade_pass_address = $4000
 
 .macro vblank() {
     !:  lda $d011
@@ -31,8 +31,6 @@
 .pc = $0810 "start"
 start:
 		sei
-		lda #$36
-		sta $01
 		jsr vblank
 		ldx #0
 		stx $d011
