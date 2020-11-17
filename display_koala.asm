@@ -89,6 +89,10 @@ smc_dest:
 		dex
 		bne !-
 
+		ldx $d021
+		lda t_color_fade,x
+		sta $d021
+
 		lda #$80
 	!:  cmp $d012
 		bne !-
