@@ -1,3 +1,4 @@
+
 .const fade_speed = 4
 .const bitmap     = $2000
 .const screenram  = $0400

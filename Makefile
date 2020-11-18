@@ -13,7 +13,7 @@ UPX := $(shell command -v upx 2>/dev/null)
 UPXFLAGS=--best
 
 test: png2prg_linux
-	./png2prg_linux -d -o z.prg testdata/hires2.png
+	./png2prg_linux -d -o z.prg testdata/rom_charset_lowercase.png
 	$(X64) z.prg >/dev/null
 
 png2prg: png2prg_linux
@@ -41,4 +41,4 @@ png2prg.exe: $(SRC)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^
 
 clean:
-	rm -f png2prg_linux png2prg_darwin png2prg.exe GEN_*.go *.prg
+	rm -f png2prg_linux png2prg_darwin png2prg.exe GEN_*.go *.prg *.upx

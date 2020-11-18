@@ -344,10 +344,6 @@ func writeMultiColorCharset(c MultiColorCharset) {
 	if display {
 		_, err = f.Write(mcchardisplay)
 		check(err)
-		paddinglength := 0x2000 - 0x7ff - len(mcchardisplay)
-		padding := [0x2000]byte{}
-		_, err = f.Write(padding[0:paddinglength])
-		check(err)
 	} else {
 		_, err = f.Write([]byte{0x00, 0x20})
 		check(err)
@@ -382,10 +378,6 @@ func writeSingleColorCharset(c SingleColorCharset) {
 	defer f.Close()
 	if display {
 		_, err = f.Write(scchardisplay)
-		check(err)
-		paddinglength := 0x2000 - 0x7ff - len(scchardisplay)
-		padding := [0x2000]byte{}
-		_, err = f.Write(padding[0:paddinglength])
 		check(err)
 	} else {
 		_, err = f.Write([]byte{0x00, 0x20})
