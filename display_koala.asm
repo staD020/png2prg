@@ -1,5 +1,5 @@
 
-.const fade_speed = 5
+.const fade_speed = 4
 .const bitmap     = $2000
 .const screenram  = $0400
 .const colorram   = $d800
@@ -93,7 +93,7 @@ smc_dest:
 		lda t_color_fade,x
 		sta $d021
 
-		lda #$80
+		lda #$70
 	!:  cmp $d012
 		bne !-
 		jsr fade_pass
@@ -242,6 +242,7 @@ t_fadecol:
 // ------------------------------
 .pc = * "koala_source" virtual
 koala_source:
+// ------------------------------
 .align $100
 .pc = * "t_color_fade" virtual
 t_color_fade:
