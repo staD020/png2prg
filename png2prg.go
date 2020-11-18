@@ -318,10 +318,6 @@ func writeHires(h Hires) {
 	if display {
 		_, err = f.Write(hiresdisplay)
 		check(err)
-		paddinglength := 0x2000 - 0x7ff - len(hiresdisplay)
-		padding := [0x2000]byte{}
-		_, err = f.Write(padding[0:paddinglength])
-		check(err)
 	} else {
 		_, err = f.Write([]byte{0x00, 0x20})
 		check(err)

@@ -1,5 +1,6 @@
 SRC=png2prg.go palettes.go animation.go analyze.go convert.go doc.go GEN_display.go
 DISPLAYERS=display_koala.prg display_hires.prg display_mc_charset.prg display_sc_charset.prg
+ASMLIB=lib.asm
 ASM=java -jar ./vendor/KickAss-5.16.jar
 ASMFLAGS=-showmem -time
 X64=x64
@@ -12,7 +13,7 @@ UPX := $(shell command -v upx 2>/dev/null)
 UPXFLAGS=--best
 
 test: png2prg_linux
-	./png2prg_linux -d -o z.prg testdata/wool.gif
+	./png2prg_linux -d -o z.prg testdata/hires2.png
 	$(X64) z.prg >/dev/null
 
 png2prg: png2prg_linux
@@ -24,7 +25,7 @@ compress: png2prg_linux.upx png2prg_darwin.upx png2prg.exe.upx
 GEN_display.go: generate.go $(DISPLAYERS)
 	go generate
 
-%.prg: %.asm
+%.prg: %.asm $(ASMLIB)
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 %.upx: %

@@ -5,25 +5,7 @@
 .const colorram   = $d800
 .const fade_pass_address = $4000
 
-.macro vblank() {
-    !:  lda $d011
-        bpl !-
-    !:  lda $d011
-        bmi !-
-}
-
-.function toDD00(addr) {
-    .return [ >addr >> 6 ] ^ %11
-}
-.function toD018(screen, charset) {
-    .return screenToD018(screen) | charsetToD018(charset)
-}
-.function screenToD018(addr) {
-    .return [ [ addr & $3fff ] / $400 ] << 4
-}
-.function charsetToD018(addr) {
-    .return [ [ addr & $3fff ] / $800 ] << 1
-}
+.import source "lib.asm"
 
 .pc = $0801 "basic upstart"
 :BasicUpstart(start)
