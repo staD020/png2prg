@@ -303,7 +303,7 @@ func writeKoala(k Koala) {
 	f.Sync()
 
 	if !quiet {
-		fmt.Printf("converted %q to %q\n", k.SourceFilename, destFilename)
+		fmt.Printf("converted %q to koala %q\n", k.SourceFilename, destFilename)
 	}
 }
 
@@ -329,7 +329,7 @@ func writeHires(h Hires) {
 	f.Sync()
 
 	if !quiet {
-		fmt.Printf("converted %q to %q\n", h.SourceFilename, destFilename)
+		fmt.Printf("converted %q to hires %q\n", h.SourceFilename, destFilename)
 	}
 }
 
@@ -368,7 +368,7 @@ func writeMultiColorCharset(c MultiColorCharset) {
 	f.Sync()
 
 	if !quiet {
-		fmt.Printf("converted %q to %q\n", c.SourceFilename, destFilename)
+		fmt.Printf("converted %q to mc charset %q\n", c.SourceFilename, destFilename)
 	}
 }
 
@@ -397,7 +397,7 @@ func writeSingleColorCharset(c SingleColorCharset) {
 	f.Sync()
 
 	if !quiet {
-		fmt.Printf("converted %q to %q\n", c.SourceFilename, destFilename)
+		fmt.Printf("converted %q to sc charset %q\n", c.SourceFilename, destFilename)
 	}
 }
 
