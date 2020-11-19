@@ -67,8 +67,11 @@ smc_dest:
 		jsr vblank
 		lda #$1b
 		sta $d011
-	!:
-		jmp !-
+
+		lda #$ef
+	!:	cmp $dc01
+		bne !-
+		jmp $fce2
 vblank:
 		:vblank()
 		rts

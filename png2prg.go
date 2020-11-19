@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-const version = "0.4-dev"
+const version = "0.4"
 
 type RGB struct {
 	R, G, B byte

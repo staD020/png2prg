@@ -3,22 +3,21 @@ DISPLAYERS=display_koala.prg display_hires.prg display_mc_charset.prg display_sc
 ASMLIB=lib.asm
 ASM=java -jar ./vendor/KickAss-5.16.jar
 ASMFLAGS=-showmem -time
-X64=x64
+X64=x64sc
+UPX=upx
+UPXFLAGS=--best
 
 LDFLAGS=-s -w
 CGO=0
 GOBUILDFLAGS=-v
 
-UPX := $(shell command -v upx 2>/dev/null)
-UPXFLAGS=--best
+all: png2prg_linux png2prg_darwin png2prg.exe
 
 test: png2prg_linux
-	./png2prg_linux -d -o z.prg testdata/rom_charset_lowercase.png
+	./png2prg_linux -d -o z.prg testdata/wool.gif
 	$(X64) z.prg >/dev/null
 
 png2prg: png2prg_linux
-
-all: png2prg_linux png2prg_darwin png2prg.exe
 
 compress: png2prg_linux.upx png2prg_darwin.upx png2prg.exe.upx
 
@@ -29,7 +28,7 @@ GEN_display.go: generate.go $(DISPLAYERS)
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 %.upx: %
-	upx $(UPXFLAGS) -o $@ $<
+	$(UPX) $(UPXFLAGS) -o $@ $<
 
 png2prg_linux: $(SRC)
 	CGO_ENABLED=$(CGO) GOOS=linux GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^
