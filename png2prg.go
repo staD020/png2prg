@@ -10,15 +10,15 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 )
 
-const version = "0.4"
+const version = "0.5-dev"
 
 type RGB struct {
 	R, G, B byte
@@ -86,10 +86,6 @@ type SingleColorCharset struct {
 	SourceFilename string
 	Bitmap         [0x800]byte
 }
-
-// binary blob containing c64 startaddress + basicstart + koala display code
-//const koaladisplayb64 = `AQgLCAoAnjIwNjIAAAAAeKk3hQGpO40R0KkYjRjQqdiNFtCtEEeNINCNIdCiAL1AP50ABL1AQJ0A
-//Bb1AQZ0ABr1AQp0AB70oQ50A2L0oRJ0A2b0oRZ0A2r0oRp0A2+jQzUxgCA==`
 
 var koaladisplay []byte
 var hiresdisplay []byte
@@ -183,98 +179,67 @@ func processFiles(ff []string) {
 		log.Fatalf("analyze failed: %v", err)
 	}
 
+	var c io.WriterTo
 	switch img.graphicsType {
 	case multiColorBitmap:
-		k, err := img.convertToKoala()
+		c, err = img.convertToKoala()
 		if err != nil {
 			log.Fatalf("convertToKoala failed: %v", err)
 		}
-		writeKoala(k)
 	case singleColorBitmap:
-		h, err := img.convertToHires()
+		c, err = img.convertToHires()
 		if err != nil {
 			log.Fatalf("convertToHires failed: %v", err)
 		}
-		writeHires(h)
 	case singleColorCharset:
-		c, err := img.convertToSingleColorCharset()
+		c, err = img.convertToSingleColorCharset()
 		if err != nil {
 			log.Fatalf("convertToSingleColorCharset failed: %v", err)
 		}
-		writeSingleColorCharset(c)
 	case multiColorCharset:
-		c, err := img.convertToMultiColorCharset()
+		c, err = img.convertToMultiColorCharset()
 		if err != nil {
 			log.Fatalf("convertToMultiColorCharset failed: %v", err)
 		}
-		writeMultiColorCharset(c)
 	}
 
-	return
-}
-
-func handleAnimation(ff []string) {
-	var kk []Koala
-	for _, f := range ff {
-		kk = append(kk, makeKoalaFromFile(f))
+	w, ok := c.(io.WriterTo)
+	if !ok {
+		log.Fatalf("converted image is not an io.WriterTo: %v", c)
 	}
 
-	if len(kk) > 1 {
-		animPrgs := ProcessAnimation(kk)
-		writeKoala(kk[0])
-		for i, prg := range animPrgs {
-			writePrgFile(frameFilename(i, kk[0].SourceFilename), prg)
-		}
+	destFilename := getdestfilename(img.sourceFilename)
+	f, err := os.Create(destFilename)
+	if err != nil {
+		log.Fatalf("os.Create %q failed: %v", destFilename, err)
 	}
-	return
-}
-
-func writePrgFile(filename string, prg []byte) {
-	if verbose {
-		log.Printf("going to write file %q", filename)
-	}
-	f, err := os.Create(filename)
-	check(err)
 	defer f.Close()
-	_, err = f.Write([]byte{0x00, 0x20})
-	check(err)
-	_, err = f.Write(prg[:])
-	check(err)
-	f.Sync()
-
+	_, err = w.WriteTo(f)
+	if err != nil {
+		log.Fatalf("WriteTo %q failed: %v", destFilename, err)
+	}
 	if !quiet {
-		fmt.Printf("write %q\n", filename)
+		fmt.Printf("converted %q to %q\n", img.sourceFilename, destFilename)
 	}
+
+	return
 }
 
-func frameFilename(i int, filename string) string {
-	dest := getdestfilename(filename)
-	return strings.TrimSuffix(getdestfilename(filename), filepath.Ext(dest)) + ".frame" + strconv.Itoa(i) + ".prg"
-}
-
-func makeKoalaFromFile(filename string) Koala {
-	if verbose {
-		log.Printf("processing file %q", filename)
+func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
+	m := 0
+	header := []byte{0x00, 0x20}
+	if display {
+		header = koaladisplay
 	}
-	img, err := newSourceImage(filename)
-	if err != nil {
-		log.Fatalf("newSourceImage failed: %v", err)
-	}
-	err = img.analyze()
-	if err != nil {
-		log.Fatalf("analyze failed: %v", err)
-	}
-	if img.graphicsType != multiColorBitmap {
-		if !quiet {
-			log.Printf("hmmm, %q does not appear to be a multiColorBitmap, trying anyway.", filename)
+	data := [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{k.BgColor}}
+	for _, d := range data {
+		m, err = w.Write(d)
+		n += int64(m)
+		if err != nil {
+			return n, err
 		}
 	}
-
-	k, err := img.convertToKoala()
-	if err != nil {
-		log.Fatalf("convertToKoala failed: %v", err)
-	}
-	return k
+	return n, err
 }
 
 func writeKoala(k Koala) {
@@ -307,90 +272,55 @@ func writeKoala(k Koala) {
 	}
 }
 
-func writeHires(h Hires) {
-	destFilename := getdestfilename(h.SourceFilename)
-	if verbose {
-		log.Printf("going to write file %q", destFilename)
-	}
-	f, err := os.Create(destFilename)
-	check(err)
-	defer f.Close()
+func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
+	header := []byte{0x00, 0x20}
 	if display {
-		_, err = f.Write(hiresdisplay)
-		check(err)
-	} else {
-		_, err = f.Write([]byte{0x00, 0x20})
-		check(err)
+		header = hiresdisplay
 	}
-	_, err = f.Write(h.Bitmap[:])
-	check(err)
-	_, err = f.Write(h.ScreenColor[:])
-	check(err)
-	f.Sync()
-
-	if !quiet {
-		fmt.Printf("converted %q to hires %q\n", h.SourceFilename, destFilename)
+	data := [][]byte{header, h.Bitmap[:], h.ScreenColor[:]}
+	for _, d := range data {
+		m := 0
+		m, err = w.Write(d)
+		n += int64(m)
+		if err != nil {
+			return n, err
+		}
 	}
+	return n, err
 }
 
-func writeMultiColorCharset(c MultiColorCharset) {
-	destFilename := getdestfilename(c.SourceFilename)
-	if verbose {
-		log.Printf("going to write file %q", destFilename)
-	}
-	f, err := os.Create(destFilename)
-	check(err)
-	defer f.Close()
+func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
+	header := []byte{0x00, 0x20}
 	if display {
-		_, err = f.Write(mcchardisplay)
-		check(err)
-	} else {
-		_, err = f.Write([]byte{0x00, 0x20})
-		check(err)
+		header = mcchardisplay
 	}
-
-	_, err = f.Write(c.Bitmap[:])
-	check(err)
-	_, err = f.Write(c.Screen[:])
-	check(err)
-	_, err = f.Write([]byte{c.CharColor})
-	check(err)
-	_, err = f.Write([]byte{c.BgColor})
-	check(err)
-	_, err = f.Write([]byte{c.D022Color})
-	check(err)
-	_, err = f.Write([]byte{c.D023Color})
-	check(err)
-	f.Sync()
-
-	if !quiet {
-		fmt.Printf("converted %q to mc charset %q\n", c.SourceFilename, destFilename)
+	data := [][]byte{header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BgColor, c.D022Color, c.D023Color}}
+	for _, d := range data {
+		m := 0
+		m, err = w.Write(d)
+		n += int64(m)
+		if err != nil {
+			return n, err
+		}
 	}
+	return n, err
 }
 
-func writeSingleColorCharset(c SingleColorCharset) {
-	destFilename := getdestfilename(c.SourceFilename)
-	if verbose {
-		log.Printf("going to write file %q", destFilename)
-	}
-	f, err := os.Create(destFilename)
-	check(err)
-	defer f.Close()
+func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
+	header := []byte{0x00, 0x20}
 	if display {
-		_, err = f.Write(scchardisplay)
-		check(err)
-	} else {
-		_, err = f.Write([]byte{0x00, 0x20})
-		check(err)
+		header = scchardisplay
 	}
-
-	_, err = f.Write(c.Bitmap[:])
-	check(err)
-	f.Sync()
-
-	if !quiet {
-		fmt.Printf("converted %q to sc charset %q\n", c.SourceFilename, destFilename)
+	data := [][]byte{header, c.Bitmap[:]}
+	for _, d := range data {
+		m := 0
+		m, err = w.Write(d)
+		n += int64(m)
+		if err != nil {
+			return n, err
+		}
 	}
+	return n, err
 }
 
 func getdestfilename(filename string) (destfilename string) {

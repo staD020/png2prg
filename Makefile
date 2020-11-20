@@ -11,13 +11,13 @@ LDFLAGS=-s -w
 CGO=0
 GOBUILDFLAGS=-v
 
+png2prg: png2prg_linux
+
 all: png2prg_linux png2prg_darwin png2prg.exe
 
 test: png2prg_linux
-	./png2prg_linux -d -o z.prg testdata/wool.gif
+	./png2prg_linux -d -v -o z.prg testdata/wool.gif
 	$(X64) z.prg >/dev/null
-
-png2prg: png2prg_linux
 
 compress: png2prg_linux.upx png2prg_darwin.upx png2prg.exe.upx
 

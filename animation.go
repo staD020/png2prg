@@ -3,6 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 type multiColorChar struct {
@@ -11,6 +15,78 @@ type multiColorChar struct {
 	BgColor     byte
 	ScreenColor byte
 	D800Color   byte
+}
+
+func handleAnimation(ff []string) {
+	var kk []Koala
+	for _, f := range ff {
+		img, err := newSourceImage(f)
+		if err != nil {
+			log.Fatalf("handleAnimation newSourceImage %q failed: %v", f, err)
+		}
+		err = img.analyze()
+		if err != nil {
+			log.Fatalf("analyze failed: %v", err)
+		}
+
+		switch img.graphicsType {
+		case multiColorBitmap:
+			k, err := img.convertToKoala()
+			if err != nil {
+				log.Fatalf("convertToKoala failed: %v", err)
+			}
+			kk = append(kk, k)
+		default:
+			log.Fatalf("convertToKoala failed: %v", err)
+		}
+	}
+
+	if len(kk) == 0 {
+		return
+	}
+	destFilename := getdestfilename(kk[0].SourceFilename)
+	f, err := os.Create(destFilename)
+	if err != nil {
+		log.Fatalf("os.Create %q failed: %v", destFilename, err)
+	}
+	defer f.Close()
+	_, err = kk[0].WriteTo(f)
+	if err != nil {
+		log.Fatalf("WriteTo %q failed: %v", destFilename, err)
+	}
+	if !quiet {
+		fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
+	}
+
+	animPrgs := ProcessAnimation(kk)
+
+	for i, prg := range animPrgs {
+		writePrgFile(frameFilename(i, kk[0].SourceFilename), prg)
+	}
+	return
+}
+
+func writePrgFile(filename string, prg []byte) {
+	if verbose {
+		log.Printf("going to write file %q", filename)
+	}
+	f, err := os.Create(filename)
+	check(err)
+	defer f.Close()
+	_, err = f.Write([]byte{0x00, 0x20})
+	check(err)
+	_, err = f.Write(prg[:])
+	check(err)
+	f.Sync()
+
+	if !quiet {
+		fmt.Printf("write %q\n", filename)
+	}
+}
+
+func frameFilename(i int, filename string) string {
+	dest := getdestfilename(filename)
+	return strings.TrimSuffix(getdestfilename(filename), filepath.Ext(dest)) + ".frame" + strconv.Itoa(i) + ".prg"
 }
 
 func ProcessAnimation(kk []Koala) [][]byte {
