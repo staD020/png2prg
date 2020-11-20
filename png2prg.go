@@ -210,7 +210,7 @@ func processFiles(ff []string) {
 		log.Fatalf("converted image is not an io.WriterTo: %v", c)
 	}
 
-	destFilename := getdestfilename(img.sourceFilename)
+	destFilename := getDestinationFilename(img.sourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
 		log.Fatalf("os.Create %q failed: %v", destFilename, err)
@@ -270,7 +270,7 @@ func writeData(w io.Writer, data [][]byte) (n int64, err error) {
 	return n, nil
 }
 
-func getdestfilename(filename string) (destfilename string) {
+func getDestinationFilename(filename string) (destfilename string) {
 	if len(targetdir) > 0 {
 		destfilename = filepath.Dir(targetdir+string(os.PathSeparator)) + string(os.PathSeparator)
 	}
@@ -280,10 +280,4 @@ func getdestfilename(filename string) (destfilename string) {
 		destfilename = destfilename + filepath.Base(strings.TrimSuffix(filename, filepath.Ext(filename))+".prg")
 	}
 	return destfilename
-}
-
-func check(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }

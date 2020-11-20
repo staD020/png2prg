@@ -26,25 +26,25 @@ func handleAnimation(ff []string) {
 		}
 		err = img.analyze()
 		if err != nil {
-			log.Fatalf("analyze failed: %v", err)
+			log.Fatalf("analyze %q failed: %v", f, err)
 		}
 
 		switch img.graphicsType {
 		case multiColorBitmap:
 			k, err := img.convertToKoala()
 			if err != nil {
-				log.Fatalf("convertToKoala failed: %v", err)
+				log.Fatalf("convertToKoala %q failed: %v", f, err)
 			}
 			kk = append(kk, k)
 		default:
-			log.Fatalf("convertToKoala failed: %v", err)
+			log.Fatalf("unsupported graphicsType %q", f)
 		}
 	}
 
 	if len(kk) == 0 {
 		return
 	}
-	destFilename := getdestfilename(kk[0].SourceFilename)
+	destFilename := getDestinationFilename(kk[0].SourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
 		log.Fatalf("os.Create %q failed: %v", destFilename, err)
@@ -58,12 +58,15 @@ func handleAnimation(ff []string) {
 		fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
 	}
 
-	animPrgs := ProcessAnimation(kk)
-
-	for i, prg := range animPrgs {
+	for i, prg := range ProcessAnimation(kk) {
 		writePrgFile(frameFilename(i, kk[0].SourceFilename), prg)
 	}
 	return
+}
+
+func frameFilename(i int, filename string) string {
+	dest := getDestinationFilename(filename)
+	return strings.TrimSuffix(dest, filepath.Ext(dest)) + ".frame" + strconv.Itoa(i) + ".prg"
 }
 
 func writePrgFile(filename string, prg []byte) {
@@ -71,22 +74,23 @@ func writePrgFile(filename string, prg []byte) {
 		log.Printf("going to write file %q", filename)
 	}
 	f, err := os.Create(filename)
-	check(err)
+	if err != nil {
+		log.Fatalf("os.Create %q failed: %v", filename, err)
+	}
 	defer f.Close()
 	_, err = f.Write([]byte{0x00, 0x20})
-	check(err)
+	if err != nil {
+		log.Fatalf("Write %q failed: %v", filename, err)
+	}
 	_, err = f.Write(prg[:])
-	check(err)
+	if err != nil {
+		log.Fatalf("Write %q failed: %v", filename, err)
+	}
 	f.Sync()
 
 	if !quiet {
 		fmt.Printf("write %q\n", filename)
 	}
-}
-
-func frameFilename(i int, filename string) string {
-	dest := getdestfilename(filename)
-	return strings.TrimSuffix(getdestfilename(filename), filepath.Ext(dest)) + ".frame" + strconv.Itoa(i) + ".prg"
 }
 
 func ProcessAnimation(kk []Koala) [][]byte {
