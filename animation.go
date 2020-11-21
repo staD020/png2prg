@@ -17,93 +17,99 @@ type multiColorChar struct {
 	D800Color   byte
 }
 
-func handleAnimation(ff []string) {
+func handleAnimation(ff []string) error {
 	var kk []Koala
 	for _, f := range ff {
 		img, err := newSourceImage(f)
 		if err != nil {
-			log.Fatalf("handleAnimation newSourceImage %q failed: %v", f, err)
+			return fmt.Errorf("handleAnimation newSourceImage %q failed: %v", f, err)
 		}
 		err = img.analyze()
 		if err != nil {
-			log.Fatalf("analyze %q failed: %v", f, err)
+			return fmt.Errorf("analyze %q failed: %v", f, err)
 		}
 
 		switch img.graphicsType {
 		case multiColorBitmap:
 			k, err := img.convertToKoala()
 			if err != nil {
-				log.Fatalf("convertToKoala %q failed: %v", f, err)
+				return fmt.Errorf("convertToKoala %q failed: %v", f, err)
 			}
 			kk = append(kk, k)
 		default:
-			log.Fatalf("unsupported graphicsType %q", f)
+			return fmt.Errorf("unsupported graphicsType %q", f)
 		}
 	}
 
 	if len(kk) == 0 {
-		return
+		log.Print("nothing to do")
+		return nil
 	}
 	destFilename := getDestinationFilename(kk[0].SourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
-		log.Fatalf("os.Create %q failed: %v", destFilename, err)
+		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
 	}
 	defer f.Close()
 	_, err = kk[0].WriteTo(f)
 	if err != nil {
-		log.Fatalf("WriteTo %q failed: %v", destFilename, err)
+		return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
 	}
 	if !quiet {
 		fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
 	}
 
-	for i, prg := range ProcessAnimation(kk) {
-		writePrgFile(frameFilename(i, kk[0].SourceFilename), prg)
+	prgs, err := ProcessAnimation(kk)
+	if err != nil {
+		return fmt.Errorf("ProcessAnimation failed: %v", err)
 	}
-	return
+
+	for i, prg := range prgs {
+		if err = writePrgFile(frameFilename(i, kk[0].SourceFilename), prg); err != nil {
+			return fmt.Errorf("writePrgFile failed: %v", err)
+		}
+	}
+	return nil
 }
 
 func frameFilename(i int, filename string) string {
-	dest := getDestinationFilename(filename)
-	return strings.TrimSuffix(dest, filepath.Ext(dest)) + ".frame" + strconv.Itoa(i) + ".prg"
+	d := getDestinationFilename(filename)
+	return strings.TrimSuffix(d, filepath.Ext(d)) + ".frame" + strconv.Itoa(i) + ".prg"
 }
 
-func writePrgFile(filename string, prg []byte) {
+func writePrgFile(filename string, prg []byte) error {
 	if verbose {
 		log.Printf("going to write file %q", filename)
 	}
 	f, err := os.Create(filename)
 	if err != nil {
-		log.Fatalf("os.Create %q failed: %v", filename, err)
+		return fmt.Errorf("os.Create %q failed: %v", filename, err)
 	}
 	defer f.Close()
-	_, err = f.Write([]byte{0x00, 0x20})
-	if err != nil {
-		log.Fatalf("Write %q failed: %v", filename, err)
+	if _, err = f.Write([]byte{0x00, 0x20}); err != nil {
+		return fmt.Errorf("Write startaddress to %q failed: %v", filename, err)
 	}
-	_, err = f.Write(prg[:])
-	if err != nil {
-		log.Fatalf("Write %q failed: %v", filename, err)
+	if _, err = f.Write(prg[:]); err != nil {
+		return fmt.Errorf("Write prg to %q failed: %v", filename, err)
 	}
-	f.Sync()
 
 	if !quiet {
 		fmt.Printf("write %q\n", filename)
 	}
+	return nil
 }
 
-func ProcessAnimation(kk []Koala) [][]byte {
+func ProcessAnimation(kk []Koala) ([][]byte, error) {
 	if len(kk) < 2 {
-		log.Fatalf("ProcessAnimation: Insufficient number of images %d < 2", len(kk))
+		return nil, fmt.Errorf("ProcessAnimation: Insufficient number of images %d < 2", len(kk))
 	}
 	if verbose {
 		log.Printf("total number of frames: %d", len(kk))
 	}
 
 	anims := make([][]multiColorChar, len(kk))
-	for j := 1; j < len(kk); j++ {
-		anims[j-1] = make([]multiColorChar, 0)
+	for i := 0; i < len(kk)-1; i++ {
+		anims[i] = make([]multiColorChar, 0)
 	}
 
 	for i := 0; i < 1000; i++ {
@@ -119,7 +125,7 @@ func ProcessAnimation(kk []Koala) [][]byte {
 			}
 		}
 	}
-	return exportAnims(anims)
+	return exportAnims(anims), nil
 }
 
 // exportAnims format:
@@ -202,7 +208,7 @@ func exportAnims(anims [][]multiColorChar) [][]byte {
 		// add last chunk
 		if curChunk.CharCount > 0 {
 			if verbose {
-				log.Printf("curChunk: %s\n", curChunk.String())
+				log.Printf("curChunk: %s", curChunk.String())
 			}
 			prg = append(prg, curChunk.export()...)
 		}

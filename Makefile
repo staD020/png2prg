@@ -29,6 +29,7 @@ GEN_display.go: generate.go $(DISPLAYERS)
 
 %.upx: %
 	$(UPX) $(UPXFLAGS) -o $@ $<
+	touch $@
 
 png2prg_linux: $(SRC)
 	CGO_ENABLED=$(CGO) GOOS=linux GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^

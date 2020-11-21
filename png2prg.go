@@ -87,10 +87,8 @@ type SingleColorCharset struct {
 	Bitmap         [0x800]byte
 }
 
-var koaladisplay []byte
-var hiresdisplay []byte
-var mcchardisplay []byte
-var scchardisplay []byte
+var displayers = make(map[graphicsType][]byte, 0)
+
 var outfile string
 var targetdir string
 var helpbool bool
@@ -132,37 +130,53 @@ func main() {
 		printusage()
 		os.Exit(0)
 	}
-	var err error
 	if display {
-		if koaladisplay, err = base64.StdEncoding.DecodeString(koaladisplayb64); err != nil {
-			log.Fatalf("unable to decode koaladisplayb64: %v", err)
-		}
-		if hiresdisplay, err = base64.StdEncoding.DecodeString(hiresdisplayb64); err != nil {
-			log.Fatalf("unable to decode hiresdisplayb64: %v", err)
-		}
-		if mcchardisplay, err = base64.StdEncoding.DecodeString(mcchardisplayb64); err != nil {
-			log.Fatalf("unable to decode mcchardisplayb64: %v", err)
-		}
-		if scchardisplay, err = base64.StdEncoding.DecodeString(scchardisplayb64); err != nil {
-			log.Fatalf("unable to decode scchardisplayb64: %v", err)
+		if err := initDisplayers(); err != nil {
+			log.Fatal(err)
 		}
 	}
 
-	processFiles(ff)
+	if err := processFiles(ff); err != nil {
+		log.Fatal(err)
+	}
 
 	if !quiet {
 		fmt.Printf("elapsed: %v\n", time.Since(t0))
 	}
 }
 
-func processFiles(ff []string) {
+func initDisplayers() error {
+	bin, err := base64.StdEncoding.DecodeString(koaladisplayb64)
+	if err != nil {
+		return fmt.Errorf("unable to decode koaladisplayb64: %v", err)
+	}
+	displayers[multiColorBitmap] = bin
+	bin, err = base64.StdEncoding.DecodeString(hiresdisplayb64)
+	if err != nil {
+		return fmt.Errorf("unable to decode hiresdisplayb64: %v", err)
+	}
+	displayers[singleColorBitmap] = bin
+	bin, err = base64.StdEncoding.DecodeString(mcchardisplayb64)
+	if err != nil {
+		return fmt.Errorf("unable to decode mcchardisplayb64: %v", err)
+	}
+	displayers[multiColorCharset] = bin
+	bin, err = base64.StdEncoding.DecodeString(scchardisplayb64)
+	if err != nil {
+		return fmt.Errorf("unable to decode scchardisplayb64: %v", err)
+	}
+	displayers[singleColorCharset] = bin
+	return nil
+}
+
+func processFiles(ff []string) (err error) {
 	if len(ff) < 1 {
 		log.Println("no files supplied, nothing to do.")
-		return
+		return err
 	}
 	if len(ff) > 1 {
 		handleAnimation(ff)
-		return
+		return err
 	}
 
 	filename := ff[0]
@@ -172,11 +186,11 @@ func processFiles(ff []string) {
 
 	img, err := newSourceImage(filename)
 	if err != nil {
-		log.Fatalf("newSourceImage %q failed: %v", filename, err)
+		return fmt.Errorf("newSourceImage %q failed: %v", filename, err)
 	}
 	err = img.analyze()
 	if err != nil {
-		log.Fatalf("analyze %q failed: %v", filename, err)
+		return fmt.Errorf("analyze %q failed: %v", filename, err)
 	}
 
 	var c io.WriterTo
@@ -184,52 +198,47 @@ func processFiles(ff []string) {
 	case multiColorBitmap:
 		c, err = img.convertToKoala()
 		if err != nil {
-			log.Fatalf("convertToKoala %q failed: %v", filename, err)
+			return fmt.Errorf("convertToKoala %q failed: %v", filename, err)
 		}
 	case singleColorBitmap:
 		c, err = img.convertToHires()
 		if err != nil {
-			log.Fatalf("convertToHires %q failed: %v", filename, err)
+			return fmt.Errorf("convertToHires %q failed: %v", filename, err)
 		}
 	case singleColorCharset:
 		c, err = img.convertToSingleColorCharset()
 		if err != nil {
-			log.Fatalf("convertToSingleColorCharset %q failed: %v", filename, err)
+			return fmt.Errorf("convertToSingleColorCharset %q failed: %v", filename, err)
 		}
 	case multiColorCharset:
 		c, err = img.convertToMultiColorCharset()
 		if err != nil {
-			log.Fatalf("convertToMultiColorCharset %q failed: %v", filename, err)
+			return fmt.Errorf("convertToMultiColorCharset %q failed: %v", filename, err)
 		}
 	default:
-		log.Fatalf("unsupported graphicsType", filename, err)
-	}
-
-	w, ok := c.(io.WriterTo)
-	if !ok {
-		log.Fatalf("converted image is not an io.WriterTo: %v", c)
+		return fmt.Errorf("unsupported graphicsType for %q", filename)
 	}
 
 	destFilename := getDestinationFilename(img.sourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
-		log.Fatalf("os.Create %q failed: %v", destFilename, err)
+		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
 	}
 	defer f.Close()
-	if _, err = w.WriteTo(f); err != nil {
-		log.Fatalf("WriteTo %q failed: %v", destFilename, err)
+	if _, err = c.WriteTo(f); err != nil {
+		return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
 	}
 	if !quiet {
 		fmt.Printf("converted %q to %q\n", img.sourceFilename, destFilename)
 	}
 
-	return
+	return nil
 }
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	header := []byte{0x00, 0x20}
 	if display {
-		header = koaladisplay
+		header = displayers[multiColorBitmap]
 	}
 	return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{k.BgColor}})
 }
@@ -237,7 +246,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	header := []byte{0x00, 0x20}
 	if display {
-		header = hiresdisplay
+		header = displayers[singleColorBitmap]
 	}
 	return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:]})
 }
@@ -245,7 +254,7 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	header := []byte{0x00, 0x20}
 	if display {
-		header = mcchardisplay
+		header = displayers[multiColorCharset]
 	}
 	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BgColor, c.D022Color, c.D023Color}})
 }
@@ -253,7 +262,7 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	header := []byte{0x00, 0x20}
 	if display {
-		header = scchardisplay
+		header = displayers[singleColorCharset]
 	}
 	return writeData(w, [][]byte{header, c.Bitmap[:]})
 }
@@ -261,7 +270,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 func writeData(w io.Writer, data [][]byte) (n int64, err error) {
 	for _, d := range data {
 		m := 0
-		m, err := w.Write(d)
+		m, err = w.Write(d)
 		n += int64(m)
 		if err != nil {
 			return n, err
