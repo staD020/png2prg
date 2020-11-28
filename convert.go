@@ -287,6 +287,10 @@ func (img *sourceImage) convertToMultiColorCharset() (MultiColorCharset, error) 
 		c.Screen[char] = byte(curChar)
 	}
 
+	if len(charMap) > 256 {
+		return c, fmt.Errorf("image translates to %d unique chars, the max is 256.", len(charMap))
+	}
+
 	j := 0
 	for _, bytes := range charMap {
 		for _, b := range bytes {

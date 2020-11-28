@@ -9,20 +9,12 @@ import (
 	"strings"
 )
 
-type multiColorChar struct {
-	CharIndex   int
-	Bitmap      [8]byte
-	BgColor     byte
-	ScreenColor byte
-	D800Color   byte
-}
-
 func handleAnimation(ff []string) error {
 	var kk []Koala
 	for _, f := range ff {
 		img, err := newSourceImage(f)
 		if err != nil {
-			return fmt.Errorf("handleAnimation newSourceImage %q failed: %v", f, err)
+			return fmt.Errorf("newSourceImage %q failed: %v", f, err)
 		}
 		err = img.analyze()
 		if err != nil {
@@ -107,9 +99,9 @@ func ProcessAnimation(kk []Koala) ([][]byte, error) {
 		log.Printf("total number of frames: %d", len(kk))
 	}
 
-	anims := make([][]multiColorChar, len(kk))
+	anims := make([][]MultiColorChar, len(kk))
 	for i := 0; i < len(kk)-1; i++ {
-		anims[i] = make([]multiColorChar, 0)
+		anims[i] = make([]MultiColorChar, 0)
 	}
 
 	for i := 0; i < 1000; i++ {
@@ -136,8 +128,6 @@ func ProcessAnimation(kk []Koala) ([][]byte, error) {
 //	    	screencol				1 byte
 //			d800col					1 byte
 // total bytes: 5 + 10 * charcount
-const chunkHeaderSize = 5
-const chunkCharSize = 10
 
 type chunk struct {
 	CharIndex int
@@ -161,7 +151,7 @@ func newChunk(charIndex int) chunk {
 	return c
 }
 
-func (c *chunk) appendChar(char multiColorChar) {
+func (c *chunk) appendChar(char MultiColorChar) {
 	c.Chars = append(c.Chars, char.Bitmap[:]...)
 	c.Chars = append(c.Chars, char.ScreenColor, char.D800Color)
 	c.CharCount++
@@ -177,7 +167,7 @@ func (c *chunk) String() string {
 		fmt.Sprintf("%v", c.Chars)
 }
 
-func exportAnims(anims [][]multiColorChar) [][]byte {
+func exportAnims(anims [][]MultiColorChar) [][]byte {
 	prgs := make([][]byte, 0)
 	for _, anim := range anims {
 		if verbose {
@@ -220,8 +210,8 @@ func exportAnims(anims [][]multiColorChar) [][]byte {
 	return prgs
 }
 
-func (k *Koala) MultiColorChar(charIndex int) multiColorChar {
-	mc := multiColorChar{
+func (k *Koala) MultiColorChar(charIndex int) MultiColorChar {
+	mc := MultiColorChar{
 		CharIndex:   charIndex,
 		Bitmap:      [8]byte{},
 		BgColor:     k.BgColor,

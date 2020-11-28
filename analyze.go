@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/gif"
 	"log"
 	"math"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 func newSourceImage(filename string) (*sourceImage, error) {
@@ -29,6 +32,41 @@ func newSourceImage(filename string) (*sourceImage, error) {
 
 	return img, nil
 }
+
+func newSourceImages(filename string) (imgs []sourceImage, err error) {
+	if strings.ToLower(filepath.Ext(filename)) != ".gif" {
+		return nil, fmt.Errorf("%q is not a .gif", filename)
+	}
+
+	r, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("os.Open could not open file %q: %v", filename, err)
+	}
+	defer r.Close()
+
+	g, err := gif.DecodeAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("gif.DecodeAll %q failed: %v", filename, err)
+	}
+
+	if len(g.Image) < 2 {
+		return nil, fmt.Errorf("file %q is not an animation, frames found: %d", filename, len(g.Image))
+	}
+	if verbose {
+		log.Printf("found animated gif %q with %d frames", filename, len(g.Image))
+	}
+
+	for _, img := range g.Image {
+		width, height := img.Bounds().Max.X-img.Bounds().Min.X, img.Bounds().Max.Y-img.Bounds().Min.Y
+		imgs = append(imgs, sourceImage{
+			sourceFilename: filename,
+			image:          img,
+		})
+		fmt.Printf("img %T, width %d x height %d\n", img, width, height)
+	}
+	return imgs, nil
+}
+
 func (img *sourceImage) checkBounds() error {
 	width, height := img.image.Bounds().Max.X-img.image.Bounds().Min.X, img.image.Bounds().Max.Y-img.image.Bounds().Min.Y
 	img.xOffset, img.yOffset = img.image.Bounds().Min.X, img.image.Bounds().Min.Y

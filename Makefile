@@ -16,8 +16,13 @@ png2prg: png2prg_linux
 all: png2prg_linux png2prg_darwin png2prg.exe
 
 test: png2prg_linux
-	./png2prg_linux -d -v -o z.prg testdata/wool.gif
+	./png2prg_linux -d -v -o z.prg testdata/leon.png
 	$(X64) z.prg >/dev/null
+
+testpack: png2prg_linux
+	./png2prg_linux -d -v -o z.prg testdata/leon.png
+	exomizer sfx basic -o zz.prg z.prg
+	$(X64) zz.prg >/dev/null
 
 compress: png2prg_linux.upx png2prg_darwin.upx png2prg.exe.upx
 

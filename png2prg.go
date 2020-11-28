@@ -66,6 +66,14 @@ type Koala struct {
 	BgColor        byte
 }
 
+type MultiColorChar struct {
+	CharIndex   int
+	Bitmap      [8]byte
+	BgColor     byte
+	ScreenColor byte
+	D800Color   byte
+}
+
 type Hires struct {
 	SourceFilename string
 	Bitmap         [8000]byte
@@ -184,6 +192,15 @@ func processFiles(ff []string) (err error) {
 		log.Printf("processing file %q", filename)
 	}
 
+	imgs, err := newSourceImages(filename)
+	if err == nil {
+		fmt.Printf("imgs: %d\n", len(imgs))
+		return nil
+	}
+	if verbose {
+		log.Printf("newSourceImages %q: %v", filename, err)
+	}
+
 	img, err := newSourceImage(filename)
 	if err != nil {
 		return fmt.Errorf("newSourceImage %q failed: %v", filename, err)
@@ -213,7 +230,14 @@ func processFiles(ff []string) (err error) {
 	case multiColorCharset:
 		c, err = img.convertToMultiColorCharset()
 		if err != nil {
-			return fmt.Errorf("convertToMultiColorCharset %q failed: %v", filename, err)
+			if !quiet {
+				log.Printf("convertToMultiColorCharset %q failed: %v", filename, err)
+				log.Printf("falling back to multiColorBitmap")
+			}
+			c, err = img.convertToKoala()
+			if err != nil {
+				return fmt.Errorf("convertToKoala %q failed: %v", filename, err)
+			}
 		}
 	default:
 		return fmt.Errorf("unsupported graphicsType for %q", filename)
