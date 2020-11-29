@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -115,9 +116,9 @@ func (img *sourceImage) analyze() error {
 	if verbose {
 		log.Printf("max colors per char: %d\n", max)
 	}
-	numColors := img.countColors()
+	numColors, colorIndexes := img.countColors()
 	if verbose {
-		log.Printf("total colors: %d\n", numColors)
+		log.Printf("total colors: %d (%v)\n", numColors, colorIndexes)
 	}
 	switch {
 	case max < 2:
@@ -148,14 +149,21 @@ func (img *sourceImage) analyze() error {
 	return nil
 }
 
-func (img *sourceImage) countColors() int {
+func (img *sourceImage) countColors() (int, []byte) {
 	m := make(map[RGB]byte, 16)
 	for i := range img.charColors {
 		for rgb, colorIndex := range img.charColors[i] {
 			m[rgb] = colorIndex
 		}
 	}
-	return len(m)
+	ci := []byte{}
+	for _, v := range m {
+		ci = append(ci, v)
+	}
+	sort.Slice(ci, func(i, j int) bool {
+		return ci[i] < ci[j]
+	})
+	return len(m), ci
 }
 
 func (img *sourceImage) maxColorsPerChar() (max int, m map[RGB]byte) {
@@ -209,6 +217,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 	}
 	return
 }
+
 func (img *sourceImage) findBackgroundColor() {
 	if img.backgroundCandidates == nil {
 		img.findBackgroundColorCandidates()
@@ -258,7 +267,7 @@ func (img *sourceImage) makeCharColors() error {
 			}
 			if !found {
 				x, y := xyFromChar(char)
-				log.Printf("error: forced bgcol %d not possible in char %v (x=%d, y=%d)", forceBgCol, char, x, y)
+				log.Printf("forced bgcol %d not possible in char %v (x=%d, y=%d)", forceBgCol, char, x, y)
 				fatalError = true
 			}
 		}
@@ -269,7 +278,7 @@ func (img *sourceImage) makeCharColors() error {
 			}
 			if len(count) > 4 {
 				x, y := xyFromChar(char)
-				log.Printf("error: amount of colors in char %v (x=%d, y=%d) %d > 4 : %v", char, x, y, len(count), count)
+				log.Printf("amount of colors in char %v (x=%d, y=%d) %d > 4 : %v", char, x, y, len(count), count)
 				fatalError = true
 			}
 		}
