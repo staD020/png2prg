@@ -14,19 +14,24 @@ import (
 func newSourceImage(filename string) (*sourceImage, error) {
 	r, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("newSourceImage could not open file %q: %v", filename, err)
+		return nil, fmt.Errorf("could not os.Open file %q: %v", filename, err)
 	}
 	defer r.Close()
+
 	img := &sourceImage{sourceFilename: filename}
-	img.image, _, err = image.Decode(r)
-	if err != nil {
-		return nil, fmt.Errorf("newSourceImage could not image.Decode %q: %v", filename, err)
+
+	if err = img.setPreferredBitpairColors(bitPairColors); err != nil {
+		return nil, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
+	}
+
+	if img.image, _, err = image.Decode(r); err != nil {
+		return nil, fmt.Errorf("image.Decode %q failed: %v", filename, err)
 	}
 
 	if err = img.checkBounds(); err != nil {
-		return nil, fmt.Errorf("newSourceImage checkBounds error %q: %v", filename, err)
+		return nil, fmt.Errorf("img.checkBounds error %q: %v", filename, err)
 	}
-	if verbose {
+	if verbose && (img.xOffset != 0 || img.yOffset != 0) {
 		log.Printf("img.xOffset, yOffset = %d, %d\n", img.xOffset, img.yOffset)
 	}
 
@@ -58,13 +63,29 @@ func newSourceImages(filename string) (imgs []sourceImage, err error) {
 
 	for _, img := range g.Image {
 		width, height := img.Bounds().Max.X-img.Bounds().Min.X, img.Bounds().Max.Y-img.Bounds().Min.Y
-		imgs = append(imgs, sourceImage{
+		s := sourceImage{
 			sourceFilename: filename,
 			image:          img,
-		})
+		}
+		if err = s.setPreferredBitpairColors(bitPairColors); err != nil {
+			return nil, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
+		}
+		imgs = append(imgs, s)
 		fmt.Printf("img %T, width %d x height %d\n", img, width, height)
 	}
 	return imgs, nil
+}
+
+func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
+	if v != "" {
+		if img.preferredBitpairColors, err = parseBitPairColors(v); err != nil {
+			return fmt.Errorf("parseBitPairColors %q failed: %v", bitPairColors, err)
+		}
+		if verbose {
+			log.Printf("will prefer bitpair colors: %v", img.preferredBitpairColors)
+		}
+	}
+	return nil
 }
 
 func (img *sourceImage) checkBounds() error {
@@ -194,15 +215,20 @@ func (img *sourceImage) findBackgroundColor() {
 	}
 	var rgb RGB
 	var colorIndex byte
+	forceBgCol := -1
+	if len(img.preferredBitpairColors) > 0 {
+		forceBgCol = int(img.preferredBitpairColors[0])
+	}
+
 	for rgb, colorIndex = range img.backgroundCandidates {
 		switch {
-		case forcebgcol < 0:
+		case forceBgCol < 0:
 			img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 			return
 		default:
-			if colorIndex == byte(forcebgcol) {
+			if colorIndex == byte(forceBgCol) {
 				if verbose {
-					log.Printf("findBackgroundColor: successfully found forced background color %d\n", forcebgcol)
+					log.Printf("findBackgroundColor: successfully found forced background color %d\n", forceBgCol)
 				}
 				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 				return
@@ -215,20 +241,24 @@ func (img *sourceImage) findBackgroundColor() {
 }
 
 func (img *sourceImage) makeCharColors() error {
+	forceBgCol := -1
+	if len(img.preferredBitpairColors) > 0 {
+		forceBgCol = int(img.preferredBitpairColors[0])
+	}
 	fatalError := false
 	for char := 0; char < 1000; char++ {
 		charColors := img.colorMapFromChar(char)
-		if forcebgcol >= 0 && len(charColors) == 4 {
+		if forceBgCol >= 0 && len(charColors) == 4 {
 			found := false
 			for _, val := range charColors {
-				if val == byte(forcebgcol) {
+				if val == byte(forceBgCol) {
 					found = true
 					break
 				}
 			}
 			if !found {
 				x, y := xyFromChar(char)
-				log.Printf("error: forced bgcol %d not possible in char %v (x=%d, y=%d)", forcebgcol, char, x, y)
+				log.Printf("error: forced bgcol %d not possible in char %v (x=%d, y=%d)", forceBgCol, char, x, y)
 				fatalError = true
 			}
 		}

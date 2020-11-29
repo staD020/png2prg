@@ -47,15 +47,16 @@ type colorInfo struct {
 }
 
 type sourceImage struct {
-	sourceFilename       string
-	image                image.Image
-	xOffset              int
-	yOffset              int
-	palette              map[RGB]byte
-	charColors           [1000]map[RGB]byte
-	backgroundCandidates map[RGB]byte
-	backgroundColor      colorInfo
-	graphicsType         graphicsType
+	sourceFilename         string
+	image                  image.Image
+	xOffset                int
+	yOffset                int
+	palette                map[RGB]byte
+	charColors             [1000]map[RGB]byte
+	backgroundCandidates   map[RGB]byte
+	backgroundColor        colorInfo
+	preferredBitpairColors []byte
+	graphicsType           graphicsType
 }
 
 type Koala struct {
@@ -103,8 +104,8 @@ var helpbool bool
 var quiet bool
 var verbose bool
 var display bool
-var forcebgcol int
 var forcecharcol int
+var bitPairColors string
 
 func init() {
 	flag.BoolVar(&quiet, "q", false, "quiet")
@@ -120,7 +121,7 @@ func init() {
 	flag.StringVar(&targetdir, "td", "", "targetdir")
 	flag.StringVar(&targetdir, "targetdir", "", "specify targetdir")
 
-	flag.IntVar(&forcebgcol, "force-bgcol", -1, "force background color -1: off 0: black 1: white 2: red, etc")
+	flag.StringVar(&bitPairColors, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
 	flag.IntVar(&forcecharcol, "force-charcol", -1, "force multicolor charset d800 color -1: off 0: black 1: white 2: red, etc")
 }
 
@@ -231,9 +232,10 @@ func processFiles(ff []string) (err error) {
 		c, err = img.convertToMultiColorCharset()
 		if err != nil {
 			if !quiet {
-				log.Printf("convertToMultiColorCharset %q failed: %v", filename, err)
-				log.Printf("falling back to multiColorBitmap")
+				log.Printf("falling back to multiColorBitmap because convertToMultiColorCharset %q failed: %v", filename, err)
 			}
+			img.graphicsType = multiColorBitmap
+			img.findBackgroundColor()
 			c, err = img.convertToKoala()
 			if err != nil {
 				return fmt.Errorf("convertToKoala %q failed: %v", filename, err)
