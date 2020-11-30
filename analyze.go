@@ -116,7 +116,7 @@ func (img *sourceImage) analyze() error {
 	if verbose {
 		log.Printf("max colors per char: %d\n", max)
 	}
-	numColors, colorIndexes := img.countColors()
+	numColors, colorIndexes, sumColors := img.countColors()
 	if verbose {
 		log.Printf("total colors: %d (%v)\n", numColors, colorIndexes)
 	}
@@ -125,35 +125,59 @@ func (img *sourceImage) analyze() error {
 		return fmt.Errorf("max colors per char %q < 2, is this a blank image?", max)
 	case numColors == 2:
 		img.graphicsType = singleColorCharset
-		if verbose {
-			log.Println("singleColorCharset found")
-		}
 	case max == 2:
 		img.graphicsType = singleColorBitmap
-		if verbose {
-			log.Println("singleColorBitmap found")
-		}
 	case numColors == 3 || numColors == 4:
 		img.graphicsType = multiColorCharset
-		if verbose {
-			log.Println("multiColorCharset found")
-		}
+		img.findBackgroundColor()
 	case max > 2:
 		img.graphicsType = multiColorBitmap
 		img.findBackgroundColor()
-		if verbose {
-			log.Println("multiColorBitmap found")
-		}
 	}
-
+	if verbose {
+		log.Printf("gfxformat found: %s", img.graphicsType)
+	}
+	img.guessPreferredBitpairColors(max, sumColors)
 	return nil
 }
 
-func (img *sourceImage) countColors() (int, []byte) {
+func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16]int) {
+	if len(img.preferredBitpairColors) >= maxColors {
+		return
+	}
+	if verbose {
+		log.Printf("current -bitpair-colors %v", img.preferredBitpairColors)
+	}
+	for i := len(img.preferredBitpairColors); i < maxColors; i++ {
+		max := 0
+		var colorIndex byte
+	NEXTCOLOR:
+		for i, sum := range sumColors {
+			for _, exists := range img.preferredBitpairColors {
+				if i == int(exists) {
+					continue NEXTCOLOR
+				}
+			}
+			if sum > max {
+				max = sum
+				colorIndex = byte(i)
+			}
+		}
+		img.preferredBitpairColors = append(img.preferredBitpairColors, colorIndex)
+		sumColors[colorIndex] = 0
+	}
+	if verbose {
+		log.Printf("guessed some -bitpair-colors %v", img.preferredBitpairColors)
+	}
+}
+
+func (img *sourceImage) countColors() (int, []byte, [16]int) {
 	m := make(map[RGB]byte, 16)
+	sum := [16]int{}
 	for i := range img.charColors {
 		for rgb, colorIndex := range img.charColors[i] {
 			m[rgb] = colorIndex
+			sum[colorIndex]++
 		}
 	}
 	ci := []byte{}
@@ -163,7 +187,7 @@ func (img *sourceImage) countColors() (int, []byte) {
 	sort.Slice(ci, func(i, j int) bool {
 		return ci[i] < ci[j]
 	})
-	return len(m), ci
+	return len(m), ci, sum
 }
 
 func (img *sourceImage) maxColorsPerChar() (max int, m map[RGB]byte) {
@@ -237,7 +261,7 @@ func (img *sourceImage) findBackgroundColor() {
 		default:
 			if colorIndex == byte(forceBgCol) {
 				if verbose {
-					log.Printf("findBackgroundColor: successfully found forced background color %d\n", forceBgCol)
+					log.Printf("findBackgroundColor: successfully found background color %d\n", forceBgCol)
 				}
 				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 				return

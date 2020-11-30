@@ -97,9 +97,10 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 	}
 
 	if len(img.preferredBitpairColors) == 0 {
-		numColors, colorIndexes := img.countColors()
+		numColors, colorIndexes, _ := img.countColors()
 		if numColors <= 4 {
 			img.preferredBitpairColors = colorIndexes
+			log.Printf("detected %d colors, assuming preferredBitpairColors %v", numColors, colorIndexes)
 		}
 	}
 

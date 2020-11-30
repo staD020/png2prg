@@ -41,6 +41,24 @@ const (
 	multiColorSprites
 )
 
+func (t graphicsType) String() string {
+	switch t {
+	case singleColorBitmap:
+		return "singleColorBitmap"
+	case multiColorBitmap:
+		return "multiColorBitmap"
+	case singleColorCharset:
+		return "singleColorCharset"
+	case multiColorCharset:
+		return "multiColorCharset"
+	case singleColorSprites:
+		return "singleColorSprites"
+	case multiColorSprites:
+		return "multiColorSprites"
+	}
+	return ""
+}
+
 type colorInfo struct {
 	rgb        RGB
 	colorIndex byte
