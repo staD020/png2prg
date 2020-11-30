@@ -107,9 +107,8 @@ func (img *sourceImage) checkBounds() error {
 
 func (img *sourceImage) analyze() error {
 	img.analyzePalette()
-	err := img.makeCharColors()
-	if err != nil {
-		return err
+	if err := img.makeCharColors(); err != nil {
+		return fmt.Errorf("img.makeCharColors failed: %v", err)
 	}
 
 	max, _ := img.maxColorsPerChar()
@@ -120,17 +119,16 @@ func (img *sourceImage) analyze() error {
 	if verbose {
 		log.Printf("total colors: %d (%v)\n", numColors, colorIndexes)
 	}
+
 	switch {
 	case max < 2:
 		return fmt.Errorf("max colors per char %q < 2, is this a blank image?", max)
 	case numColors == 2:
 		img.graphicsType = singleColorCharset
-		img.findBackgroundColor()
 	case max == 2:
 		img.graphicsType = singleColorBitmap
 	case numColors == 3 || numColors == 4:
 		img.graphicsType = multiColorCharset
-		img.findBackgroundColor()
 	case max > 2:
 		img.graphicsType = multiColorBitmap
 		img.findBackgroundColor()
@@ -138,7 +136,9 @@ func (img *sourceImage) analyze() error {
 	if verbose {
 		log.Printf("gfxformat found: %s", img.graphicsType)
 	}
-	img.guessPreferredBitpairColors(max, sumColors)
+	if !noGuess {
+		img.guessPreferredBitpairColors(max, sumColors)
+	}
 	return nil
 }
 
@@ -146,7 +146,10 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 	if len(img.preferredBitpairColors) >= maxColors {
 		return
 	}
-	if img.graphicsType != singleColorBitmap && img.graphicsType != singleColorCharset && len(img.preferredBitpairColors) == 0 {
+	if verbose {
+		log.Printf("sumColors: %v", sumColors)
+	}
+	if img.graphicsType == multiColorBitmap && len(img.preferredBitpairColors) == 0 {
 		img.preferredBitpairColors = append(img.preferredBitpairColors, img.backgroundColor.colorIndex)
 	}
 	for i := len(img.preferredBitpairColors); i < maxColors; i++ {
@@ -168,7 +171,27 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 		sumColors[colorIndex] = 0
 	}
 	if verbose {
-		log.Printf("guessed some -bitpair-colors %v", img.preferredBitpairColors)
+		log.Printf("guessed some -bitpair-colors: %v", img.preferredBitpairColors)
+	}
+	if img.graphicsType == multiColorCharset && len(img.preferredBitpairColors) == 4 {
+		for i, v := range img.preferredBitpairColors {
+			if v == 0 {
+				img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
+				if verbose {
+					log.Printf("but by default, prefer black as charcolor, to override use all -bitpair-colors: %v", img.preferredBitpairColors)
+				}
+				break
+			}
+		}
+		if img.preferredBitpairColors[3] > 7 {
+			for i, v := range img.preferredBitpairColors {
+				if v < 8 {
+					img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
+					log.Printf("had to avoid mixed singlecolor/multicolor mode, -bitpair-colors: %v", img.preferredBitpairColors)
+					break
+				}
+			}
+		}
 	}
 }
 

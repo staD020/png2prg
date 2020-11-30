@@ -122,8 +122,8 @@ var helpbool bool
 var quiet bool
 var verbose bool
 var display bool
-var forcecharcol int
 var bitPairColors string
+var noGuess bool
 
 func init() {
 	flag.BoolVar(&quiet, "q", false, "quiet")
@@ -139,8 +139,8 @@ func init() {
 	flag.StringVar(&targetdir, "td", "", "targetdir")
 	flag.StringVar(&targetdir, "targetdir", "", "specify targetdir")
 
+	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpairs")
 	flag.StringVar(&bitPairColors, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
-	flag.IntVar(&forcecharcol, "force-charcol", -1, "force multicolor charset d800 color -1: off 0: black 1: white 2: red, etc")
 }
 
 func main() {

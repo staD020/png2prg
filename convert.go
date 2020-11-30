@@ -242,12 +242,9 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 
 func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err error) {
 	c.SourceFilename = img.sourceFilename
-	type charBytes [8]byte
-	charMap := []charBytes{}
-
 	_, palette := img.maxColorsPerChar()
 	cc := sortColors(palette)
-	// we must sort reverse to avoid a high color in bit 11
+	// we must sort reverse to avoid a high color in bitpair 11
 	sort.Slice(cc, func(i, j int) bool {
 		return cc[i].colorIndex > cc[j].colorIndex
 	})
@@ -270,11 +267,14 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	}
 	if colorIndex2[3] > 7 {
 		if !quiet {
-			log.Println("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported, you may want to condider using -bitpair-colors")
+			log.Println("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported, you may want to consider using -bitpair-colors")
 		}
 	}
 
-	c.CharColor = colorIndex2[3]
+	type charBytes [8]byte
+	charMap := []charBytes{}
+
+	c.CharColor = colorIndex2[3] | 8
 	c.BgColor = colorIndex2[0]
 	c.D022Color = colorIndex2[1]
 	c.D023Color = colorIndex2[2]

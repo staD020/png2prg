@@ -7,7 +7,7 @@ import (
 )
 
 func printusage() {
-	fmt.Println("usage: ./png2prg [-help -h -d -q -v -force-bg-col 0 -force-charcol 5 -o outfile.prg -td testdata] FILE [FILE..]")
+	fmt.Println("usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]")
 }
 
 func help() {
@@ -39,8 +39,7 @@ func help() {
 	fmt.Println()
 	fmt.Println("Single or MultiColor Charset:")
 	fmt.Println()
-	fmt.Println("Currently only pictures with max 4 colors can be converted to charset.")
-	fmt.Println("You can use -force-bg-col and -force-char-col to control colors.")
+	fmt.Println("Currently only pictures with max 4 colors can be converted to a charset.")
 	fmt.Println()
 	fmt.Println("MultiColor charsets are packed, they only contain unique characaters.")
 	fmt.Println("SingleColor charsets are *not* packed, primary use is 1x1 charsets.")
@@ -55,7 +54,8 @@ func help() {
 	fmt.Println("Animation (MultiColor Bitmap Only for now):")
 	fmt.Println()
 	fmt.Println("If multiple files are added, they are treated as animation frames.")
-	fmt.Println("The base image will be exported and a separate .prg per frame.")
+	fmt.Println("The base image will be exported and eache frame as a separate .prg,")
+	fmt.Println("containing the modified characters.")
 	fmt.Println()
 	fmt.Println("The frame files are following this format.")
 	fmt.Println("Each frame consists of 1 or more chunks. A chunk looks like this:")
@@ -68,10 +68,10 @@ func help() {
 	fmt.Println()
 	fmt.Println("  For each char in this chunk:")
 	fmt.Println()
-	fmt.Println("    .byte 0,0,15,7,8,8,0,0 // pixels")
-	fmt.Println("    .byte $64              // screenram colors")
-	fmt.Println("    .byte $01              // colorram color")
-	fmt.Println("    ...                    // next chars")
+	fmt.Println("    .byte 0,31,15,7,8,8,0,128   // pixels")
+	fmt.Println("    .byte $64                  // screenram colors")
+	fmt.Println("    .byte $01                  // colorram color")
+	fmt.Println("    ...                        // next chars")
 	fmt.Println()
 	fmt.Println("  ...          // next chunks")
 	fmt.Println("  .byte 0      // end of frame")

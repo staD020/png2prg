@@ -11,16 +11,20 @@ LDFLAGS=-s -w
 CGO=0
 GOBUILDFLAGS=-v
 
+#FLAGS=-d -v
+FLAGS=-d -v
+TESTPIC=testdata/139573.gif
+
 png2prg: png2prg_linux
 
 all: png2prg_linux png2prg_darwin png2prg.exe
 
 test: png2prg_linux
-	./png2prg_linux -d -v -o z.prg testdata/leon.png
+	./png2prg_linux $(FLAGS) -o z.prg $(TESTPIC)
 	$(X64) z.prg >/dev/null
 
 testpack: png2prg_linux
-	./png2prg_linux -d -v -o z.prg testdata/leon.png
+	./png2prg_linux $(FLAGS) -o z.prg $(TESTPIC)
 	exomizer sfx basic -o zz.prg z.prg
 	$(X64) zz.prg >/dev/null
 
