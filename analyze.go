@@ -125,6 +125,7 @@ func (img *sourceImage) analyze() error {
 		return fmt.Errorf("max colors per char %q < 2, is this a blank image?", max)
 	case numColors == 2:
 		img.graphicsType = singleColorCharset
+		img.findBackgroundColor()
 	case max == 2:
 		img.graphicsType = singleColorBitmap
 	case numColors == 3 || numColors == 4:
@@ -145,8 +146,8 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 	if len(img.preferredBitpairColors) >= maxColors {
 		return
 	}
-	if verbose {
-		log.Printf("current -bitpair-colors %v", img.preferredBitpairColors)
+	if img.graphicsType != singleColorBitmap && img.graphicsType != singleColorCharset && len(img.preferredBitpairColors) == 0 {
+		img.preferredBitpairColors = append(img.preferredBitpairColors, img.backgroundColor.colorIndex)
 	}
 	for i := len(img.preferredBitpairColors); i < maxColors; i++ {
 		max := 0
