@@ -244,7 +244,9 @@ func (img *sourceImage) findBackgroundColor() {
 			}
 		}
 	}
-	log.Printf("findBackgroundColor: error, dont think we found anything?")
+	if !quiet {
+		log.Printf("findBackgroundColor: error, dont think we found anything?")
+	}
 	img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 	return
 }
@@ -356,6 +358,15 @@ func (img *sourceImage) distanceAndMap(palette [16]C64RGB) (float64, map[RGB]byt
 		}
 	}
 	return totalDistance, curMap
+}
+
+func (img *sourceImage) colorIndexToRGB(colorIndex byte) RGB {
+	for rgb, col := range img.palette {
+		if col == colorIndex {
+			return rgb
+		}
+	}
+	return RGB{}
 }
 
 func (r RGB) colorIndexAndDistance(palette [16]C64RGB) (byte, float64) {

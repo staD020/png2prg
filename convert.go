@@ -16,7 +16,7 @@ func parseBitPairColors(bp string) ([]byte, error) {
 		if err != nil {
 			return result, fmt.Errorf("strconv.Atoi conversion of %q to integers failed: %v", bp, err)
 		}
-		if i < 0 || i > 15 {
+		if i < -1 || i > 15 {
 			return result, fmt.Errorf("incorrect color %d", i)
 		}
 		result = append(result, byte(i))
@@ -38,85 +38,53 @@ func sortColors(charColors map[RGB]byte) (cc []colorInfo) {
 
 func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byte]byte, error) {
 	// rgb to bitpair
-	colorIndex1 := make(map[RGB]byte, 0)
+	colorIndex1 := make(map[RGB]byte)
 	// bitpair to colorindex
-	colorIndex2 := make(map[byte]byte, 0)
+	colorIndex2 := make(map[byte]byte)
 
-	if img.graphicsType == multiColorBitmap {
+	// set background
+	if img.graphicsType != singleColorBitmap {
 		colorIndex1[img.backgroundColor.rgb] = byte(0)
 		colorIndex2[byte(0)] = img.backgroundColor.colorIndex
 	}
-	if len(img.preferredBitpairColors) == 0 {
-		img.preferredBitpairColors = []byte{img.backgroundColor.colorIndex}
+	// prefill preferred and used colors
+	bitpairs := map[byte]bool{1: true, 2: true, 3: true}
+	if img.graphicsType == singleColorBitmap || img.graphicsType == singleColorCharset {
+		bitpairs = map[byte]bool{0: true, 1: true}
 	}
-
-	if img.preferredBitpairColors != nil {
-		for i, col := range cc {
-			for j, preferColor := range img.preferredBitpairColors {
-				if preferColor < 0 {
-					continue
-				}
-				if j >= len(cc) {
-					continue
-				}
-				if col.colorIndex == preferColor && i != j {
-					cc[i], cc[j] = cc[j], cc[i]
+	if len(img.preferredBitpairColors) > 0 {
+		for preferBitpair, preferColor := range img.preferredBitpairColors {
+			if preferColor < 0 {
+				continue
+			}
+			for _, ci := range cc {
+				if preferColor == ci.colorIndex {
+					colorIndex1[ci.rgb] = byte(preferBitpair)
+					colorIndex2[byte(preferBitpair)] = preferColor
+					delete(bitpairs, byte(preferBitpair))
 					break
 				}
 			}
 		}
 	}
-
-	for i, ci := range cc {
-		if i > 3 {
-			return colorIndex1, colorIndex2, fmt.Errorf("Too many colors in char")
-		}
-		if _, ok := colorIndex2[byte(i)]; ok {
-			continue
-		}
-		if _, ok := colorIndex1[ci.rgb]; !ok {
-			colorIndex1[ci.rgb] = byte(i)
-			colorIndex2[byte(i)] = ci.colorIndex
-		}
-	}
-
-	if len(colorIndex1) > 4 {
-		return colorIndex1, colorIndex2, fmt.Errorf("Too many colors in char (colorIndex1)")
-	}
-	if len(colorIndex2) > 4 {
-		return colorIndex1, colorIndex2, fmt.Errorf("Too many colors in char (colorIndex2)")
-	}
-
-	return colorIndex1, colorIndex2, nil
-}
-
-/*
-func multiColorIndexes(preloadBitpair byte, preloadRGB RGB, preloadColorIndex byte, cc []colorInfo) (map[RGB]byte, map[byte]byte, error) {
-	// rgb to bitpair
-	colorIndex1 := map[RGB]byte{preloadRGB: preloadBitpair}
-	// bitpair to colorindex
-	colorIndex2 := map[byte]byte{preloadBitpair: preloadColorIndex}
-	bitpair := byte(0)
+	// fill or replace missing colors
 	for _, ci := range cc {
-		if bitpair == preloadBitpair {
-			bitpair++
-		}
-		if ci.colorIndex == colorIndex2[preloadBitpair] {
-			continue
-		}
-		if bitpair > 3 {
-			return colorIndex1, colorIndex2, fmt.Errorf("Too many colors in char")
-		}
-
 		if _, ok := colorIndex1[ci.rgb]; !ok {
+			// col not found
+			if len(bitpairs) == 0 {
+				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
+			}
+			var bitpair byte
+			for bitpair = range bitpairs {
+				delete(bitpairs, bitpair)
+				break
+			}
 			colorIndex1[ci.rgb] = bitpair
 			colorIndex2[bitpair] = ci.colorIndex
 		}
-		bitpair++
 	}
 	return colorIndex1, colorIndex2, nil
 }
-*/
 
 func (img *sourceImage) convertToKoala() (Koala, error) {
 	k := Koala{
@@ -125,20 +93,10 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 	}
 
 	for char := 0; char < 1000; char++ {
-		cc := sortColors(img.charColors[char])
-		for len(cc) < 4 {
-			cc = append(cc, colorInfo{})
-		}
-
-		colorIndex1, colorIndex2, err := img.multiColorIndexes(cc)
+		colorIndex1, colorIndex2, err := img.multiColorIndexes(sortColors(img.charColors[char]))
 		if err != nil {
 			return k, fmt.Errorf("error in char %d: %v", char, err)
 		}
-
-		//colorIndex1, colorIndex2, err := multiColorIndexes(byte(0), img.backgroundColor.rgb, img.backgroundColor.colorIndex, cc)
-		//if err != nil {
-		//	return koala, fmt.Errorf("error in char %d: %v", char, err)
-		//}
 
 		bitmapIndex := char * 8
 		imageXIndex := img.xOffset + (int(math.Mod(float64(char), 40)) * 8)
@@ -185,23 +143,6 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 			return h, fmt.Errorf("error in char %d: %v", char, err)
 		}
 
-		/*
-
-			// we need colorindexes to know which bit is what
-			colorIndex1 := map[RGB]byte{}
-			colorIndex2 := map[byte]byte{}
-			bit := byte(0)
-			for _, ci := range cc {
-				if bit > 1 {
-					return h, fmt.Errorf("Too many hires colors in char %v.", char)
-				}
-				if _, ok := colorIndex2[bit]; !ok {
-					colorIndex1[ci.rgb] = bit
-					colorIndex2[bit] = ci.colorIndex
-				}
-				bit++
-			}
-		*/
 		bitmapIndex := char * 8
 		imageXIndex := img.xOffset + (int(math.Mod(float64(char), 40)) * 8)
 		imageYIndex := img.yOffset + (int(math.Floor(float64(char)/40)) * 8)
@@ -294,69 +235,31 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 
 	_, palette := img.maxColorsPerChar()
 	cc := sortColors(palette)
+	// we must sort reverse to avoid a high color in bit 11
+	sort.Slice(cc, func(i, j int) bool {
+		return cc[i].colorIndex > cc[j].colorIndex
+	})
+
+	if len(img.preferredBitpairColors) == 0 {
+		for _, v := range cc {
+			img.preferredBitpairColors = append(img.preferredBitpairColors, v.colorIndex)
+		}
+	}
 
 	colorIndex1, colorIndex2, err := img.multiColorIndexes(cc)
 	if err != nil {
 		return c, fmt.Errorf("multiColorIndexes failed: %v", err)
 	}
 
-	/*
-		// TODO: make colors fully configurable
-		// we can now force charcol and bgcol from the cli
-		var colorIndex1 map[RGB]byte
-		var colorIndex2 map[byte]byte
-
-		forceBgCol := -1
-		if len(img.preferredBitpairColors) > 0 {
-			forceBgCol = int(img.preferredBitpairColors[0])
-		}
-
-		if forceBgCol >= 0 {
-			for i, col := range cc {
-				if col.colorIndex == byte(forceBgCol) {
-					cc[0], cc[i] = cc[i], cc[0]
-					if verbose {
-						log.Printf("forced background color %d was found", forceBgCol)
-					}
-					break
-				}
-			}
-		}
-	*/
-
-	/*
-		if forcecharcol < 0 {
-			colorIndex1, colorIndex2, err = multiColorIndexes(byte(3), cc[0].rgb, cc[0].colorIndex, cc)
-		} else {
-			found := false
-			for _, col := range cc {
-				if col.colorIndex == byte(forcecharcol) {
-					colorIndex1, colorIndex2, err = multiColorIndexes(byte(3), col.rgb, col.colorIndex, cc)
-					if verbose {
-						log.Printf("forced character color %d was found", forcecharcol)
-					}
-					found = true
-					break
-				}
-			}
-			if !found {
-				if !quiet {
-					log.Printf("forced character color %d was NOT found", forcecharcol)
-					colorIndex1, colorIndex2, err = multiColorIndexes(byte(3), cc[0].rgb, cc[0].colorIndex, cc)
-				}
-			}
-		}
-		if err != nil {
-			return c, fmt.Errorf("convertToMultiColorCharset multiColorIndexes error: %v", err)
-		}
-	*/
 	if verbose {
 		log.Printf("charset colors: %v\n", cc)
 		log.Printf("colorIndex1: %v\n", colorIndex1)
 		log.Printf("colorIndex2: %v\n", colorIndex2)
 	}
 	if colorIndex2[3] > 7 {
-		return c, fmt.Errorf("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported")
+		//return c, fmt.Errorf("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported")
+		log.Println("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported")
+
 	}
 
 	c.CharColor = colorIndex2[3]
