@@ -48,21 +48,27 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 		colorIndex2[byte(0)] = img.backgroundColor.colorIndex
 	}
 	// prefill preferred and used colors
-	bitpairs := map[byte]bool{1: true, 2: true, 3: true}
+	bitpairs := []byte{1, 2, 3}
 	if img.graphicsType == singleColorBitmap || img.graphicsType == singleColorCharset {
-		bitpairs = map[byte]bool{0: true, 1: true}
+		bitpairs = []byte{0, 1}
 	}
 	if len(img.preferredBitpairColors) > 0 {
 		for preferBitpair, preferColor := range img.preferredBitpairColors {
 			if preferColor < 0 {
 				continue
 			}
+		OUTER:
 			for _, ci := range cc {
 				if preferColor == ci.colorIndex {
 					colorIndex1[ci.rgb] = byte(preferBitpair)
 					colorIndex2[byte(preferBitpair)] = preferColor
-					delete(bitpairs, byte(preferBitpair))
-					break
+
+					for i := range bitpairs {
+						if bitpairs[i] == byte(preferBitpair) {
+							bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
+							break OUTER
+						}
+					}
 				}
 			}
 		}
@@ -75,10 +81,7 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
 			}
 			var bitpair byte
-			for bitpair = range bitpairs {
-				delete(bitpairs, bitpair)
-				break
-			}
+			bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[:len(bitpairs)-1]
 			colorIndex1[ci.rgb] = bitpair
 			colorIndex2[bitpair] = ci.colorIndex
 		}
