@@ -47,11 +47,12 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 		colorIndex1[img.backgroundColor.rgb] = byte(0)
 		colorIndex2[byte(0)] = img.backgroundColor.colorIndex
 	}
-	// prefill preferred and used colors
+	// which bitpairs do we have left
 	bitpairs := []byte{1, 2, 3}
 	if img.graphicsType == singleColorBitmap || img.graphicsType == singleColorCharset {
 		bitpairs = []byte{0, 1}
 	}
+	// prefill preferred and used colors
 	if len(img.preferredBitpairColors) > 0 {
 		for preferBitpair, preferColor := range img.preferredBitpairColors {
 			if preferColor < 0 {
@@ -93,6 +94,13 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 	k := Koala{
 		BgColor:        img.backgroundColor.colorIndex,
 		SourceFilename: img.sourceFilename,
+	}
+
+	if len(img.preferredBitpairColors) == 0 {
+		numColors, colorIndexes := img.countColors()
+		if numColors <= 4 {
+			img.preferredBitpairColors = colorIndexes
+		}
 	}
 
 	for char := 0; char < 1000; char++ {
@@ -260,9 +268,9 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 		log.Printf("colorIndex2: %v\n", colorIndex2)
 	}
 	if colorIndex2[3] > 7 {
-		//return c, fmt.Errorf("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported")
-		log.Println("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported")
-
+		if !quiet {
+			log.Println("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported, you may want to condider using -bitpair-colors")
+		}
 	}
 
 	c.CharColor = colorIndex2[3]

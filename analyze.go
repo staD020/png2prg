@@ -184,7 +184,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 		}
 	}
 
-	// need to copy the map, as we delete stuff to eliminate false candidates
+	// need to copy the map, as we delete false candidates
 	candidates := make(map[RGB]byte, 16)
 	switch {
 	case len(backgroundCharColors) > 0:
