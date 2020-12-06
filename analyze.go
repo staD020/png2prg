@@ -284,8 +284,20 @@ func (img *sourceImage) findBackgroundColor() {
 	var rgb RGB
 	var colorIndex byte
 	forceBgCol := -1
-	if len(img.preferredBitpairColors) > 0 {
+	switch {
+	case len(img.preferredBitpairColors) > 0:
 		forceBgCol = int(img.preferredBitpairColors[0])
+	default:
+		_, _, sumColors := img.countColors()
+		max := 0
+		colorIndex := -1
+		for color, count := range sumColors {
+			if count > max {
+				max = count
+				colorIndex = color
+			}
+		}
+		forceBgCol = colorIndex
 	}
 
 	for rgb, colorIndex = range img.backgroundCandidates {
