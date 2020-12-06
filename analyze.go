@@ -131,10 +131,20 @@ func (img *sourceImage) analyze() error {
 		img.graphicsType = multiColorCharset
 	case max > 2:
 		img.graphicsType = multiColorBitmap
-		img.findBackgroundColor()
 	}
-	if verbose {
+	if !quiet {
 		log.Printf("gfxformat found: %s", img.graphicsType)
+	}
+	if graphicsMode != "" {
+		if img.graphicsType != currentGraphicsType {
+			img.graphicsType = currentGraphicsType
+			if !quiet {
+				log.Printf("gfxformat forced: %s", img.graphicsType)
+			}
+		}
+	}
+	if img.graphicsType == multiColorBitmap {
+		img.findBackgroundColor()
 	}
 	if !noGuess {
 		img.guessPreferredBitpairColors(max, sumColors)
@@ -173,12 +183,13 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 	if verbose {
 		log.Printf("guessed some -bitpair-colors: %v", img.preferredBitpairColors)
 	}
+
 	if img.graphicsType == multiColorCharset && len(img.preferredBitpairColors) == 4 {
 		for i, v := range img.preferredBitpairColors {
 			if v == 0 {
 				img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
 				if verbose {
-					log.Printf("but by default, prefer black as charcolor, to override use all -bitpair-colors: %v", img.preferredBitpairColors)
+					log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors: %v", maxColors, img.preferredBitpairColors)
 				}
 				break
 			}
@@ -281,11 +292,14 @@ func (img *sourceImage) findBackgroundColor() {
 		switch {
 		case forceBgCol < 0:
 			img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
+			if verbose {
+				log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
+			}
 			return
 		default:
 			if colorIndex == byte(forceBgCol) {
 				if verbose {
-					log.Printf("findBackgroundColor: successfully found background color %d\n", forceBgCol)
+					log.Printf("findBackgroundColor: found forced background color %d\n", forceBgCol)
 				}
 				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 				return

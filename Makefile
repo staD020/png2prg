@@ -11,9 +11,10 @@ LDFLAGS=-s -w
 CGO=0
 GOBUILDFLAGS=-v
 
-#FLAGS=-d -v
 FLAGS=-d -v
-TESTPIC=testdata/139573.gif
+FLAGSNG=-d -v -no-guess
+FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
+TESTPIC=testdata/gollum.png
 
 png2prg: png2prg_linux
 
@@ -25,8 +26,12 @@ test: png2prg_linux
 
 testpack: png2prg_linux
 	./png2prg_linux $(FLAGS) -o z.prg $(TESTPIC)
-	exomizer sfx basic -o zz.prg z.prg
-	$(X64) zz.prg >/dev/null
+	exomizer sfx basic -q -o zz_guess.prg z.prg
+	./png2prg_linux $(FLAGSNG) -o z.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_noguess.prg z.prg
+	./png2prg_linux $(FLAGSNG2) -o z.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_noguess2.prg z.prg
+	$(X64) zz_guess.prg >/dev/null
 
 compress: png2prg_linux.upx png2prg_darwin.upx png2prg.exe.upx
 

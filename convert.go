@@ -74,6 +74,7 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 			}
 		}
 	}
+
 	// fill or replace missing colors
 	for _, ci := range cc {
 		if _, ok := colorIndex1[ci.rgb]; !ok {
@@ -100,7 +101,9 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 		numColors, colorIndexes, _ := img.countColors()
 		if numColors <= 4 {
 			img.preferredBitpairColors = colorIndexes
-			log.Printf("detected %d colors, assuming preferredBitpairColors %v", numColors, colorIndexes)
+			if verbose {
+				log.Printf("detected %d unique colors, assuming preferredBitpairColors %v", numColors, colorIndexes)
+			}
 		}
 	}
 

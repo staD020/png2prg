@@ -124,6 +124,8 @@ var verbose bool
 var display bool
 var bitPairColors string
 var noGuess bool
+var graphicsMode string
+var currentGraphicsType graphicsType
 
 func init() {
 	flag.BoolVar(&quiet, "q", false, "quiet")
@@ -138,6 +140,8 @@ func init() {
 	flag.StringVar(&outfile, "out", "", "specify outfile.prg, by default it changes extension to .prg")
 	flag.StringVar(&targetdir, "td", "", "targetdir")
 	flag.StringVar(&targetdir, "targetdir", "", "specify targetdir")
+	flag.StringVar(&graphicsMode, "m", "", "force graphics mode")
+	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode koala/hires/mccharset/sccharset")
 
 	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpairs")
 	flag.StringVar(&bitPairColors, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
@@ -157,6 +161,7 @@ func main() {
 		printusage()
 		os.Exit(0)
 	}
+	setGraphicsType()
 	if display {
 		if err := initDisplayers(); err != nil {
 			log.Fatal(err)
@@ -169,6 +174,19 @@ func main() {
 
 	if !quiet {
 		fmt.Printf("elapsed: %v\n", time.Since(t0))
+	}
+}
+
+func setGraphicsType() {
+	switch graphicsMode {
+	case "koala":
+		currentGraphicsType = multiColorBitmap
+	case "hires":
+		currentGraphicsType = singleColorBitmap
+	case "sccharset":
+		currentGraphicsType = singleColorCharset
+	case "mccharset":
+		currentGraphicsType = multiColorCharset
 	}
 }
 
@@ -249,6 +267,9 @@ func processFiles(ff []string) (err error) {
 	case multiColorCharset:
 		c, err = img.convertToMultiColorCharset()
 		if err != nil {
+			if graphicsMode != "" {
+				return fmt.Errorf("convertToMultiColorCharset %q failed: %v", filename, err)
+			}
 			if !quiet {
 				log.Printf("falling back to multiColorBitmap because convertToMultiColorCharset %q failed: %v", filename, err)
 			}
