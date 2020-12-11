@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -114,8 +113,7 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 		}
 
 		bitmapIndex := char * 8
-		imageXIndex := img.xOffset + (int(math.Mod(float64(char), 40)) * 8)
-		imageYIndex := img.yOffset + (int(math.Floor(float64(char)/40)) * 8)
+		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
 
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)
@@ -159,8 +157,7 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 		}
 
 		bitmapIndex := char * 8
-		imageXIndex := img.xOffset + (int(math.Mod(float64(char), 40)) * 8)
-		imageYIndex := img.yOffset + (int(math.Floor(float64(char)/40)) * 8)
+		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
 
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)
@@ -223,11 +220,8 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 	}
 
 	for char := 0; char < 256; char++ {
-
 		bitmapIndex := char * 8
-		imageXIndex := img.xOffset + (int(math.Mod(float64(char), 40)) * 8)
-		imageYIndex := img.yOffset + (int(math.Floor(float64(char)/40)) * 8)
-
+		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel++ {
@@ -283,11 +277,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	c.D023Color = colorIndex2[2]
 
 	for char := 0; char < 1000; char++ {
-
-		//bitmapIndex := char * 8
-		imageXIndex := img.xOffset + (int(math.Mod(float64(char), 40)) * 8)
-		imageYIndex := img.yOffset + (int(math.Floor(float64(char)/40)) * 8)
-
+		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
 		cbuf := charBytes{}
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)

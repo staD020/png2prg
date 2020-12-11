@@ -13,8 +13,8 @@ GOBUILDFLAGS=-v
 
 FLAGS=-d -v
 FLAGSNG=-d -v -no-guess
-FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
-TESTPIC=testdata/gollum.png
+FLAGSNG2=-d -v -bitpair-colors 5,-1,-1,-1
+TESTPIC=testdata/lighter3a-black.png
 
 png2prg: png2prg_linux
 

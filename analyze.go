@@ -90,19 +90,20 @@ func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 }
 
 func (img *sourceImage) checkBounds() error {
-	width, height := img.image.Bounds().Max.X-img.image.Bounds().Min.X, img.image.Bounds().Max.Y-img.image.Bounds().Min.Y
+	img.width, img.height = img.image.Bounds().Max.X-img.image.Bounds().Min.X, img.image.Bounds().Max.Y-img.image.Bounds().Min.Y
 	img.xOffset, img.yOffset = img.image.Bounds().Min.X, img.image.Bounds().Min.Y
 
 	switch {
-	case (width == 320) && (height == 200):
+	case (img.width == 320) && (img.height == 200):
 		return nil
-	case (width == 384) && (height == 272):
+	case (img.width == 384) && (img.height == 272):
 		// default screenshot size in vice with default borders
 		img.xOffset += (384 - 320) / 2
 		img.yOffset += ((272 - 200) / 2) - 1
+		img.width, img.height = 320, 200
 		return nil
 	}
-	return fmt.Errorf("image %q is not 320x200 or 384x272 pixels, but %d x %d pixels", img.sourceFilename, width, height)
+	return fmt.Errorf("image %q is not 320x200 or 384x272 pixels, but %d x %d pixels", img.sourceFilename, img.width, img.height)
 }
 
 func (img *sourceImage) analyze() error {
@@ -365,6 +366,11 @@ func (img *sourceImage) makeCharColors() error {
 		return fmt.Errorf("fatal error: unable to convert %q", img.sourceFilename)
 	}
 	return nil
+}
+
+func (img *sourceImage) xyOffsetFromChar(char int) (x, y int) {
+	x, y = xyFromChar(char)
+	return x + img.xOffset, y + img.yOffset
 }
 
 func (img *sourceImage) colorMapFromChar(char int) map[RGB]byte {

@@ -30,7 +30,7 @@ type C64RGB struct {
 	RGB        RGB
 }
 
-type graphicsType int
+type graphicsType byte
 
 const (
 	singleColorBitmap graphicsType = iota
@@ -69,6 +69,8 @@ type sourceImage struct {
 	image                  image.Image
 	xOffset                int
 	yOffset                int
+	width                  int
+	height                 int
 	palette                map[RGB]byte
 	charColors             [1000]map[RGB]byte
 	backgroundCandidates   map[RGB]byte
