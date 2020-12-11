@@ -167,15 +167,18 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 		max := 0
 		var colorIndex byte
 	NEXTCOLOR:
-		for i, sum := range sumColors {
+		for j, sum := range sumColors {
+			if sum == 0 {
+				continue
+			}
 			for _, exists := range img.preferredBitpairColors {
-				if i == int(exists) {
+				if j == int(exists) {
 					continue NEXTCOLOR
 				}
 			}
 			if sum > max {
 				max = sum
-				colorIndex = byte(i)
+				colorIndex = byte(j)
 			}
 		}
 		img.preferredBitpairColors = append(img.preferredBitpairColors, colorIndex)
