@@ -219,9 +219,34 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 		bit++
 	}
 
-	for char := 0; char < 256; char++ {
-		bitmapIndex := char * 8
+	//c.CharColor = colorIndex2[1]
+	//c.BgColor = colorIndex2[0]
+
+	if !packChars {
+		for char := 0; char < 256; char++ {
+			bitmapIndex := char * 8
+			imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
+			for byteIndex := 0; byteIndex < 8; byteIndex++ {
+				bmpbyte := byte(0)
+				for pixel := 0; pixel < 8; pixel++ {
+					r, g, b, _ := img.image.At(imageXIndex+pixel, imageYIndex+byteIndex).RGBA()
+					rgb := RGB{byte(r), byte(g), byte(b)}
+					bmppattern := colorIndex1[rgb]
+					bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
+				}
+				c.Bitmap[bitmapIndex+byteIndex] = bmpbyte
+			}
+			c.Screen[char] = byte(char)
+		}
+		return c, nil
+	}
+
+	type charBytes [8]byte
+	charMap := []charBytes{}
+
+	for char := 0; char < 1000; char++ {
 		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
+		cbuf := charBytes{}
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel++ {
@@ -230,8 +255,38 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 				bmppattern := colorIndex1[rgb]
 				bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 			}
-			c.Bitmap[bitmapIndex+byteIndex] = bmpbyte
+			cbuf[byteIndex] = bmpbyte
 		}
+
+		found := false
+		curChar := 0
+		for curChar = range charMap {
+			if cbuf == charMap[curChar] {
+				found = true
+				break
+			}
+		}
+		if !found {
+			charMap = append(charMap, cbuf)
+			curChar = len(charMap) - 1
+		}
+		c.Screen[char] = byte(curChar)
+	}
+
+	if len(charMap) > 256 {
+		return c, fmt.Errorf("image packs to %d unique chars, the max is 256.", len(charMap))
+	}
+
+	j := 0
+	for _, bytes := range charMap {
+		for _, b := range bytes {
+			c.Bitmap[j] = b
+			j++
+		}
+	}
+
+	if verbose {
+		log.Printf("used %d unique chars in the charset", j/8)
 	}
 
 	return c, nil
@@ -308,7 +363,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	}
 
 	if len(charMap) > 256 {
-		return c, fmt.Errorf("image translates to %d unique chars, the max is 256.", len(charMap))
+		return c, fmt.Errorf("image packs to %d unique chars, the max is 256.", len(charMap))
 	}
 
 	j := 0

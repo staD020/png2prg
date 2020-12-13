@@ -23,10 +23,9 @@ start:
 	.for (var i=0; i<4; i++) {
 		sta $d800+(i*$100),x
 	}
-		txa
-		sta screenram,x
-		lda #$20
-	.for (var i=1; i<4; i++) {
+
+	.for (var i=0; i<4; i++) {
+		lda charset_source+$800+(i*$100),x
 		sta screenram+(i*$100),x
 	}
 		inx
