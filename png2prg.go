@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -64,6 +65,19 @@ type colorInfo struct {
 	colorIndex byte
 }
 
+type bitpairColors []byte
+
+func (b bitpairColors) String() string {
+	s := ""
+	for i, v := range b {
+		s = s + strconv.Itoa(int(v))
+		if i < len(b)-1 {
+			s = s + ","
+		}
+	}
+	return s
+}
+
 type sourceImage struct {
 	sourceFilename         string
 	image                  image.Image
@@ -75,7 +89,7 @@ type sourceImage struct {
 	charColors             [1000]map[RGB]byte
 	backgroundCandidates   map[RGB]byte
 	backgroundColor        colorInfo
-	preferredBitpairColors []byte
+	preferredBitpairColors bitpairColors
 	graphicsType           graphicsType
 }
 
@@ -126,7 +140,7 @@ var quiet bool
 var verbose bool
 var display bool
 var noPackChars bool
-var bitPairColors string
+var bitpairColorsString string
 var noGuess bool
 var graphicsMode string
 var currentGraphicsType graphicsType
@@ -144,13 +158,14 @@ func init() {
 	flag.StringVar(&outfile, "out", "", "specify outfile.prg, by default it changes extension to .prg")
 	flag.StringVar(&targetdir, "td", "", "targetdir")
 	flag.StringVar(&targetdir, "targetdir", "", "specify targetdir")
-	flag.StringVar(&graphicsMode, "m", "", "force graphics mode")
+	flag.StringVar(&graphicsMode, "m", "", "mode")
 	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode koala/hires/mccharset/sccharset")
 
+	flag.BoolVar(&noGuess, "ng", false, "no-guess")
 	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpairs")
 	flag.BoolVar(&noPackChars, "np", false, "no-pack")
 	flag.BoolVar(&noPackChars, "no-pack", false, "do not pack chars (only for sc/mc charset)")
-	flag.StringVar(&bitPairColors, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
+	flag.StringVar(&bitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
 }
 
 func main() {
@@ -160,6 +175,7 @@ func main() {
 	if !quiet {
 		fmt.Printf("png2prg %v by burglar\n", version)
 	}
+
 	if helpbool {
 		help()
 	}
@@ -167,7 +183,7 @@ func main() {
 		printusage()
 		os.Exit(0)
 	}
-	setGraphicsType()
+	setGraphicsType(graphicsMode)
 	if display {
 		if err := initDisplayers(); err != nil {
 			log.Fatal(err)
@@ -183,8 +199,8 @@ func main() {
 	}
 }
 
-func setGraphicsType() {
-	switch graphicsMode {
+func setGraphicsType(s string) {
+	switch s {
 	case "koala":
 		currentGraphicsType = multiColorBitmap
 	case "hires":
@@ -235,13 +251,17 @@ func processFiles(ff []string) (err error) {
 		log.Printf("processing file %q", filename)
 	}
 
-	imgs, err := newSourceImages(filename)
-	if err == nil {
-		fmt.Printf("imgs: %d\n", len(imgs))
-		return nil
-	}
-	if verbose {
-		log.Printf("newSourceImages %q: %v", filename, err)
+	var imgs []sourceImage
+	if strings.ToLower(filepath.Ext(filename)) == ".gif" {
+		imgs, err = newSourceImages(filename)
+		if err == nil {
+			fmt.Printf("imgs: %d\n", len(imgs))
+			return nil
+		}
+
+		if verbose {
+			log.Printf("newSourceImages %q: %v", filename, err)
+		}
 	}
 
 	img, err := newSourceImage(filename)
@@ -276,10 +296,10 @@ func processFiles(ff []string) (err error) {
 			if graphicsMode != "" {
 				return fmt.Errorf("convertToMultiColorCharset %q failed: %v", filename, err)
 			}
-			if !quiet {
-				log.Printf("falling back to multiColorBitmap because convertToMultiColorCharset %q failed: %v", filename, err)
-			}
 			img.graphicsType = multiColorBitmap
+			if !quiet {
+				log.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v", img.graphicsType, filename, err)
+			}
 			img.findBackgroundColor()
 			c, err = img.convertToKoala()
 			if err != nil {
@@ -290,7 +310,7 @@ func processFiles(ff []string) (err error) {
 		return fmt.Errorf("unsupported graphicsType for %q", filename)
 	}
 
-	destFilename := getDestinationFilename(img.sourceFilename)
+	destFilename := destinationFilename(img.sourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
 		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
@@ -300,7 +320,7 @@ func processFiles(ff []string) (err error) {
 		return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
 	}
 	if !quiet {
-		fmt.Printf("converted %q to %q\n", img.sourceFilename, destFilename)
+		fmt.Printf("converted %q to %q in %q format\n", img.sourceFilename, destFilename, img.graphicsType)
 	}
 
 	return nil
@@ -340,7 +360,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 
 func writeData(w io.Writer, data [][]byte) (n int64, err error) {
 	for _, d := range data {
-		m := 0
+		var m int
 		m, err = w.Write(d)
 		n += int64(m)
 		if err != nil {
@@ -350,7 +370,7 @@ func writeData(w io.Writer, data [][]byte) (n int64, err error) {
 	return n, nil
 }
 
-func getDestinationFilename(filename string) (destfilename string) {
+func destinationFilename(filename string) (destfilename string) {
 	if len(targetdir) > 0 {
 		destfilename = filepath.Dir(targetdir+string(os.PathSeparator)) + string(os.PathSeparator)
 	}

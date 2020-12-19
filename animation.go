@@ -29,7 +29,7 @@ func handleAnimation(ff []string) error {
 			}
 			kk = append(kk, k)
 		default:
-			return fmt.Errorf("unsupported graphicsType %q", f)
+			return fmt.Errorf("animations do not support %q yet (file %q)", img.graphicsType, f)
 		}
 	}
 
@@ -37,7 +37,7 @@ func handleAnimation(ff []string) error {
 		log.Print("nothing to do")
 		return nil
 	}
-	destFilename := getDestinationFilename(kk[0].SourceFilename)
+	destFilename := destinationFilename(kk[0].SourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
 		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
@@ -65,7 +65,7 @@ func handleAnimation(ff []string) error {
 }
 
 func frameFilename(i int, filename string) string {
-	d := getDestinationFilename(filename)
+	d := destinationFilename(filename)
 	return strings.TrimSuffix(d, filepath.Ext(d)) + ".frame" + strconv.Itoa(i) + ".prg"
 }
 

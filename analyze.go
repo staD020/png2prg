@@ -21,7 +21,7 @@ func newSourceImage(filename string) (*sourceImage, error) {
 
 	img := &sourceImage{sourceFilename: filename}
 
-	if err = img.setPreferredBitpairColors(bitPairColors); err != nil {
+	if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
 		return nil, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
 	}
 
@@ -68,7 +68,7 @@ func newSourceImages(filename string) (imgs []sourceImage, err error) {
 			sourceFilename: filename,
 			image:          img,
 		}
-		if err = s.setPreferredBitpairColors(bitPairColors); err != nil {
+		if err = s.setPreferredBitpairColors(bitpairColorsString); err != nil {
 			return nil, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
 		}
 		imgs = append(imgs, s)
@@ -80,7 +80,7 @@ func newSourceImages(filename string) (imgs []sourceImage, err error) {
 func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 	if v != "" {
 		if img.preferredBitpairColors, err = parseBitPairColors(v); err != nil {
-			return fmt.Errorf("parseBitPairColors %q failed: %v", bitPairColors, err)
+			return fmt.Errorf("parseBitPairColors %q failed: %v", v, err)
 		}
 		if verbose {
 			log.Printf("will prefer bitpair colors: %v", img.preferredBitpairColors)
@@ -185,7 +185,7 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 		sumColors[colorIndex] = 0
 	}
 	if verbose {
-		log.Printf("guessed some -bitpair-colors: %v", img.preferredBitpairColors)
+		log.Printf("guessed some -bitpair-colors %v", img.preferredBitpairColors)
 	}
 
 	if img.graphicsType == multiColorCharset && len(img.preferredBitpairColors) == 4 {
@@ -193,7 +193,7 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 			if v == 0 {
 				img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
 				if verbose {
-					log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors: %v", maxColors, img.preferredBitpairColors)
+					log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %v", maxColors, img.preferredBitpairColors)
 				}
 				break
 			}
@@ -202,7 +202,7 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 			for i, v := range img.preferredBitpairColors {
 				if v < 8 {
 					img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
-					log.Printf("had to avoid mixed singlecolor/multicolor mode, -bitpair-colors: %v", img.preferredBitpairColors)
+					log.Printf("had to avoid mixed singlecolor/multicolor mode, -bitpair-colors %v", img.preferredBitpairColors)
 					break
 				}
 			}
