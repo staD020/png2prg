@@ -44,17 +44,17 @@ const (
 func (t graphicsType) String() string {
 	switch t {
 	case singleColorBitmap:
-		return "singleColorBitmap"
+		return "hires"
 	case multiColorBitmap:
-		return "multiColorBitmap"
+		return "koala"
 	case singleColorCharset:
-		return "singleColorCharset"
+		return "singlecolor charset"
 	case multiColorCharset:
-		return "multiColorCharset"
+		return "multicolor charset"
 	case singleColorSprites:
-		return "singleColorSprites"
+		return "singlecolor sprites"
 	case multiColorSprites:
-		return "multiColorSprites"
+		return "multicolor sprites"
 	}
 	return ""
 }
@@ -125,7 +125,7 @@ var helpbool bool
 var quiet bool
 var verbose bool
 var display bool
-var packChars bool
+var noPackChars bool
 var bitPairColors string
 var noGuess bool
 var graphicsMode string
@@ -140,8 +140,6 @@ func init() {
 	flag.BoolVar(&display, "display", false, "include displayer")
 	flag.BoolVar(&helpbool, "h", false, "help")
 	flag.BoolVar(&helpbool, "help", false, "help")
-	flag.BoolVar(&packChars, "p", false, "pack")
-	flag.BoolVar(&packChars, "pack", false, "pack chars (only for sc/mc charset)")
 	flag.StringVar(&outfile, "o", "", "out")
 	flag.StringVar(&outfile, "out", "", "specify outfile.prg, by default it changes extension to .prg")
 	flag.StringVar(&targetdir, "td", "", "targetdir")
@@ -150,6 +148,8 @@ func init() {
 	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode koala/hires/mccharset/sccharset")
 
 	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpairs")
+	flag.BoolVar(&noPackChars, "np", false, "no-pack")
+	flag.BoolVar(&noPackChars, "no-pack", false, "do not pack chars (only for sc/mc charset)")
 	flag.StringVar(&bitPairColors, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
 }
 

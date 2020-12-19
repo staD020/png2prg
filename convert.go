@@ -222,7 +222,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 	//c.CharColor = colorIndex2[1]
 	//c.BgColor = colorIndex2[0]
 
-	if !packChars {
+	if noPackChars {
 		for char := 0; char < 256; char++ {
 			bitmapIndex := char * 8
 			imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
@@ -331,19 +331,36 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	c.D022Color = colorIndex2[1]
 	c.D023Color = colorIndex2[2]
 
+	if noPackChars {
+		for char := 0; char < 256; char++ {
+			bitmapIndex := char * 8
+			imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
+			for byteIndex := 0; byteIndex < 8; byteIndex++ {
+				bmpbyte := byte(0)
+				for pixel := 0; pixel < 4; pixel++ {
+					r, g, b, _ := img.image.At(imageXIndex+(pixel*2), imageYIndex+byteIndex).RGBA()
+					rgb := RGB{byte(r), byte(g), byte(b)}
+					bmppattern := colorIndex1[rgb]
+					bmpbyte |= bmppattern << (6 - (byte(pixel) * 2))
+				}
+				c.Bitmap[bitmapIndex+byteIndex] = bmpbyte
+			}
+			c.Screen[char] = byte(char)
+		}
+		return c, nil
+	}
+
 	for char := 0; char < 1000; char++ {
 		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
 		cbuf := charBytes{}
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)
-			bmppattern := byte(0)
 			for pixel := 0; pixel < 4; pixel++ {
 				r, g, b, _ := img.image.At(imageXIndex+(pixel*2), imageYIndex+byteIndex).RGBA()
 				rgb := RGB{byte(r), byte(g), byte(b)}
-				bmppattern = colorIndex1[rgb]
-				bmpbyte = bmpbyte | (bmppattern << (6 - (byte(pixel) * 2)))
+				bmppattern := colorIndex1[rgb]
+				bmpbyte |= bmppattern << (6 - (byte(pixel) * 2))
 			}
-
 			cbuf[byteIndex] = bmpbyte
 		}
 
