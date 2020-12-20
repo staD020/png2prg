@@ -134,13 +134,13 @@ func (img *sourceImage) analyze() error {
 		img.graphicsType = multiColorBitmap
 	}
 	if !quiet {
-		log.Printf("gfxformat found: %s", img.graphicsType)
+		log.Printf("graphics mode found: %s", img.graphicsType)
 	}
 	if graphicsMode != "" {
 		if img.graphicsType != currentGraphicsType {
 			img.graphicsType = currentGraphicsType
 			if !quiet {
-				log.Printf("gfxformat forced: %s", img.graphicsType)
+				log.Printf("graphics mode forced: %s", img.graphicsType)
 			}
 		}
 	}

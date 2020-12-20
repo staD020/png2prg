@@ -131,11 +131,9 @@ type SingleColorCharset struct {
 	Screen         [1000]byte
 }
 
-var displayers = make(map[graphicsType][]byte, 0)
-
 var outfile string
 var targetdir string
-var helpbool bool
+var help bool
 var quiet bool
 var verbose bool
 var display bool
@@ -152,8 +150,8 @@ func init() {
 	flag.BoolVar(&verbose, "verbose", false, "verbose")
 	flag.BoolVar(&display, "d", false, "display")
 	flag.BoolVar(&display, "display", false, "include displayer")
-	flag.BoolVar(&helpbool, "h", false, "help")
-	flag.BoolVar(&helpbool, "help", false, "help")
+	flag.BoolVar(&help, "h", false, "help")
+	flag.BoolVar(&help, "help", false, "help")
 	flag.StringVar(&outfile, "o", "", "out")
 	flag.StringVar(&outfile, "out", "", "specify outfile.prg, by default it changes extension to .prg")
 	flag.StringVar(&targetdir, "td", "", "targetdir")
@@ -162,7 +160,7 @@ func init() {
 	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode koala/hires/mccharset/sccharset")
 
 	flag.BoolVar(&noGuess, "ng", false, "no-guess")
-	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpairs")
+	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpair-colors")
 	flag.BoolVar(&noPackChars, "np", false, "no-pack")
 	flag.BoolVar(&noPackChars, "no-pack", false, "do not pack chars (only for sc/mc charset)")
 	flag.StringVar(&bitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
@@ -176,11 +174,11 @@ func main() {
 		fmt.Printf("png2prg %v by burglar\n", version)
 	}
 
-	if helpbool {
-		help()
+	if help {
+		printHelp()
 	}
 	if len(ff) == 0 {
-		printusage()
+		printUsage()
 		os.Exit(0)
 	}
 	setGraphicsType(graphicsMode)
@@ -211,6 +209,8 @@ func setGraphicsType(s string) {
 		currentGraphicsType = multiColorCharset
 	}
 }
+
+var displayers = make(map[graphicsType][]byte, 0)
 
 func initDisplayers() error {
 	bin, err := base64.StdEncoding.DecodeString(koaladisplayb64)
@@ -371,12 +371,13 @@ func writeData(w io.Writer, data [][]byte) (n int64, err error) {
 }
 
 func destinationFilename(filename string) (destfilename string) {
-	if len(targetdir) > 0 {
+	switch {
+	case len(targetdir) > 0:
 		destfilename = filepath.Dir(targetdir+string(os.PathSeparator)) + string(os.PathSeparator)
-	}
-	if len(outfile) > 0 {
+		fallthrough
+	case len(outfile) > 0:
 		destfilename = destfilename + outfile
-	} else {
+	case len(outfile) == 0:
 		destfilename = destfilename + filepath.Base(strings.TrimSuffix(filename, filepath.Ext(filename))+".prg")
 	}
 	return destfilename
