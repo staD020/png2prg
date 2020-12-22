@@ -521,7 +521,7 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 			for y := 0; y < 21; y++ {
 				yOffset := img.yOffset + y + spriteY*21
 				for x := 0; x < 3; x++ {
-					xOffset := img.xOffset + x*8 + spriteX*0x40
+					xOffset := img.xOffset + x*8 + spriteX*24
 					bmpbyte := byte(0)
 					for pixel := 0; pixel < 4; pixel++ {
 						r, g, b, _ := img.image.At(xOffset+(pixel*2), yOffset).RGBA()
