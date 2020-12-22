@@ -468,6 +468,10 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 			s.Bitmap = append(s.Bitmap, 0)
 		}
 	}
+	if verbose {
+		log.Printf("converted %d sprites", maxX*maxY)
+	}
+
 	return s, nil
 }
 
@@ -492,34 +496,19 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 		log.Printf("colorIndex2: %v\n", colorIndex2)
 	}
 
-	if len(img.preferredBitpairColors) > 0 {
+	switch {
+	case len(img.preferredBitpairColors) > 3:
+		s.D026Color = img.preferredBitpairColors[3]
+		fallthrough
+	case len(img.preferredBitpairColors) > 2:
+		s.SpriteColor = img.preferredBitpairColors[2]
+		fallthrough
+	case len(img.preferredBitpairColors) > 1:
+		s.D025Color = img.preferredBitpairColors[1]
+		fallthrough
+	case len(img.preferredBitpairColors) > 0:
 		s.BgColor = img.preferredBitpairColors[0]
 	}
-	if len(img.preferredBitpairColors) > 1 {
-		s.D025Color = img.preferredBitpairColors[1]
-	}
-	if len(img.preferredBitpairColors) > 2 {
-		s.SpriteColor = img.preferredBitpairColors[2]
-	}
-	if len(img.preferredBitpairColors) > 3 {
-		s.D026Color = img.preferredBitpairColors[3]
-	}
-
-	/*
-		switch {
-		case len(img.preferredBitpairColors) > 0:
-			s.BgColor = img.preferredBitpairColors[0]
-			fallthrough
-		case len(img.preferredBitpairColors) > 1:
-			s.D025Color = img.preferredBitpairColors[1]
-			fallthrough
-		case len(img.preferredBitpairColors) > 2:
-			s.SpriteColor = img.preferredBitpairColors[2]
-			fallthrough
-		case len(img.preferredBitpairColors) > 3:
-			s.D026Color = img.preferredBitpairColors[3]
-		}
-	*/
 
 	maxX := img.width / 24
 	maxY := img.height / 21
@@ -545,6 +534,9 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 			}
 			s.Bitmap = append(s.Bitmap, 0)
 		}
+	}
+	if verbose {
+		log.Printf("converted %d sprites", maxX*maxY)
 	}
 	return s, nil
 }

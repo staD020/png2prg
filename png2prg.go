@@ -390,12 +390,14 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	header := []byte{0x00, 0x20}
-	return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.SpriteColor}})
+	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.SpriteColor}})
+	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }
 
 func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	header := []byte{0x00, 0x20}
-	return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.D025Color, s.SpriteColor, s.D026Color}})
+	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.D025Color, s.SpriteColor, s.D026Color}})
+	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }
 
 func writeData(w io.Writer, data [][]byte) (n int64, err error) {
@@ -411,10 +413,10 @@ func writeData(w io.Writer, data [][]byte) (n int64, err error) {
 }
 
 func destinationFilename(filename string) (destfilename string) {
-	switch {
-	case len(targetdir) > 0:
+	if len(targetdir) > 0 {
 		destfilename = filepath.Dir(targetdir+string(os.PathSeparator)) + string(os.PathSeparator)
-		fallthrough
+	}
+	switch {
 	case len(outfile) > 0:
 		destfilename = destfilename + outfile
 	case len(outfile) == 0:
