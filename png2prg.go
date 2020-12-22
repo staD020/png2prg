@@ -131,6 +131,22 @@ type SingleColorCharset struct {
 	Screen         [1000]byte
 }
 
+type SingleColorSprites struct {
+	SourceFilename string
+	Bitmap         []byte
+	SpriteColor    byte
+	BgColor        byte
+}
+
+type MultiColorSprites struct {
+	SourceFilename string
+	Bitmap         []byte
+	SpriteColor    byte
+	BgColor        byte
+	D025Color      byte
+	D026Color      byte
+}
+
 var outfile string
 var targetdir string
 var help bool
@@ -157,7 +173,7 @@ func init() {
 	flag.StringVar(&targetdir, "td", "", "targetdir")
 	flag.StringVar(&targetdir, "targetdir", "", "specify targetdir")
 	flag.StringVar(&graphicsMode, "m", "", "mode")
-	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode koala/hires/mccharset/sccharset")
+	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode koala, hires, mccharset or sccharset")
 
 	flag.BoolVar(&noGuess, "ng", false, "no-guess")
 	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpair-colors")
@@ -207,6 +223,10 @@ func setGraphicsType(s string) {
 		currentGraphicsType = singleColorCharset
 	case "mccharset":
 		currentGraphicsType = multiColorCharset
+	case "scsprites":
+		currentGraphicsType = singleColorSprites
+	case "mcsprites":
+		currentGraphicsType = multiColorSprites
 	}
 }
 
@@ -306,6 +326,16 @@ func processFiles(ff []string) (err error) {
 				return fmt.Errorf("convertToKoala %q failed: %v", filename, err)
 			}
 		}
+	case singleColorSprites:
+		c, err = img.convertToSingleColorSprites()
+		if err != nil {
+			return fmt.Errorf("convertToSingleColorSprites %q failed: %v", filename, err)
+		}
+	case multiColorSprites:
+		c, err = img.convertToMultiColorSprites()
+		if err != nil {
+			return fmt.Errorf("convertToMultiColorSprites %q failed: %v", filename, err)
+		}
 	default:
 		return fmt.Errorf("unsupported graphicsType for %q", filename)
 	}
@@ -356,6 +386,16 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 		header = displayers[singleColorCharset]
 	}
 	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:]})
+}
+
+func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
+	header := []byte{0x00, 0x20}
+	return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.SpriteColor}})
+}
+
+func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
+	header := []byte{0x00, 0x20}
+	return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.D025Color, s.SpriteColor, s.D026Color}})
 }
 
 func writeData(w io.Writer, data [][]byte) (n int64, err error) {

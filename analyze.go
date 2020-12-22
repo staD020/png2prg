@@ -13,11 +13,11 @@ import (
 )
 
 func newSourceImage(filename string) (*sourceImage, error) {
-	r, err := os.Open(filename)
+	f, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("could not os.Open file %q: %v", filename, err)
 	}
-	defer r.Close()
+	defer f.Close()
 
 	img := &sourceImage{sourceFilename: filename}
 
@@ -25,13 +25,14 @@ func newSourceImage(filename string) (*sourceImage, error) {
 		return nil, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
 	}
 
-	if img.image, _, err = image.Decode(r); err != nil {
+	if img.image, _, err = image.Decode(f); err != nil {
 		return nil, fmt.Errorf("image.Decode %q failed: %v", filename, err)
 	}
 
 	if err = img.checkBounds(); err != nil {
 		return nil, fmt.Errorf("img.checkBounds error %q: %v", filename, err)
 	}
+
 	if verbose && (img.xOffset != 0 || img.yOffset != 0) {
 		log.Printf("img.xOffset, yOffset = %d, %d\n", img.xOffset, img.yOffset)
 	}
@@ -90,8 +91,8 @@ func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 }
 
 func (img *sourceImage) checkBounds() error {
-	img.width, img.height = img.image.Bounds().Max.X-img.image.Bounds().Min.X, img.image.Bounds().Max.Y-img.image.Bounds().Min.Y
 	img.xOffset, img.yOffset = img.image.Bounds().Min.X, img.image.Bounds().Min.Y
+	img.width, img.height = img.image.Bounds().Max.X-img.xOffset, img.image.Bounds().Max.Y-img.yOffset
 
 	switch {
 	case (img.width == 320) && (img.height == 200):
@@ -102,12 +103,22 @@ func (img *sourceImage) checkBounds() error {
 		img.yOffset += ((272 - 200) / 2) - 1
 		img.width, img.height = 320, 200
 		return nil
+	case img.hasSpriteDimensions():
+		return nil
 	}
 	return fmt.Errorf("image %q is not 320x200 or 384x272 pixels, but %d x %d pixels", img.sourceFilename, img.width, img.height)
 }
 
+func (img *sourceImage) hasSpriteDimensions() bool {
+	return (img.width%24 == 0) && (img.height%21 == 0)
+}
+
 func (img *sourceImage) analyze() error {
 	img.analyzePalette()
+	if img.hasSpriteDimensions() {
+		return img.analyzeSprites()
+	}
+
 	if err := img.makeCharColors(); err != nil {
 		return fmt.Errorf("img.makeCharColors failed: %v", err)
 	}
@@ -150,6 +161,44 @@ func (img *sourceImage) analyze() error {
 	if !noGuess {
 		img.guessPreferredBitpairColors(max, sumColors)
 	}
+	return nil
+}
+
+func (img *sourceImage) analyzeSprites() error {
+	maxX := img.width / 24
+	maxY := img.height / 21
+	if maxX == 0 || maxY == 0 {
+		return fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", maxX, maxY)
+	}
+
+	switch {
+	case len(img.palette) <= 2:
+		img.graphicsType = singleColorSprites
+	case len(img.palette) == 3 || len(img.palette) == 4:
+		img.graphicsType = multiColorSprites
+	default:
+		return fmt.Errorf("too many colors %d > 4", len(img.palette))
+	}
+
+	if !quiet {
+		log.Printf("graphics mode found: %s", img.graphicsType)
+	}
+	if graphicsMode != "" {
+		if img.graphicsType != currentGraphicsType {
+			img.graphicsType = currentGraphicsType
+			if !quiet {
+				log.Printf("graphics mode forced: %s", img.graphicsType)
+			}
+		}
+	}
+
+	img.findBackgroundColor()
+
+	if !noGuess {
+		max, _, sumColors := img.countSpriteColors()
+		img.guessPreferredBitpairColors(max, sumColors)
+	}
+
 	return nil
 }
 
@@ -208,6 +257,31 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 			}
 		}
 	}
+}
+
+func (img *sourceImage) countSpriteColors() (int, []byte, [16]int) {
+	m := img.palette
+	sum := [16]int{}
+
+	for y := 0; y < img.height; y++ {
+		for x := 0; x < img.width; x++ {
+			r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
+			rgb := RGB{byte(r), byte(g), byte(b)}
+			if ci, ok := img.palette[rgb]; ok {
+				sum[ci]++
+				continue
+			}
+			panic("countSpriteColors: this should never happen")
+		}
+	}
+	ci := []byte{}
+	for _, v := range img.palette {
+		ci = append(ci, v)
+	}
+	sort.Slice(ci, func(i, j int) bool {
+		return ci[i] < ci[j]
+	})
+	return len(m), ci, sum
 }
 
 func (img *sourceImage) countColors() (int, []byte, [16]int) {
@@ -282,9 +356,14 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 }
 
 func (img *sourceImage) findBackgroundColor() {
-	if img.backgroundCandidates == nil {
-		img.findBackgroundColorCandidates()
+	var sumColors [16]int
+	isSprites := img.graphicsType == singleColorSprites || img.graphicsType == multiColorSprites
+	if isSprites {
+		_, _, sumColors = img.countSpriteColors()
+	} else {
+		_, _, sumColors = img.countColors()
 	}
+
 	var rgb RGB
 	var colorIndex byte
 	forceBgCol := -1
@@ -292,7 +371,6 @@ func (img *sourceImage) findBackgroundColor() {
 	case len(img.preferredBitpairColors) > 0:
 		forceBgCol = int(img.preferredBitpairColors[0])
 	default:
-		_, _, sumColors := img.countColors()
 		max := 0
 		colorIndex := -1
 		for color, count := range sumColors {
@@ -302,6 +380,23 @@ func (img *sourceImage) findBackgroundColor() {
 			}
 		}
 		forceBgCol = colorIndex
+	}
+
+	if isSprites {
+		for rgb, colorIndex := range img.palette {
+			if colorIndex == byte(forceBgCol) {
+				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
+				if verbose {
+					log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
+				}
+				return
+			}
+		}
+		panic("background color not found in sprites??")
+	}
+
+	if img.backgroundCandidates == nil {
+		img.findBackgroundColorCandidates()
 	}
 
 	for rgb, colorIndex = range img.backgroundCandidates {
@@ -405,7 +500,7 @@ func xyFromPixel(i int) (x, y int) {
 func (img *sourceImage) analyzePalette() {
 	minDistance := 9e9
 	paletteName := ""
-	paletteMap := make(map[RGB]byte, 16)
+	paletteMap := make(map[RGB]byte)
 	for name, palette := range c64palettes {
 		distance, curMap := img.distanceAndMap(palette)
 
@@ -421,6 +516,7 @@ func (img *sourceImage) analyzePalette() {
 	}
 	if verbose {
 		log.Printf("%v palette found: %v distance: %v\n", img.sourceFilename, paletteName, minDistance)
+		log.Printf("palette: %v\n", paletteMap)
 	}
 	img.palette = paletteMap
 	return
@@ -429,8 +525,8 @@ func (img *sourceImage) analyzePalette() {
 func (img *sourceImage) distanceAndMap(palette [16]C64RGB) (float64, map[RGB]byte) {
 	curMap := make(map[RGB]byte, 16)
 	totalDistance := 0.0
-	for x := 0; x < 320; x += 2 {
-		for y := 0; y < 200; y++ {
+	for x := 0; x < img.width; x += 2 {
+		for y := 0; y < img.height; y++ {
 			r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
 			rgb := RGB{byte(r), byte(g), byte(b)}
 			if _, ok := curMap[rgb]; !ok {

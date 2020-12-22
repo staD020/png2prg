@@ -48,9 +48,13 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 	}
 	// which bitpairs do we have left
 	bitpairs := []byte{1, 2, 3}
-	if img.graphicsType == singleColorBitmap || img.graphicsType == singleColorCharset {
+	if img.graphicsType == singleColorBitmap {
 		bitpairs = []byte{0, 1}
 	}
+	if img.graphicsType == singleColorCharset || img.graphicsType == singleColorSprites {
+		bitpairs = []byte{1}
+	}
+
 	// prefill preferred and used colors
 	if len(img.preferredBitpairColors) > 0 {
 		for preferBitpair, preferColor := range img.preferredBitpairColors {
@@ -396,4 +400,151 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	}
 
 	return c, nil
+}
+
+func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error) {
+	s := SingleColorSprites{SourceFilename: img.sourceFilename}
+	maxX := img.width / 24
+	maxY := img.height / 21
+	if maxX == 0 || maxY == 0 {
+		return s, fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", maxX, maxY)
+	}
+
+	cc := sortColors(img.palette)
+
+	forceBgCol := -1
+	if len(img.preferredBitpairColors) > 0 {
+		forceBgCol = int(img.preferredBitpairColors[0])
+	}
+
+	if forceBgCol >= 0 {
+		for i, col := range cc {
+			if col.colorIndex == byte(forceBgCol) {
+				cc[0], cc[i] = cc[i], cc[0]
+				if verbose {
+					log.Printf("forced background color %d was found", forceBgCol)
+				}
+				break
+			}
+		}
+	}
+
+	colorIndex1 := map[RGB]byte{}
+	colorIndex2 := map[byte]byte{}
+	bit := byte(0)
+	for _, ci := range cc {
+		if bit > 1 {
+			return s, fmt.Errorf("Too many colors.")
+		}
+		if _, ok := colorIndex2[bit]; !ok {
+			colorIndex1[ci.rgb] = bit
+			colorIndex2[bit] = ci.colorIndex
+		}
+		bit++
+	}
+
+	if verbose {
+		log.Printf("sprite colors: %v\n", cc)
+		log.Printf("colorIndex1: %v\n", colorIndex1)
+		log.Printf("colorIndex2: %v\n", colorIndex2)
+	}
+
+	for spriteY := 0; spriteY < maxY; spriteY++ {
+		for spriteX := 0; spriteX < maxX; spriteX++ {
+			for y := 0; y < 21; y++ {
+				yOffset := img.yOffset + y + spriteY*21
+				for x := 0; x < 3; x++ {
+					xOffset := img.xOffset + x*8 + spriteX*24
+					bmpbyte := byte(0)
+					for pixel := 0; pixel < 8; pixel++ {
+						r, g, b, _ := img.image.At(xOffset+pixel, yOffset).RGBA()
+						rgb := RGB{byte(r), byte(g), byte(b)}
+						bmppattern := colorIndex1[rgb]
+						bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
+					}
+					s.Bitmap = append(s.Bitmap, bmpbyte)
+				}
+			}
+			s.Bitmap = append(s.Bitmap, 0)
+		}
+	}
+	return s, nil
+}
+
+func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) {
+	s := MultiColorSprites{SourceFilename: img.sourceFilename}
+
+	cc := sortColors(img.palette)
+	if len(img.preferredBitpairColors) == 0 {
+		for _, v := range cc {
+			img.preferredBitpairColors = append(img.preferredBitpairColors, v.colorIndex)
+		}
+	}
+
+	colorIndex1, colorIndex2, err := img.multiColorIndexes(cc)
+	if err != nil {
+		return s, fmt.Errorf("multiColorIndexes failed: %v", err)
+	}
+
+	if verbose {
+		log.Printf("sprite colors: %v\n", cc)
+		log.Printf("colorIndex1: %v\n", colorIndex1)
+		log.Printf("colorIndex2: %v\n", colorIndex2)
+	}
+
+	if len(img.preferredBitpairColors) > 0 {
+		s.BgColor = img.preferredBitpairColors[0]
+	}
+	if len(img.preferredBitpairColors) > 1 {
+		s.D025Color = img.preferredBitpairColors[1]
+	}
+	if len(img.preferredBitpairColors) > 2 {
+		s.SpriteColor = img.preferredBitpairColors[2]
+	}
+	if len(img.preferredBitpairColors) > 3 {
+		s.D026Color = img.preferredBitpairColors[3]
+	}
+
+	/*
+		switch {
+		case len(img.preferredBitpairColors) > 0:
+			s.BgColor = img.preferredBitpairColors[0]
+			fallthrough
+		case len(img.preferredBitpairColors) > 1:
+			s.D025Color = img.preferredBitpairColors[1]
+			fallthrough
+		case len(img.preferredBitpairColors) > 2:
+			s.SpriteColor = img.preferredBitpairColors[2]
+			fallthrough
+		case len(img.preferredBitpairColors) > 3:
+			s.D026Color = img.preferredBitpairColors[3]
+		}
+	*/
+
+	maxX := img.width / 24
+	maxY := img.height / 21
+	if maxX == 0 || maxY == 0 {
+		return s, fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", maxX, maxY)
+	}
+
+	for spriteY := 0; spriteY < maxY; spriteY++ {
+		for spriteX := 0; spriteX < maxX; spriteX++ {
+			for y := 0; y < 21; y++ {
+				yOffset := img.yOffset + y + spriteY*21
+				for x := 0; x < 3; x++ {
+					xOffset := img.xOffset + x*8 + spriteX*0x40
+					bmpbyte := byte(0)
+					for pixel := 0; pixel < 4; pixel++ {
+						r, g, b, _ := img.image.At(xOffset+(pixel*2), yOffset).RGBA()
+						rgb := RGB{byte(r), byte(g), byte(b)}
+						bmppattern := colorIndex1[rgb]
+						bmpbyte |= bmppattern << (6 - (byte(pixel) * 2))
+					}
+					s.Bitmap = append(s.Bitmap, bmpbyte)
+				}
+			}
+			s.Bitmap = append(s.Bitmap, 0)
+		}
+	}
+	return s, nil
 }
