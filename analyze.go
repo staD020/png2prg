@@ -240,9 +240,12 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 	if img.graphicsType == multiColorCharset && len(img.preferredBitpairColors) == 4 {
 		for i, v := range img.preferredBitpairColors {
 			if v == 0 {
-				img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
 				if verbose {
 					log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %v", maxColors, img.preferredBitpairColors)
+				}
+				img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
+				if verbose {
+					log.Printf("now using -bitpair-colors %v", img.preferredBitpairColors)
 				}
 				break
 			}
