@@ -316,10 +316,10 @@ func processFiles(ff []string) (err error) {
 			if graphicsMode != "" {
 				return fmt.Errorf("convertToMultiColorCharset %q failed: %v", filename, err)
 			}
-			img.graphicsType = multiColorBitmap
 			if !quiet {
-				log.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v", img.graphicsType, filename, err)
+				log.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v", multiColorBitmap, filename, err)
 			}
+			img.graphicsType = multiColorBitmap
 			img.findBackgroundColor()
 			c, err = img.convertToKoala()
 			if err != nil {

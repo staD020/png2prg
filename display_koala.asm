@@ -28,25 +28,30 @@ start:
 		bne !-
 		lda koala_source+$2710
 		sta $d021
+
+		lda #$ff
 !loop:
 smc_src:
-		lda koala_source+$1f3f
+		ldx koala_source+$1f3f
 smc_dest:
-		sta bitmap+$1f3f
-		dec smc_src+1
-		lda smc_src+1
-		cmp #$ff
+		stx bitmap+$1f3f
+		//lda #$ff
+		dcp smc_src+1
+		//dec smc_src+1
+		//lda smc_src+1
+		//cmp #$ff
 		bne !+
 		dec smc_src+2
 	!:
-		dec smc_dest+1
-		lda smc_dest+1
-		cmp #$ff
+		dcp smc_dest+1
+		//dec smc_dest+1
+		//lda smc_dest+1
+		//cmp #$ff
 		bne !+
 		dec smc_dest+2
 	!:
-		lda smc_dest+2
-		cmp #>(bitmap-1)
+		ldx smc_dest+2
+		cpx #>(bitmap-1)
 		bne !loop-
 
 		lda #toD018(screenram, bitmap)

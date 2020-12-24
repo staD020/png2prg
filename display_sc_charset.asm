@@ -31,25 +31,29 @@ start:
 		inx
 		bne !-
 
+		lda #$ff
 !loop:
 smc_src:
-		lda charset_source+$7ff
+		ldx charset_source+$7ff
 smc_dest:
-		sta charset+$7ff
-		dec smc_src+1
-		lda smc_src+1
-		cmp #$ff
+		stx charset+$7ff
+		//lda #$ff
+		dcp smc_src+1
+		//dec smc_src+1
+		//lda smc_src+1
+		//cmp #$ff
 		bne !+
 		dec smc_src+2
 	!:
-		dec smc_dest+1
-		lda smc_dest+1
-		cmp #$ff
+		dcp smc_dest+1
+		//dec smc_dest+1
+		//lda smc_dest+1
+		//cmp #$ff
 		bne !+
 		dec smc_dest+2
 	!:
-		lda smc_dest+2
-		cmp #>(charset-1)
+		ldx smc_dest+2
+		cpx #>(charset-1)
 		bne !loop-
 
 		lda #toD018(screenram, charset)
