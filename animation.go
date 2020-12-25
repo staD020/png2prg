@@ -11,6 +11,8 @@ import (
 
 func handleAnimation(imgs []sourceImage) error {
 	var kk []Koala
+	var scSprites []SingleColorSprites
+	var mcSprites []MultiColorSprites
 	for _, img := range imgs {
 		if verbose {
 			log.Printf("processing %q\n", img.sourceFilename)
@@ -26,18 +28,32 @@ func handleAnimation(imgs []sourceImage) error {
 				return fmt.Errorf("convertToKoala failed: %v", err)
 			}
 			kk = append(kk, k)
+		case multiColorSprites:
+			s, err := img.convertToMultiColorSprites()
+			if err != nil {
+				return fmt.Errorf("convertToMultiColorSprites failed: %v", err)
+			}
+			mcSprites = append(mcSprites, s)
+		case singleColorSprites:
+			s, err := img.convertToSingleColorSprites()
+			if err != nil {
+				return fmt.Errorf("convertToSingleColorSprites failed: %v", err)
+			}
+			scSprites = append(scSprites, s)
 		default:
 			return fmt.Errorf("animations do not support %q yet", img.graphicsType)
 		}
 	}
 
-	if len(kk) > 0 {
-		destFilename := destinationFilename(kk[0].SourceFilename)
-		f, err := os.Create(destFilename)
-		if err != nil {
-			return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
-		}
-		defer f.Close()
+	destFilename := destinationFilename(kk[0].SourceFilename)
+	f, err := os.Create(destFilename)
+	if err != nil {
+		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
+	}
+	defer f.Close()
+
+	switch {
+	case len(kk) > 0:
 		_, err = kk[0].WriteTo(f)
 		if err != nil {
 			return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
@@ -54,6 +70,36 @@ func handleAnimation(imgs []sourceImage) error {
 		for i, prg := range prgs {
 			if err = writePrgFile(frameFilename(i, kk[0].SourceFilename), prg); err != nil {
 				return fmt.Errorf("writePrgFile failed: %v", err)
+			}
+		}
+	case len(mcSprites) > 0:
+		header := []byte{0x00, 0x20}
+		_, err = writeData(f, [][]byte{header})
+		if err != nil {
+			return fmt.Errorf("writeData %q failed: %v", destFilename, err)
+		}
+		for _, s := range mcSprites {
+			_, err = writeData(f, [][]byte{s.Bitmap[:]})
+			if err != nil {
+				return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
+			}
+			if !quiet {
+				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
+			}
+		}
+	case len(scSprites) > 0:
+		header := []byte{0x00, 0x20}
+		_, err = writeData(f, [][]byte{header})
+		if err != nil {
+			return fmt.Errorf("writeData %q failed: %v", destFilename, err)
+		}
+		for _, s := range scSprites {
+			_, err = writeData(f, [][]byte{s.Bitmap[:]})
+			if err != nil {
+				return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
+			}
+			if !quiet {
+				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
 			}
 		}
 	}

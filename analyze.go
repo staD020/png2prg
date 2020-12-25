@@ -29,7 +29,7 @@ func newSourceImage(filename string) (sourceImage, error) {
 	}
 
 	if err = img.checkBounds(); err != nil {
-		return img, fmt.Errorf("img.checkBounds error %q: %v", filename, err)
+		return img, fmt.Errorf("img.checkBounds failed %q: %v", filename, err)
 	}
 
 	if verbose && (img.xOffset != 0 || img.yOffset != 0) {
@@ -71,7 +71,7 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %v", bitpairColorsString, err)
 				}
 				if err = img.checkBounds(); err != nil {
-					return nil, fmt.Errorf("img.checkBounds error %q: %v", filename, err)
+					return nil, fmt.Errorf("img.checkBounds failed %q: %v", filename, err)
 				}
 				imgs = append(imgs, img)
 				if verbose {
@@ -117,7 +117,7 @@ func (img *sourceImage) checkBounds() error {
 	case img.hasSpriteDimensions():
 		return nil
 	}
-	return fmt.Errorf("image %q is not 320x200 or 384x272 pixels, but %d x %d pixels", img.sourceFilename, img.width, img.height)
+	return fmt.Errorf("image is not 320x200 or 384x272 pixels, but %d x %d pixels", img.width, img.height)
 }
 
 func (img *sourceImage) hasSpriteDimensions() bool {
