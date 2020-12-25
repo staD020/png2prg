@@ -12,25 +12,24 @@ import (
 	"strings"
 )
 
-func newSourceImage(filename string) (*sourceImage, error) {
+func newSourceImage(filename string) (sourceImage, error) {
+	img := sourceImage{sourceFilename: filename}
 	f, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("could not os.Open file %q: %v", filename, err)
+		return img, fmt.Errorf("could not os.Open file %q: %v", filename, err)
 	}
 	defer f.Close()
 
-	img := &sourceImage{sourceFilename: filename}
-
 	if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
-		return nil, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
+		return img, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
 	}
 
 	if img.image, _, err = image.Decode(f); err != nil {
-		return nil, fmt.Errorf("image.Decode %q failed: %v", filename, err)
+		return img, fmt.Errorf("image.Decode %q failed: %v", filename, err)
 	}
 
 	if err = img.checkBounds(); err != nil {
-		return nil, fmt.Errorf("img.checkBounds error %q: %v", filename, err)
+		return img, fmt.Errorf("img.checkBounds error %q: %v", filename, err)
 	}
 
 	if verbose && (img.xOffset != 0 || img.yOffset != 0) {
@@ -40,40 +39,52 @@ func newSourceImage(filename string) (*sourceImage, error) {
 	return img, nil
 }
 
-func newSourceImages(filename string) (imgs []sourceImage, err error) {
-	if strings.ToLower(filepath.Ext(filename)) != ".gif" {
-		return nil, fmt.Errorf("%q is not a .gif", filename)
-	}
+func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
+	for _, filename := range filenames {
+		switch strings.ToLower(filepath.Ext(filename)) {
+		case ".gif":
+			f, err := os.Open(filename)
+			if err != nil {
+				return nil, fmt.Errorf("os.Open could not open file %q: %v", filename, err)
+			}
+			defer f.Close()
 
-	r, err := os.Open(filename)
-	if err != nil {
-		return nil, fmt.Errorf("os.Open could not open file %q: %v", filename, err)
-	}
-	defer r.Close()
+			g, err := gif.DecodeAll(f)
+			if err != nil {
+				return nil, fmt.Errorf("gif.DecodeAll %q failed: %v", filename, err)
+			}
 
-	g, err := gif.DecodeAll(r)
-	if err != nil {
-		return nil, fmt.Errorf("gif.DecodeAll %q failed: %v", filename, err)
-	}
+			if len(g.Image) < 2 {
+				return nil, fmt.Errorf("file %q is not an animation, frames found: %d", filename, len(g.Image))
+			}
+			if verbose {
+				log.Printf("found animated gif %q with %d frames", filename, len(g.Image))
+			}
 
-	if len(g.Image) < 2 {
-		return nil, fmt.Errorf("file %q is not an animation, frames found: %d", filename, len(g.Image))
-	}
-	if verbose {
-		log.Printf("found animated gif %q with %d frames", filename, len(g.Image))
-	}
-
-	for _, img := range g.Image {
-		width, height := img.Bounds().Max.X-img.Bounds().Min.X, img.Bounds().Max.Y-img.Bounds().Min.Y
-		s := sourceImage{
-			sourceFilename: filename,
-			image:          img,
+			for _, rawImage := range g.Image {
+				width, height := rawImage.Bounds().Max.X-rawImage.Bounds().Min.X, rawImage.Bounds().Max.Y-rawImage.Bounds().Min.Y
+				img := sourceImage{
+					sourceFilename: filename,
+					image:          rawImage,
+				}
+				if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
+					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %v", bitpairColorsString, err)
+				}
+				if err = img.checkBounds(); err != nil {
+					return nil, fmt.Errorf("img.checkBounds error %q: %v", filename, err)
+				}
+				imgs = append(imgs, img)
+				if verbose {
+					fmt.Printf("extraced image %T, width %d x height %d\n", rawImage, width, height)
+				}
+			}
+		default:
+			img, err := newSourceImage(filename)
+			if err != nil {
+				return nil, fmt.Errorf("newSourceImage %q failed: %v", filename, err)
+			}
+			imgs = append(imgs, img)
 		}
-		if err = s.setPreferredBitpairColors(bitpairColorsString); err != nil {
-			return nil, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
-		}
-		imgs = append(imgs, s)
-		fmt.Printf("img %T, width %d x height %d\n", img, width, height)
 	}
 	return imgs, nil
 }
@@ -145,13 +156,13 @@ func (img *sourceImage) analyze() error {
 		img.graphicsType = multiColorBitmap
 	}
 	if !quiet {
-		log.Printf("graphics mode found: %s", img.graphicsType)
+		fmt.Printf("file %q has graphics mode: %s\n", img.sourceFilename, img.graphicsType)
 	}
 	if graphicsMode != "" {
 		if img.graphicsType != currentGraphicsType {
 			img.graphicsType = currentGraphicsType
 			if !quiet {
-				log.Printf("graphics mode forced: %s", img.graphicsType)
+				fmt.Printf("graphics mode forced: %s\n", img.graphicsType)
 			}
 		}
 	}
@@ -159,6 +170,9 @@ func (img *sourceImage) analyze() error {
 		img.findBackgroundColor()
 	}
 	if !noGuess {
+		if img.graphicsType == multiColorBitmap && max < 4 {
+			max = 4
+		}
 		img.guessPreferredBitpairColors(max, sumColors)
 	}
 	return nil

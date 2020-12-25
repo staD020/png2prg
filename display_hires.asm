@@ -192,10 +192,6 @@ fade_pass:
 .C:4800  AF 00 04    LAX $0400
 .C:4803  BD 00 09    LDA $0900,X
 .C:4806  8D 00 04    STA $0400
-.C:4809  AF 00 D8    LAX $D800
-.C:480c  BD 00 09    LDA $0900,X
-.C:480f  8D 00 D8    STA $D800
-
 */
 	.for (var i=0; i<1000; i++) {
 		lax $0400+i

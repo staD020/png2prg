@@ -9,58 +9,55 @@ import (
 	"strings"
 )
 
-func handleAnimation(ff []string) error {
+func handleAnimation(imgs []sourceImage) error {
 	var kk []Koala
-	for _, f := range ff {
-		img, err := newSourceImage(f)
-		if err != nil {
-			return fmt.Errorf("newSourceImage %q failed: %v", f, err)
+	for _, img := range imgs {
+		if verbose {
+			log.Printf("processing %q\n", img.sourceFilename)
 		}
-		err = img.analyze()
+		err := img.analyze()
 		if err != nil {
-			return fmt.Errorf("analyze %q failed: %v", f, err)
+			return fmt.Errorf("img.analyze failed: %v", err)
 		}
-
 		switch img.graphicsType {
 		case multiColorBitmap:
 			k, err := img.convertToKoala()
 			if err != nil {
-				return fmt.Errorf("convertToKoala %q failed: %v", f, err)
+				return fmt.Errorf("convertToKoala failed: %v", err)
 			}
 			kk = append(kk, k)
 		default:
-			return fmt.Errorf("animations do not support %q yet (file %q)", img.graphicsType, f)
+			return fmt.Errorf("animations do not support %q yet", img.graphicsType)
 		}
 	}
 
-	if len(kk) == 0 {
-		log.Print("nothing to do")
-		return nil
-	}
-	destFilename := destinationFilename(kk[0].SourceFilename)
-	f, err := os.Create(destFilename)
-	if err != nil {
-		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
-	}
-	defer f.Close()
-	_, err = kk[0].WriteTo(f)
-	if err != nil {
-		return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
-	}
-	if !quiet {
-		fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
-	}
+	if len(kk) > 0 {
+		destFilename := destinationFilename(kk[0].SourceFilename)
+		f, err := os.Create(destFilename)
+		if err != nil {
+			return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
+		}
+		defer f.Close()
+		_, err = kk[0].WriteTo(f)
+		if err != nil {
+			return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
+		}
+		if !quiet {
+			fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
+		}
 
-	prgs, err := ProcessAnimation(kk)
-	if err != nil {
-		return fmt.Errorf("ProcessAnimation failed: %v", err)
-	}
+		prgs, err := processKoalaAnimation(kk)
+		if err != nil {
+			return fmt.Errorf("processKoalaAnimation failed: %v", err)
+		}
 
-	for i, prg := range prgs {
-		if err = writePrgFile(frameFilename(i, kk[0].SourceFilename), prg); err != nil {
-			return fmt.Errorf("writePrgFile failed: %v", err)
+		for i, prg := range prgs {
+			if err = writePrgFile(frameFilename(i, kk[0].SourceFilename), prg); err != nil {
+				return fmt.Errorf("writePrgFile failed: %v", err)
+			}
 		}
 	}
+
 	return nil
 }
 
@@ -91,9 +88,9 @@ func writePrgFile(filename string, prg []byte) error {
 	return nil
 }
 
-func ProcessAnimation(kk []Koala) ([][]byte, error) {
+func processKoalaAnimation(kk []Koala) ([][]byte, error) {
 	if len(kk) < 2 {
-		return nil, fmt.Errorf("ProcessAnimation: Insufficient number of images %d < 2", len(kk))
+		return nil, fmt.Errorf("insufficient number of images %d < 2", len(kk))
 	}
 	if verbose {
 		log.Printf("total number of frames: %d", len(kk))
@@ -117,7 +114,7 @@ func ProcessAnimation(kk []Koala) ([][]byte, error) {
 			}
 		}
 	}
-	return exportAnims(anims), nil
+	return exportKoalaAnims(anims), nil
 }
 
 // exportAnims format:
@@ -163,11 +160,10 @@ func (c *chunk) export() []byte {
 }
 
 func (c *chunk) String() string {
-	return fmt.Sprintf("chunk charindex: %d charcount %d bitmap: $%x char: $%x\n", c.CharIndex, c.CharCount, int(c.BitmapHi)*256+int(c.BitmapLo), int(c.CharHi)*256+int(c.CharLo)) +
-		fmt.Sprintf("%v", c.Chars)
+	return fmt.Sprintf("chunk charindex: %d charcount %d bitmap: $%x char: $%x", c.CharIndex, c.CharCount, int(c.BitmapHi)*256+int(c.BitmapLo), int(c.CharHi)*256+int(c.CharLo))
 }
 
-func exportAnims(anims [][]MultiColorChar) [][]byte {
+func exportKoalaAnims(anims [][]MultiColorChar) [][]byte {
 	prgs := make([][]byte, 0)
 	for _, anim := range anims {
 		if verbose {

@@ -204,7 +204,7 @@ func main() {
 		}
 	}
 
-	if err := processFiles(ff); err != nil {
+	if err := processFiles(ff...); err != nil {
 		log.Fatal(err)
 	}
 
@@ -256,41 +256,29 @@ func initDisplayers() error {
 	return nil
 }
 
-func processFiles(ff []string) (err error) {
-	if len(ff) < 1 {
+func processFiles(filenames ...string) (err error) {
+	if len(filenames) < 1 {
 		log.Println("no files supplied, nothing to do.")
 		return err
 	}
-	if len(ff) > 1 {
-		handleAnimation(ff)
-		return err
+
+	imgs, err := newSourceImages(filenames...)
+	switch {
+	case err != nil:
+		return fmt.Errorf("newSourceImages %q failed: %v", filenames, err)
+	case len(imgs) == 0:
+		return fmt.Errorf("no images found")
+	case len(imgs) > 1:
+		return handleAnimation(imgs)
 	}
 
-	filename := ff[0]
+	img := imgs[0]
 	if verbose {
-		log.Printf("processing file %q", filename)
-	}
-
-	var imgs []sourceImage
-	if strings.ToLower(filepath.Ext(filename)) == ".gif" {
-		imgs, err = newSourceImages(filename)
-		if err == nil {
-			fmt.Printf("imgs: %d\n", len(imgs))
-			return nil
-		}
-
-		if verbose {
-			log.Printf("newSourceImages %q: %v", filename, err)
-		}
-	}
-
-	img, err := newSourceImage(filename)
-	if err != nil {
-		return fmt.Errorf("newSourceImage %q failed: %v", filename, err)
+		log.Printf("processing file %q", img.sourceFilename)
 	}
 	err = img.analyze()
 	if err != nil {
-		return fmt.Errorf("analyze %q failed: %v", filename, err)
+		return fmt.Errorf("analyze %q failed: %v", img.sourceFilename, err)
 	}
 
 	var c io.WriterTo
@@ -298,46 +286,46 @@ func processFiles(ff []string) (err error) {
 	case multiColorBitmap:
 		c, err = img.convertToKoala()
 		if err != nil {
-			return fmt.Errorf("convertToKoala %q failed: %v", filename, err)
+			return fmt.Errorf("convertToKoala %q failed: %v", img.sourceFilename, err)
 		}
 	case singleColorBitmap:
 		c, err = img.convertToHires()
 		if err != nil {
-			return fmt.Errorf("convertToHires %q failed: %v", filename, err)
+			return fmt.Errorf("convertToHires %q failed: %v", img.sourceFilename, err)
 		}
 	case singleColorCharset:
 		c, err = img.convertToSingleColorCharset()
 		if err != nil {
-			return fmt.Errorf("convertToSingleColorCharset %q failed: %v", filename, err)
+			return fmt.Errorf("convertToSingleColorCharset %q failed: %v", img.sourceFilename, err)
 		}
 	case multiColorCharset:
 		c, err = img.convertToMultiColorCharset()
 		if err != nil {
 			if graphicsMode != "" {
-				return fmt.Errorf("convertToMultiColorCharset %q failed: %v", filename, err)
+				return fmt.Errorf("convertToMultiColorCharset %q failed: %v", img.sourceFilename, err)
 			}
 			if !quiet {
-				log.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v", multiColorBitmap, filename, err)
+				log.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v", multiColorBitmap, img.sourceFilename, err)
 			}
 			img.graphicsType = multiColorBitmap
 			img.findBackgroundColor()
 			c, err = img.convertToKoala()
 			if err != nil {
-				return fmt.Errorf("convertToKoala %q failed: %v", filename, err)
+				return fmt.Errorf("convertToKoala %q failed: %v", img.sourceFilename, err)
 			}
 		}
 	case singleColorSprites:
 		c, err = img.convertToSingleColorSprites()
 		if err != nil {
-			return fmt.Errorf("convertToSingleColorSprites %q failed: %v", filename, err)
+			return fmt.Errorf("convertToSingleColorSprites %q failed: %v", img.sourceFilename, err)
 		}
 	case multiColorSprites:
 		c, err = img.convertToMultiColorSprites()
 		if err != nil {
-			return fmt.Errorf("convertToMultiColorSprites %q failed: %v", filename, err)
+			return fmt.Errorf("convertToMultiColorSprites %q failed: %v", img.sourceFilename, err)
 		}
 	default:
-		return fmt.Errorf("unsupported graphicsType for %q", filename)
+		return fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
 	}
 
 	destFilename := destinationFilename(img.sourceFilename)
