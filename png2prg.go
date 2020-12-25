@@ -67,8 +67,7 @@ type colorInfo struct {
 
 type bitpairColors []byte
 
-func (b bitpairColors) String() string {
-	s := ""
+func (b bitpairColors) String() (s string) {
 	for i, v := range b {
 		s = s + strconv.Itoa(int(v))
 		if i < len(b)-1 {
@@ -265,7 +264,7 @@ func processFiles(filenames ...string) (err error) {
 	imgs, err := newSourceImages(filenames...)
 	switch {
 	case err != nil:
-		return fmt.Errorf("newSourceImages %q failed: %v", filenames, err)
+		return fmt.Errorf("newSourceImages failed: %v", err)
 	case len(imgs) == 0:
 		return fmt.Errorf("no images found")
 	case len(imgs) > 1:

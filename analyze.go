@@ -400,12 +400,12 @@ func (img *sourceImage) findBackgroundColor() {
 	}
 
 	if isSprites {
-		for rgb, colorIndex := range img.palette {
+		for rgb, colorIndex = range img.palette {
 			if colorIndex == byte(forceBgCol) {
-				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 				if verbose {
 					log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 				}
+				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 				return
 			}
 		}
@@ -419,26 +419,29 @@ func (img *sourceImage) findBackgroundColor() {
 	for rgb, colorIndex = range img.backgroundCandidates {
 		switch {
 		case forceBgCol < 0:
-			img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 			if verbose {
 				log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 			}
+			img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 			return
 		default:
 			if colorIndex == byte(forceBgCol) {
 				if verbose {
-					log.Printf("findBackgroundColor: found forced background color %d\n", forceBgCol)
+					log.Printf("findBackgroundColor: found preferred background color %d\n", forceBgCol)
 				}
 				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 				return
 			}
 		}
 	}
-	if !quiet {
-		log.Printf("findBackgroundColor: error, dont think we found anything?")
+
+	for rgb, colorIndex = range img.backgroundCandidates {
+		if !quiet {
+			fmt.Printf("findBackgroundColor: we tried looking for color %d, but we have to settle for color %d\n", forceBgCol, colorIndex)
+		}
+		img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
+		return
 	}
-	img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
-	return
 }
 
 func (img *sourceImage) makeCharColors() error {
