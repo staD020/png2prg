@@ -117,7 +117,7 @@ func (img *sourceImage) checkBounds() error {
 	case img.hasSpriteDimensions():
 		return nil
 	}
-	return fmt.Errorf("image is not 320x200 or 384x272 pixels, but %d x %d pixels", img.width, img.height)
+	return fmt.Errorf("image is not 320x200, 384x272 or x*24 x y*21 pixels, but %d x %d pixels", img.width, img.height)
 }
 
 func (img *sourceImage) hasSpriteDimensions() bool {
@@ -212,7 +212,6 @@ func (img *sourceImage) analyzeSprites() error {
 		max, _, sumColors := img.countSpriteColors()
 		img.guessPreferredBitpairColors(max, sumColors)
 	}
-
 	return nil
 }
 
@@ -303,7 +302,7 @@ func (img *sourceImage) countSpriteColors() (int, []byte, [16]int) {
 
 func (img *sourceImage) countColors() (int, []byte, [16]int) {
 	m := make(map[RGB]byte, 16)
-	sum := [16]int{}
+	var sum [16]int
 	for i := range img.charColors {
 		for rgb, colorIndex := range img.charColors[i] {
 			m[rgb] = colorIndex

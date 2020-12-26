@@ -72,6 +72,7 @@ func handleAnimation(imgs []sourceImage) error {
 				return fmt.Errorf("writePrgFile failed: %v", err)
 			}
 		}
+		return nil
 	case len(mcSprites) > 0:
 		header := []byte{0x00, 0x20}
 		_, err = writeData(f, [][]byte{header})
@@ -87,6 +88,7 @@ func handleAnimation(imgs []sourceImage) error {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
 			}
 		}
+		return nil
 	case len(scSprites) > 0:
 		header := []byte{0x00, 0x20}
 		_, err = writeData(f, [][]byte{header})
@@ -102,8 +104,8 @@ func handleAnimation(imgs []sourceImage) error {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
 			}
 		}
+		return nil
 	}
-
 	return nil
 }
 
