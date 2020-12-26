@@ -1,7 +1,9 @@
-png2prg 0.4 by burglar
-usage: ./png2prg [-help -h -d -q -v -force-bg-col 0 -force-charcol 5 -o outfile.prg -td testdata] FILE [FILE..]
+png2prg 0.5-dev by burglar
+usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]
 
-Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 single- or multicolor
+# png2prg 0.5-dev by burglar
+
+Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or multicolor
 bitmap or charset. It will find the best matching palette and backgroundcolor
 automatically, no need to modify your source images or configure a palette.
 Vice screenshots with default borders (384x272) are automatically cropped.
@@ -10,9 +12,23 @@ The resulting .prg includes the 2-byte start address and optional displayer.
 
 This tool can be used in all buildchains on most platforms.
 
-Single or MultiColor Bitmap:
+# Supported Graphics Modes:
 
-Png2prg automatically detects single color bitmaps based on the maximum
+  koala:     multicolor bitmap (max 4 colors per char)
+  hires:     singlecolor bitmap (max 2 colors per char)
+  mccharset: multicolor charset (max 4 colors)
+  sccharset: singlecolor charset (max 2 colors)
+  mcsprites: multicolor sprites (max 4 colors)
+  scsprites: singlecolor sprites (max 2 colors)
+
+Png2prg is mostly able to autodetect the correct graphics mode, but you can
+also force a specific graphics mode with the -mode flag:
+
+  ./png2prg -m koala image.png
+
+# Koala or Hires Bitmap:
+
+Png2prg automatically detects hires bitmaps based on the maximum
 amount of colors per character in the bitmap.
 
   Bitmap: $2000 - $3f3f
@@ -20,30 +36,61 @@ amount of colors per character in the bitmap.
   D800:   $4328 - $470f (multicolor only)
   D021:   $4710         (multicolor only)
 
-Background Color:
+# Single or Multicolor Charset:
 
-To give you more control, you can force a specific background color for
-multicolor pictures, by specifying -force-bg-col 0 for black, 1 for white, 2 for red, etc.
+Currently only images with max 4 colors can be converted into a charset.
+Support for individual d800 colors and mixed single/multicolor chars may be
+added in a future release, if the need arises.
 
-Single or MultiColor Charset:
-
-Currently only pictures with max 4 colors can be converted to charset.
-You can use -force-bg-col and -force-char-col to control colors.
-
-MultiColor charsets are packed, they only contain unique characaters.
-SingleColor charsets are *not* packed, primary use is 1x1 charsets.
+By default charsets are packed, they only contain unique characaters.
+If you do not want charpacking, eg for a 1x1 charset, please use -no-pack
 
   Charset:   $2000-$27ff
-  Screen:    $2800-$2be7 (multicolor only)
-  D021:      $2be8       (multicolor only)
-  CharColor: $2be9       (multicolor only)
+  Screen:    $2800-$2be7
+  CharColor: $2be8       (multicolor only)
+  D021:      $2be9       (multicolor only)
   D022:      $2bea       (multicolor only)
   D023:      $2beb       (multicolor only)
 
-Animation (MultiColor Bitmap Only for now):
+# Single or Multicolor Sprites:
+
+If the source image size is a multiple of a 24x21 pixel sprite,
+the image is considered to contain sprites.
+
+The image will be converted left to right, top to bottom.
+
+  Sprite 1: $2000-$203f
+  Sprite 2: $2040-$207f
+  ...
+
+# Bitpair Colors:
+
+By default, png2prg guesses bitpair colors by itself. In most cases you
+don't need to configure anything. It will provide a mostly normalized image
+which should yield good pack results, but your miles may vary.
+
+To give you more control, you can force/prefer a specific bitpair
+color-order. Use c64 colors, so 0 for black, 1 for white, 2 for red, etc.
+
+The following example will force background color 0 for bitpair 00 and
+prefer colors 6,14,3 for bitpairs 01,10,11:
+
+  ./png2prg -bitpair-colors 0,6,14,3 image.png
+
+It's also possible to explicitly skip certain bitpairs preferences with -1:
+
+  ./png2prg -bitpair-colors 0,-1,-1,3 image.png
+
+# Sprite Animation:
+
+Each frame will be concatenated in the .prg.
+
+# Bitmap Animation (only koala):
 
 If multiple files are added, they are treated as animation frames.
-The base image will be exported and a separate .prg per frame.
+You can also supply an animated .gif.
+The first image will be exported and each frame as a separate .prg,
+containing the modified characters.
 
 The frame files are following this format.
 Each frame consists of 1 or more chunks. A chunk looks like this:
@@ -56,28 +103,38 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
   For each char in this chunk:
 
-    .byte 0,0,15,7,8,8,0,0 // pixels
-    .byte $64              // screenram colors
-    .byte $01              // colorram color
-    ...                    // next chars
+    .byte 0,31,15,7,8,34,0,128 // pixels
+    .byte $64                  // screenram colors
+    .byte $01                  // colorram color
+    ...                        // next char(s)
 
   ...          // next chunks
   .byte 0      // end of frame
-  ...          // next frames
+  ...          // next frame(s)
   .byte $ff    // end of all frames
 
-Options:
+# Options:
 
+  -bitpair-colors string
+    	prefer these colors in 2bit space, eg 0,6,14,3
   -d	display
   -display
     	include displayer
-  -force-bgcol int
-    	force background color -1: off 0: black 1: white 2: red, etc (default -1)
-  -force-charcol int
-    	force multicolor charset d800 color -1: off 0: black 1: white 2: red, etc (default -1)
   -h	help
   -help
     	help
+  -m string
+    	mode
+  -mode string
+    	force graphics mode koala, hires, mccharset, sccharset, scsprites or mcsprites
+  -ng
+    	no-guess
+  -no-guess
+    	do not guess preferred bitpair-colors
+  -no-pack
+    	do not pack chars (only for sc/mc charset)
+  -np
+    	no-pack
   -o string
     	out
   -out string
