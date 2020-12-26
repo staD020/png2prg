@@ -172,7 +172,7 @@ func init() {
 	flag.StringVar(&targetdir, "td", "", "targetdir")
 	flag.StringVar(&targetdir, "targetdir", "", "specify targetdir")
 	flag.StringVar(&graphicsMode, "m", "", "mode")
-	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode koala, hires, mccharset or sccharset")
+	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode koala, hires, mccharset, sccharset, scsprites or mcsprites")
 
 	flag.BoolVar(&noGuess, "ng", false, "no-guess")
 	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpair-colors")

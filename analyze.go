@@ -53,12 +53,8 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 			if err != nil {
 				return nil, fmt.Errorf("gif.DecodeAll %q failed: %v", filename, err)
 			}
-
-			if len(g.Image) < 2 {
-				return nil, fmt.Errorf("file %q is not an animation, frames found: %d", filename, len(g.Image))
-			}
 			if verbose {
-				log.Printf("found animated gif %q with %d frames", filename, len(g.Image))
+				log.Printf("found .gif %q with %d frames", filename, len(g.Image))
 			}
 
 			for _, rawImage := range g.Image {
@@ -75,7 +71,7 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 				}
 				imgs = append(imgs, img)
 				if verbose {
-					fmt.Printf("extraced image %T, width %d x height %d\n", rawImage, width, height)
+					fmt.Printf("extraced image %T, width x height: %d x %d\n", rawImage, width, height)
 				}
 			}
 		default:
