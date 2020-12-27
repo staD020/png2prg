@@ -1,4 +1,4 @@
-png2prg 0.5-dev by burglar
+png2prg 0.6 by burglar
 usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]
 
 # png2prg 0.5-dev by burglar

@@ -14,27 +14,12 @@ GOBUILDFLAGS=-v
 FLAGS=-d -v
 FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
-FLAGSNG3=-d -v -bitpair-colors 0,15,12,1
+FLAGSFORCE=-d -v -bitpair-colors 0,15,12,1
 TESTPIC=testdata/ste_ikariwarriors.gif
 
 png2prg: png2prg_linux
 
 all: png2prg_linux png2prg_darwin png2prg.exe
-
-test: png2prg_linux
-	./png2prg_linux $(FLAGS) -o z.prg $(TESTPIC)
-	$(X64) z.prg >/dev/null
-
-testpack: png2prg_linux
-	./png2prg_linux $(FLAGS) -o z.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_guess.prg z.prg
-	./png2prg_linux $(FLAGSNG) -o z.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_noguess.prg z.prg
-	./png2prg_linux $(FLAGSNG2) -o z.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_noguess2.prg z.prg
-	./png2prg_linux $(FLAGSNG3) -o z.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_force_manual_colors.prg z.prg
-	$(X64) zz_guess.prg >/dev/null
 
 compress: png2prg_linux.upx png2prg_darwin.upx png2prg.exe.upx
 
@@ -56,6 +41,21 @@ png2prg_darwin: $(SRC)
 
 png2prg.exe: $(SRC)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^
+
+test: png2prg_linux
+	./png2prg_linux $(FLAGS) -o z.prg $(TESTPIC)
+	$(X64) z.prg >/dev/null
+
+testpack: png2prg_linux
+	./png2prg_linux $(FLAGS) -o z.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_guess.prg z.prg
+	./png2prg_linux $(FLAGSNG) -o z.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_noguess.prg z.prg
+	./png2prg_linux $(FLAGSNG2) -o z.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_noguess2.prg z.prg
+	./png2prg_linux $(FLAGSFORCE) -o z.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_force_manual_colors.prg z.prg
+	$(X64) zz_guess.prg >/dev/null
 
 clean:
 	rm -f png2prg_linux png2prg_darwin png2prg.exe GEN_*.go *.prg *.upx

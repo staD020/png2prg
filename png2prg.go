@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-const version = "0.5-dev"
+const version = "0.6"
 
 type RGB struct {
 	R, G, B byte
@@ -376,12 +376,18 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
+	if display && !quiet {
+		fmt.Printf("no displayer support for %s, try without -d/-display\n", singleColorSprites)
+	}
 	header := []byte{0x00, 0x20}
 	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.SpriteColor}})
 	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }
 
 func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
+	if display && !quiet {
+		fmt.Printf("no displayer support for %s, try without -d/-display\n", multiColorSprites)
+	}
 	header := []byte{0x00, 0x20}
 	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.D025Color, s.SpriteColor, s.D026Color}})
 	return writeData(w, [][]byte{header, s.Bitmap[:]})

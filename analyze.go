@@ -175,10 +175,8 @@ func (img *sourceImage) analyze() error {
 }
 
 func (img *sourceImage) analyzeSprites() error {
-	maxX := img.width / 24
-	maxY := img.height / 21
-	if maxX == 0 || maxY == 0 {
-		return fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", maxX, maxY)
+	if img.width/24 == 0 || img.height/21 == 0 {
+		return fmt.Errorf("%d X-sprites x %d Y-sprites: cant have 0 sprites", img.width/24, img.height/21)
 	}
 
 	switch {
@@ -191,13 +189,13 @@ func (img *sourceImage) analyzeSprites() error {
 	}
 
 	if !quiet {
-		log.Printf("graphics mode found: %s", img.graphicsType)
+		fmt.Printf("graphics mode found: %s\n", img.graphicsType)
 	}
 	if graphicsMode != "" {
 		if img.graphicsType != currentGraphicsType {
 			img.graphicsType = currentGraphicsType
 			if !quiet {
-				log.Printf("graphics mode forced: %s", img.graphicsType)
+				fmt.Printf("graphics mode forced: %s\n", img.graphicsType)
 			}
 		}
 	}
@@ -548,6 +546,9 @@ func (img *sourceImage) distanceAndMap(palette [16]C64RGB) (float64, map[RGB]byt
 				d := 0.0
 				curMap[rgb], d = rgb.colorIndexAndDistance(palette)
 				totalDistance += d
+				if len(curMap) == 16 {
+					return totalDistance, curMap
+				}
 			}
 		}
 	}
