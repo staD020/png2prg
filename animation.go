@@ -13,6 +13,10 @@ func handleAnimation(imgs []sourceImage) error {
 	var kk []Koala
 	var scSprites []SingleColorSprites
 	var mcSprites []MultiColorSprites
+	if len(imgs) < 1 {
+		return fmt.Errorf("no sourceImage given")
+	}
+	destFilename := destinationFilename(imgs[0].sourceFilename)
 	for _, img := range imgs {
 		if verbose {
 			log.Printf("processing %q\n", img.sourceFilename)
@@ -45,7 +49,6 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 	}
 
-	destFilename := destinationFilename(kk[0].SourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
 		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
