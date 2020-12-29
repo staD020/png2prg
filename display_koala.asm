@@ -8,9 +8,12 @@
 .import source "lib.asm"
 
 .pc = $0801 "basic upstart"
-:BasicUpstart(start)
+//:BasicUpstart(start)
+.byte $17,$08,$e5,$07, $9e,$32,$30,$37
+.byte $33,$20,$50,$4e, $47,$32,$50,$52
+.byte $47,$20,$30,$2e, $36
 
-.pc = $0810 "start"
+.pc = $0819 "start"
 start:
 		sei
 		jsr vblank
