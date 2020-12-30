@@ -54,11 +54,10 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 				return nil, fmt.Errorf("gif.DecodeAll %q failed: %v", filename, err)
 			}
 			if verbose {
-				log.Printf("found .gif %q with %d frames", filename, len(g.Image))
+				log.Printf("file %q has %d frames", filename, len(g.Image))
 			}
 
 			for _, rawImage := range g.Image {
-				width, height := rawImage.Bounds().Max.X-rawImage.Bounds().Min.X, rawImage.Bounds().Max.Y-rawImage.Bounds().Min.Y
 				img := sourceImage{
 					sourceFilename: filename,
 					image:          rawImage,
@@ -70,9 +69,6 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 					return nil, fmt.Errorf("img.checkBounds failed %q: %v", filename, err)
 				}
 				imgs = append(imgs, img)
-				if verbose {
-					fmt.Printf("extraced image %T, width x height: %d x %d\n", rawImage, width, height)
-				}
 			}
 		default:
 			img, err := newSourceImage(filename)

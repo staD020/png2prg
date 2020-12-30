@@ -309,7 +309,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	if display && !quiet {
-		fmt.Printf("no displayer support for %s, try without -d/-display\n", singleColorSprites)
+		fmt.Printf("no displayer support for %s, maybe try without -d/-display\n", singleColorSprites)
 	}
 	header := []byte{0x00, 0x20}
 	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.SpriteColor}})
@@ -318,7 +318,7 @@ func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 
 func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	if display && !quiet {
-		fmt.Printf("no displayer support for %s, try without -d/-display\n", multiColorSprites)
+		fmt.Printf("no displayer support for %s, maybe without -d/-display\n", multiColorSprites)
 	}
 	header := []byte{0x00, 0x20}
 	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.D025Color, s.SpriteColor, s.D026Color}})

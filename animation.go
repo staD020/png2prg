@@ -17,13 +17,13 @@ func handleAnimation(imgs []sourceImage) error {
 		return fmt.Errorf("no sourceImage given")
 	}
 	destFilename := destinationFilename(imgs[0].sourceFilename)
-	for _, img := range imgs {
+	for i, img := range imgs {
 		if verbose {
-			log.Printf("processing %q\n", img.sourceFilename)
+			log.Printf("processing %q frame %d\n", img.sourceFilename, i)
 		}
 		err := img.analyze()
 		if err != nil {
-			return fmt.Errorf("img.analyze failed: %v", err)
+			return fmt.Errorf("analyze failed: %v", err)
 		}
 		switch img.graphicsType {
 		case multiColorBitmap:
@@ -85,7 +85,7 @@ func handleAnimation(imgs []sourceImage) error {
 		for _, s := range mcSprites {
 			_, err = writeData(f, [][]byte{s.Bitmap[:]})
 			if err != nil {
-				return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
+				return fmt.Errorf("writeData %q failed: %v", destFilename, err)
 			}
 			if !quiet {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
@@ -101,7 +101,7 @@ func handleAnimation(imgs []sourceImage) error {
 		for _, s := range scSprites {
 			_, err = writeData(f, [][]byte{s.Bitmap[:]})
 			if err != nil {
-				return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
+				return fmt.Errorf("writeData %q failed: %v", destFilename, err)
 			}
 			if !quiet {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
@@ -109,7 +109,7 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 		return nil
 	}
-	return nil
+	return fmt.Errorf("handleAnimation %q failed: no frames written", imgs[0].sourceFilename)
 }
 
 func frameFilename(i int, filename string) string {
@@ -126,13 +126,11 @@ func writePrgFile(filename string, prg []byte) error {
 		return fmt.Errorf("os.Create %q failed: %v", filename, err)
 	}
 	defer f.Close()
-	if _, err = f.Write([]byte{0x00, 0x20}); err != nil {
-		return fmt.Errorf("Write startaddress to %q failed: %v", filename, err)
-	}
-	if _, err = f.Write(prg[:]); err != nil {
-		return fmt.Errorf("Write prg to %q failed: %v", filename, err)
-	}
 
+	_, err = writeData(f, [][]byte{[]byte{0x00, 0x20}, prg[:]})
+	if err != nil {
+		return fmt.Errorf("writeData %q failed: %v", filename, err)
+	}
 	if !quiet {
 		fmt.Printf("write %q\n", filename)
 	}
@@ -188,7 +186,7 @@ type chunk struct {
 }
 
 func newChunk(charIndex int) chunk {
-	c := chunk{
+	return chunk{
 		CharIndex: charIndex,
 		BitmapLo:  byte((charIndex * 8) & 0xff),
 		BitmapHi:  byte((charIndex * 8) >> 8),
@@ -196,7 +194,6 @@ func newChunk(charIndex int) chunk {
 		CharHi:    byte((charIndex - charIndex&0xff) >> 8),
 		Chars:     make([]byte, 0),
 	}
-	return c
 }
 
 func (c *chunk) appendChar(char MultiColorChar) {
