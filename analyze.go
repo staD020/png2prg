@@ -159,7 +159,9 @@ func (img *sourceImage) analyze() error {
 		}
 	}
 	if img.graphicsType == multiColorBitmap {
-		img.findBackgroundColor()
+		if err := img.findBackgroundColor(); err != nil {
+			return fmt.Errorf("findBackgroundColor failed: %v", err)
+		}
 	}
 	if !noGuess {
 		if img.graphicsType == multiColorBitmap && max < 4 {
@@ -196,7 +198,9 @@ func (img *sourceImage) analyzeSprites() error {
 		}
 	}
 
-	img.findBackgroundColor()
+	if err := img.findBackgroundColor(); err != nil {
+		return fmt.Errorf("findBackgroundColor failed: %v", err)
+	}
 
 	if !noGuess {
 		max, _, sumColors := img.countSpriteColors()
@@ -361,7 +365,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 	return
 }
 
-func (img *sourceImage) findBackgroundColor() {
+func (img *sourceImage) findBackgroundColor() error {
 	var sumColors [16]int
 	isSprites := img.graphicsType == singleColorSprites || img.graphicsType == multiColorSprites
 	if isSprites {
@@ -395,10 +399,10 @@ func (img *sourceImage) findBackgroundColor() {
 					log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 				}
 				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
-				return
+				return nil
 			}
 		}
-		panic("background color not found in sprites??")
+		return fmt.Errorf("background color not found in sprites")
 	}
 
 	if img.backgroundCandidates == nil {
@@ -412,14 +416,14 @@ func (img *sourceImage) findBackgroundColor() {
 				log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 			}
 			img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
-			return
+			return nil
 		default:
 			if colorIndex == byte(forceBgCol) {
 				if verbose {
 					log.Printf("findBackgroundColor: found preferred background color %d\n", forceBgCol)
 				}
 				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
-				return
+				return nil
 			}
 		}
 	}
@@ -429,8 +433,9 @@ func (img *sourceImage) findBackgroundColor() {
 			fmt.Printf("findBackgroundColor: we tried looking for color %d, but we have to settle for color %d\n", forceBgCol, colorIndex)
 		}
 		img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
-		return
+		return nil
 	}
+	return fmt.Errorf("background color not found")
 }
 
 func (img *sourceImage) makeCharColors() error {

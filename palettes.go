@@ -1,7 +1,5 @@
 package main
 
-type Palette [16]C64RGB
-
 var c64palettes = map[string][16]C64RGB{
 	"vice": [16]C64RGB{
 		{"black", 0, RGB{0x00, 0x00, 0x00}},

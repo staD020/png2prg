@@ -59,7 +59,7 @@ func main() {
 		printUsage()
 		os.Exit(0)
 	}
-	setGraphicsType(graphicsMode)
+	currentGraphicsType = stringToGraphicsType(graphicsMode)
 	if display {
 		if err := initDisplayers(); err != nil {
 			log.Fatal(err)

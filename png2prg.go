@@ -32,7 +32,8 @@ type C64RGB struct {
 type graphicsType byte
 
 const (
-	singleColorBitmap graphicsType = iota
+	unknownGraphicsType graphicsType = iota
+	singleColorBitmap
 	multiColorBitmap
 	singleColorCharset
 	multiColorCharset
@@ -40,21 +41,22 @@ const (
 	multiColorSprites
 )
 
-func setGraphicsType(s string) {
+func stringToGraphicsType(s string) graphicsType {
 	switch s {
 	case "koala":
-		currentGraphicsType = multiColorBitmap
+		return multiColorBitmap
 	case "hires":
-		currentGraphicsType = singleColorBitmap
+		return singleColorBitmap
 	case "sccharset":
-		currentGraphicsType = singleColorCharset
+		return singleColorCharset
 	case "mccharset":
-		currentGraphicsType = multiColorCharset
+		return multiColorCharset
 	case "scsprites":
-		currentGraphicsType = singleColorSprites
+		return singleColorSprites
 	case "mcsprites":
-		currentGraphicsType = multiColorSprites
+		return multiColorSprites
 	}
+	return unknownGraphicsType
 }
 
 func (t graphicsType) String() string {
@@ -71,8 +73,9 @@ func (t graphicsType) String() string {
 		return "singlecolor sprites"
 	case multiColorSprites:
 		return "multicolor sprites"
+	default:
+		return "unknown"
 	}
-	return ""
 }
 
 type colorInfo struct {
@@ -236,10 +239,13 @@ func processFiles(filenames ...string) (err error) {
 				return fmt.Errorf("convertToMultiColorCharset %q failed: %v", img.sourceFilename, err)
 			}
 			if !quiet {
-				log.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v", multiColorBitmap, img.sourceFilename, err)
+				fmt.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
 			}
 			img.graphicsType = multiColorBitmap
-			img.findBackgroundColor()
+			err = img.findBackgroundColor()
+			if err != nil {
+				return fmt.Errorf("findBackgroundColor %q failed: %v", img.sourceFilename, err)
+			}
 			c, err = img.convertToKoala()
 			if err != nil {
 				return fmt.Errorf("convertToKoala %q failed: %v", img.sourceFilename, err)
