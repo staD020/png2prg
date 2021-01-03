@@ -1,18 +1,19 @@
 png2prg 0.6 by burglar
 usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]
 
-# png2prg 0.5-dev by burglar
+# PNG2PRG 0.6 by Burglar
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or multicolor
 bitmap or charset. It will find the best matching palette and backgroundcolor
 automatically, no need to modify your source images or configure a palette.
 Vice screenshots with default borders (384x272) are automatically cropped.
+Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
 
 This tool can be used in all buildchains on most platforms.
 
-# Supported Graphics Modes:
+## Supported Graphics Modes:
 
   koala:     multicolor bitmap (max 4 colors per char)
   hires:     singlecolor bitmap (max 2 colors per char)
@@ -26,7 +27,7 @@ also force a specific graphics mode with the -mode flag:
 
   ./png2prg -m koala image.png
 
-# Koala or Hires Bitmap:
+## Koala or Hires Bitmap:
 
 Png2prg automatically detects hires bitmaps based on the maximum
 amount of colors per character in the bitmap.
@@ -36,7 +37,7 @@ amount of colors per character in the bitmap.
   D800:   $4328 - $470f (multicolor only)
   D021:   $4710         (multicolor only)
 
-# Single or Multicolor Charset:
+## Single or Multicolor Charset:
 
 Currently only images with max 4 colors can be converted into a charset.
 Support for individual d800 colors and mixed single/multicolor chars may be
@@ -52,7 +53,7 @@ If you do not want charpacking, eg for a 1x1 charset, please use -no-pack
   D022:      $2bea       (multicolor only)
   D023:      $2beb       (multicolor only)
 
-# Single or Multicolor Sprites:
+## Single or Multicolor Sprites:
 
 If the source image size is a multiple of a 24x21 pixel sprite,
 the image is considered to contain sprites.
@@ -63,7 +64,7 @@ The image will be converted left to right, top to bottom.
   Sprite 2: $2040-$207f
   ...
 
-# Bitpair Colors:
+## Bitpair Colors:
 
 By default, png2prg guesses bitpair colors by itself. In most cases you
 don't need to configure anything. It will provide a mostly normalized image
@@ -81,11 +82,11 @@ It's also possible to explicitly skip certain bitpairs preferences with -1:
 
   ./png2prg -bitpair-colors 0,-1,-1,3 image.png
 
-# Sprite Animation:
+## Sprite Animation:
 
-Each frame will be concatenated in the .prg.
+Each frame will be concatenated in the output .prg.
 
-# Bitmap Animation (only koala):
+## Bitmap Animation (only koala):
 
 If multiple files are added, they are treated as animation frames.
 You can also supply an animated .gif.
@@ -113,10 +114,12 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
   ...          // next frame(s)
   .byte $ff    // end of all frames
 
-# Options:
+## Options:
 
   -bitpair-colors string
     	prefer these colors in 2bit space, eg 0,6,14,3
+  -bpc string
+    	bitpair-colors
   -d	display
   -display
     	include displayer
