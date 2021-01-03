@@ -23,19 +23,15 @@ func newSourceImage(filename string) (sourceImage, error) {
 	if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
 		return img, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
 	}
-
 	if img.image, _, err = image.Decode(f); err != nil {
 		return img, fmt.Errorf("image.Decode %q failed: %v", filename, err)
 	}
-
 	if err = img.checkBounds(); err != nil {
 		return img, fmt.Errorf("img.checkBounds failed %q: %v", filename, err)
 	}
-
 	if verbose && (img.xOffset != 0 || img.yOffset != 0) {
 		log.Printf("img.xOffset, yOffset = %d, %d\n", img.xOffset, img.yOffset)
 	}
-
 	return img, nil
 }
 
@@ -246,16 +242,17 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 
 	if img.graphicsType == multiColorCharset && len(img.preferredBitpairColors) == 4 {
 		for i, v := range img.preferredBitpairColors {
-			if v == 0 {
-				if verbose {
-					log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %v", maxColors, img.preferredBitpairColors)
-				}
-				img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
-				if verbose {
-					log.Printf("now using -bitpair-colors %v", img.preferredBitpairColors)
-				}
-				break
+			if v != 0 {
+				continue
 			}
+			if verbose {
+				log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %v", maxColors, img.preferredBitpairColors)
+			}
+			img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
+			if verbose {
+				log.Printf("now using -bitpair-colors %v", img.preferredBitpairColors)
+			}
+			break
 		}
 		if img.preferredBitpairColors[3] > 7 {
 			for i, v := range img.preferredBitpairColors {
@@ -417,14 +414,12 @@ func (img *sourceImage) findBackgroundColor() error {
 			}
 			img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
 			return nil
-		default:
-			if colorIndex == byte(forceBgCol) {
-				if verbose {
-					log.Printf("findBackgroundColor: found preferred background color %d\n", forceBgCol)
-				}
-				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
-				return nil
+		case colorIndex == byte(forceBgCol):
+			if verbose {
+				log.Printf("findBackgroundColor: found preferred background color %d\n", forceBgCol)
 			}
+			img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
+			return nil
 		}
 	}
 
@@ -554,15 +549,6 @@ func (img *sourceImage) distanceAndMap(palette [16]C64RGB) (float64, map[RGB]byt
 		}
 	}
 	return totalDistance, curMap
-}
-
-func (img *sourceImage) colorIndexToRGB(colorIndex byte) RGB {
-	for rgb, col := range img.palette {
-		if col == colorIndex {
-			return rgb
-		}
-	}
-	return RGB{}
 }
 
 func (r RGB) colorIndexAndDistance(palette [16]C64RGB) (byte, float64) {

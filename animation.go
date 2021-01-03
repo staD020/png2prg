@@ -16,7 +16,6 @@ func handleAnimation(imgs []sourceImage) error {
 	if len(imgs) < 1 {
 		return fmt.Errorf("no sourceImage given")
 	}
-	destFilename := destinationFilename(imgs[0].sourceFilename)
 	for i, img := range imgs {
 		if verbose {
 			log.Printf("processing %q frame %d\n", img.sourceFilename, i)
@@ -49,6 +48,7 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 	}
 
+	destFilename := destinationFilename(imgs[0].sourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
 		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
@@ -250,7 +250,6 @@ func exportKoalaAnims(anims [][]MultiColorChar) [][]byte {
 		prg = append(prg, 0x00)
 		prgs = append(prgs, prg)
 	}
-	prgs[len(prgs)-1] = append(prgs[len(prgs)-1])
 	return prgs
 }
 

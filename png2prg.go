@@ -17,7 +17,7 @@ import (
 	"strings"
 )
 
-const version = "0.6"
+const version = "0.6-rc1"
 
 type RGB struct {
 	R, G, B byte
@@ -203,7 +203,9 @@ func processFiles(filenames ...string) (err error) {
 	case len(imgs) == 0:
 		return fmt.Errorf("no images found")
 	case len(imgs) > 1:
-		return handleAnimation(imgs)
+		if err = handleAnimation(imgs); err != nil {
+			return fmt.Errorf("handleAnimation failed: %v", err)
+		}
 	}
 
 	img := imgs[0]
@@ -324,7 +326,7 @@ func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 
 func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	if display && !quiet {
-		fmt.Printf("no displayer support for %s, maybe without -d/-display\n", multiColorSprites)
+		fmt.Printf("no displayer support for %s, maybe try without -d/-display\n", multiColorSprites)
 	}
 	header := []byte{0x00, 0x20}
 	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.D025Color, s.SpriteColor, s.D026Color}})
