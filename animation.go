@@ -77,7 +77,7 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 		return nil
 	case len(mcSprites) > 0:
-		header := []byte{0x00, 0x20}
+		header := defaultHeader()
 		_, err = writeData(f, [][]byte{header})
 		if err != nil {
 			return fmt.Errorf("writeData %q failed: %v", destFilename, err)
@@ -93,7 +93,7 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 		return nil
 	case len(scSprites) > 0:
-		header := []byte{0x00, 0x20}
+		header := defaultHeader()
 		_, err = writeData(f, [][]byte{header})
 		if err != nil {
 			return fmt.Errorf("writeData %q failed: %v", destFilename, err)
@@ -127,7 +127,7 @@ func writePrgFile(filename string, prg []byte) error {
 	}
 	defer f.Close()
 
-	_, err = writeData(f, [][]byte{[]byte{0x00, 0x20}, prg[:]})
+	_, err = writeData(f, [][]byte{defaultHeader(), prg[:]})
 	if err != nil {
 		return fmt.Errorf("writeData %q failed: %v", filename, err)
 	}
@@ -203,8 +203,7 @@ func (c *chunk) appendChar(char MultiColorChar) {
 }
 
 func (c *chunk) export() []byte {
-	bin := []byte{c.CharCount, c.BitmapLo, c.BitmapHi, c.CharLo, c.CharHi}
-	return append(bin, c.Chars...)
+	return append([]byte{c.CharCount, c.BitmapLo, c.BitmapHi, c.CharLo, c.CharHi}, c.Chars...)
 }
 
 func (c *chunk) String() string {
@@ -225,7 +224,6 @@ func exportKoalaAnims(anims [][]MultiColorChar) [][]byte {
 			switch {
 			case curChar == char.CharIndex-1:
 				curChunk.appendChar(char)
-				curChar = char.CharIndex
 			default:
 				// new chunk
 				if curChunk.CharCount > 0 {
@@ -236,8 +234,8 @@ func exportKoalaAnims(anims [][]MultiColorChar) [][]byte {
 				}
 				curChunk = newChunk(char.CharIndex)
 				curChunk.appendChar(char)
-				curChar = char.CharIndex
 			}
+			curChar = char.CharIndex
 		}
 		// add last chunk
 		if curChunk.CharCount > 0 {

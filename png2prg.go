@@ -213,26 +213,22 @@ func processFiles(filenames ...string) (err error) {
 	if verbose {
 		log.Printf("processing file %q", img.sourceFilename)
 	}
-	err = img.analyze()
-	if err != nil {
+	if err = img.analyze(); err != nil {
 		return fmt.Errorf("analyze %q failed: %v", img.sourceFilename, err)
 	}
 
 	var c io.WriterTo
 	switch img.graphicsType {
 	case multiColorBitmap:
-		c, err = img.convertToKoala()
-		if err != nil {
+		if c, err = img.convertToKoala(); err != nil {
 			return fmt.Errorf("convertToKoala %q failed: %v", img.sourceFilename, err)
 		}
 	case singleColorBitmap:
-		c, err = img.convertToHires()
-		if err != nil {
+		if c, err = img.convertToHires(); err != nil {
 			return fmt.Errorf("convertToHires %q failed: %v", img.sourceFilename, err)
 		}
 	case singleColorCharset:
-		c, err = img.convertToSingleColorCharset()
-		if err != nil {
+		if c, err = img.convertToSingleColorCharset(); err != nil {
 			return fmt.Errorf("convertToSingleColorCharset %q failed: %v", img.sourceFilename, err)
 		}
 	case multiColorCharset:
@@ -255,13 +251,11 @@ func processFiles(filenames ...string) (err error) {
 			}
 		}
 	case singleColorSprites:
-		c, err = img.convertToSingleColorSprites()
-		if err != nil {
+		if c, err = img.convertToSingleColorSprites(); err != nil {
 			return fmt.Errorf("convertToSingleColorSprites %q failed: %v", img.sourceFilename, err)
 		}
 	case multiColorSprites:
-		c, err = img.convertToMultiColorSprites()
-		if err != nil {
+		if c, err = img.convertToMultiColorSprites(); err != nil {
 			return fmt.Errorf("convertToMultiColorSprites %q failed: %v", img.sourceFilename, err)
 		}
 	default:
@@ -284,8 +278,13 @@ func processFiles(filenames ...string) (err error) {
 	return nil
 }
 
+// defaultHeader returns the startaddress of a file located at 0x2000
+func defaultHeader() []byte {
+	return []byte{0x00, 0x20}
+}
+
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
-	header := []byte{0x00, 0x20}
+	header := defaultHeader()
 	if display {
 		header = displayers[multiColorBitmap]
 	}
@@ -293,7 +292,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
-	header := []byte{0x00, 0x20}
+	header := defaultHeader()
 	if display {
 		header = displayers[singleColorBitmap]
 	}
@@ -301,7 +300,7 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
-	header := []byte{0x00, 0x20}
+	header := defaultHeader()
 	if display {
 		header = displayers[multiColorCharset]
 	}
@@ -309,7 +308,7 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
-	header := []byte{0x00, 0x20}
+	header := defaultHeader()
 	if display {
 		header = displayers[singleColorCharset]
 	}
@@ -320,7 +319,7 @@ func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	if display && !quiet {
 		fmt.Printf("no displayer support for %s, maybe try without -d/-display\n", singleColorSprites)
 	}
-	header := []byte{0x00, 0x20}
+	header := defaultHeader()
 	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.SpriteColor}})
 	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }
@@ -329,7 +328,7 @@ func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	if display && !quiet {
 		fmt.Printf("no displayer support for %s, maybe try without -d/-display\n", multiColorSprites)
 	}
-	header := []byte{0x00, 0x20}
+	header := defaultHeader()
 	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.D025Color, s.SpriteColor, s.D026Color}})
 	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }
@@ -352,9 +351,9 @@ func destinationFilename(filename string) (destfilename string) {
 	}
 	switch {
 	case len(outfile) > 0:
-		destfilename = destfilename + outfile
+		return destfilename + outfile
 	case len(outfile) == 0:
-		destfilename = destfilename + filepath.Base(strings.TrimSuffix(filename, filepath.Ext(filename))+".prg")
+		return destfilename + filepath.Base(strings.TrimSuffix(filename, filepath.Ext(filename))+".prg")
 	}
 	return destfilename
 }
