@@ -206,6 +206,7 @@ func processFiles(filenames ...string) (err error) {
 		if err = handleAnimation(imgs); err != nil {
 			return fmt.Errorf("handleAnimation failed: %v", err)
 		}
+		return nil
 	}
 
 	img := imgs[0]

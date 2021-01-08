@@ -14,8 +14,8 @@ GOBUILDFLAGS=-v
 FLAGS=-d -v
 FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
-FLAGSFORCE=-d -v -bitpair-colors 0,15,12,1
-TESTPIC=testdata/ste_ikariwarriors.gif
+FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
+TESTPIC=testdata/ben_daglish.png
 
 png2prg: png2prg_linux
 

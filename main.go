@@ -8,17 +8,19 @@ import (
 	"time"
 )
 
-var outfile string
-var targetdir string
-var help bool
-var quiet bool
-var verbose bool
-var display bool
-var noPackChars bool
-var bitpairColorsString string
-var noGuess bool
-var graphicsMode string
-var currentGraphicsType graphicsType
+var (
+	outfile             string
+	targetdir           string
+	help                bool
+	quiet               bool
+	verbose             bool
+	display             bool
+	noPackChars         bool
+	bitpairColorsString string
+	noGuess             bool
+	graphicsMode        string
+	currentGraphicsType graphicsType
+)
 
 func init() {
 	flag.BoolVar(&quiet, "q", false, "quiet")
