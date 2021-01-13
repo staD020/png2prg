@@ -510,9 +510,9 @@ func (img *sourceImage) analyzePalette() {
 	minDistance := 9e9
 	paletteName := ""
 	paletteMap := make(map[RGB]byte)
+	img.setSourceColors()
 	for name, palette := range c64palettes {
 		distance, curMap := img.distanceAndMap(palette)
-
 		if verbose {
 			log.Printf("color distance: %v => %v\n", name, distance)
 		}
@@ -531,20 +531,34 @@ func (img *sourceImage) analyzePalette() {
 	return
 }
 
-func (img *sourceImage) distanceAndMap(palette [16]C64RGB) (float64, map[RGB]byte) {
-	curMap := make(map[RGB]byte, 16)
-	totalDistance := 0.0
+func (img *sourceImage) setSourceColors() {
+	m := make(map[RGB]bool, 16)
 	for x := 0; x < img.width; x += 2 {
 		for y := 0; y < img.height; y++ {
 			r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
 			rgb := RGB{byte(r), byte(g), byte(b)}
-			if _, ok := curMap[rgb]; !ok {
-				d := 0.0
-				curMap[rgb], d = rgb.colorIndexAndDistance(palette)
-				totalDistance += d
-				if len(curMap) == 16 {
-					return totalDistance, curMap
-				}
+			if _, ok := m[rgb]; !ok {
+				m[rgb] = true
+			}
+		}
+	}
+	cc := []RGB{}
+	for rgb := range m {
+		cc = append(cc, rgb)
+	}
+	img.colors = cc
+}
+
+func (img *sourceImage) distanceAndMap(palette [16]C64RGB) (float64, map[RGB]byte) {
+	curMap := make(map[RGB]byte, 16)
+	totalDistance := 0.0
+	for _, rgb := range img.colors {
+		if _, ok := curMap[rgb]; !ok {
+			d := 0.0
+			curMap[rgb], d = rgb.colorIndexAndDistance(palette)
+			totalDistance += d
+			if len(curMap) == 16 {
+				return totalDistance, curMap
 			}
 		}
 	}
@@ -554,7 +568,7 @@ func (img *sourceImage) distanceAndMap(palette [16]C64RGB) (float64, map[RGB]byt
 func (r RGB) colorIndexAndDistance(palette [16]C64RGB) (byte, float64) {
 	distance := r.distanceTo(palette[0].RGB)
 	closestColorIndex := 0
-	for i := 1; i < len(palette); i++ {
+	for i := 0; i < len(palette); i++ {
 		d := r.distanceTo(palette[i].RGB)
 		if d < distance {
 			distance = d

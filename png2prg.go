@@ -103,6 +103,7 @@ type sourceImage struct {
 	width                  int
 	height                 int
 	palette                map[RGB]byte
+	colors                 []RGB
 	charColors             [1000]map[RGB]byte
 	backgroundCandidates   map[RGB]byte
 	backgroundColor        colorInfo
@@ -229,7 +230,16 @@ func processFiles(filenames ...string) (err error) {
 		}
 	case singleColorCharset:
 		if c, err = img.convertToSingleColorCharset(); err != nil {
-			return fmt.Errorf("convertToSingleColorCharset %q failed: %v", img.sourceFilename, err)
+			if graphicsMode != "" {
+				return fmt.Errorf("convertToSingleColorCharset %q failed: %v", img.sourceFilename, err)
+			}
+			if !quiet {
+				fmt.Printf("falling back to %s because convertToSingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
+			}
+			img.graphicsType = singleColorBitmap
+			if c, err = img.convertToHires(); err != nil {
+				return fmt.Errorf("convertToHires %q failed: %v", img.sourceFilename, err)
+			}
 		}
 	case multiColorCharset:
 		c, err = img.convertToMultiColorCharset()
