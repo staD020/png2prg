@@ -100,6 +100,8 @@ func (img *sourceImage) checkBounds() error {
 		// default screenshot size in vice with default borders
 		img.xOffset += (384 - 320) / 2
 		img.yOffset += ((272 - 200) / 2) - 1
+		// some people
+		// img.xOffset, img.yOffset = 32, 36
 		img.width, img.height = 320, 200
 		return nil
 	case img.hasSpriteDimensions():
@@ -151,6 +153,9 @@ func (img *sourceImage) analyze() error {
 			img.graphicsType = currentGraphicsType
 			if !quiet {
 				fmt.Printf("graphics mode forced: %s\n", img.graphicsType)
+			}
+			if img.graphicsType == singleColorCharset && numColors > 2 {
+				return fmt.Errorf("unable to convert to %s, too many colors: %d > 2", img.graphicsType, numColors)
 			}
 		}
 	}

@@ -168,26 +168,19 @@ type MultiColorSprites struct {
 var displayers = make(map[graphicsType][]byte, 0)
 
 func initDisplayers() error {
-	bin, err := base64.StdEncoding.DecodeString(koaladisplayb64)
-	if err != nil {
+	var err error
+	if displayers[multiColorBitmap], err = base64.StdEncoding.DecodeString(koaladisplayb64); err != nil {
 		return fmt.Errorf("unable to decode koaladisplayb64: %v", err)
 	}
-	displayers[multiColorBitmap] = bin
-	bin, err = base64.StdEncoding.DecodeString(hiresdisplayb64)
-	if err != nil {
+	if displayers[singleColorBitmap], err = base64.StdEncoding.DecodeString(hiresdisplayb64); err != nil {
 		return fmt.Errorf("unable to decode hiresdisplayb64: %v", err)
 	}
-	displayers[singleColorBitmap] = bin
-	bin, err = base64.StdEncoding.DecodeString(mcchardisplayb64)
-	if err != nil {
+	if displayers[multiColorCharset], err = base64.StdEncoding.DecodeString(mcchardisplayb64); err != nil {
 		return fmt.Errorf("unable to decode mcchardisplayb64: %v", err)
 	}
-	displayers[multiColorCharset] = bin
-	bin, err = base64.StdEncoding.DecodeString(scchardisplayb64)
-	if err != nil {
+	if displayers[singleColorCharset], err = base64.StdEncoding.DecodeString(scchardisplayb64); err != nil {
 		return fmt.Errorf("unable to decode scchardisplayb64: %v", err)
 	}
-	displayers[singleColorCharset] = bin
 	return nil
 }
 
@@ -242,8 +235,7 @@ func processFiles(filenames ...string) (err error) {
 			}
 		}
 	case multiColorCharset:
-		c, err = img.convertToMultiColorCharset()
-		if err != nil {
+		if c, err = img.convertToMultiColorCharset(); err != nil {
 			if graphicsMode != "" {
 				return fmt.Errorf("convertToMultiColorCharset %q failed: %v", img.sourceFilename, err)
 			}
@@ -255,8 +247,7 @@ func processFiles(filenames ...string) (err error) {
 			if err != nil {
 				return fmt.Errorf("findBackgroundColor %q failed: %v", img.sourceFilename, err)
 			}
-			c, err = img.convertToKoala()
-			if err != nil {
+			if c, err = img.convertToKoala(); err != nil {
 				return fmt.Errorf("convertToKoala %q failed: %v", img.sourceFilename, err)
 			}
 		}
