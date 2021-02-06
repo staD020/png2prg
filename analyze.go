@@ -12,17 +12,16 @@ import (
 	"strings"
 )
 
-func newSourceImage(filename string) (sourceImage, error) {
-	img := sourceImage{sourceFilename: filename}
+func newSourceImage(filename string) (img sourceImage, err error) {
+	img.sourceFilename = filename
+	if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
+		return img, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
+	}
 	f, err := os.Open(filename)
 	if err != nil {
 		return img, fmt.Errorf("could not os.Open file %q: %v", filename, err)
 	}
 	defer f.Close()
-
-	if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
-		return img, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
-	}
 	if img.image, _, err = image.Decode(f); err != nil {
 		return img, fmt.Errorf("image.Decode %q failed: %v", filename, err)
 	}

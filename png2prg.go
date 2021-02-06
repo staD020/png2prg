@@ -17,7 +17,7 @@ import (
 	"strings"
 )
 
-const version = "0.6"
+const version = "0.7-dev"
 
 type RGB struct {
 	R, G, B byte
