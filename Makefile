@@ -10,6 +10,7 @@ UPXFLAGS=--best
 LDFLAGS=-s -w
 CGO=0
 GOBUILDFLAGS=-v
+TARGET=png2prg_linux_amd64
 
 FLAGS=-d -v
 FLAGSNG=-d -v -no-guess
@@ -17,11 +18,11 @@ FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
 TESTPIC=testdata/ben_daglish.png
 
-png2prg: png2prg_linux
+png2prg: $(TARGET)
 
-all: png2prg_linux png2prg_darwin png2prg.exe
+all: $(TARGET) png2prg_darwin_amd64 png2prg_win_amd64.exe
 
-compress: png2prg_linux.upx png2prg_darwin.upx png2prg.exe.upx
+compress: $(TARGET).upx png2prg_darwin_amd64.upx png2prg_win_amd64.exe.upx
 
 GEN_display.go: generate.go $(DISPLAYERS)
 	go generate
@@ -33,29 +34,29 @@ GEN_display.go: generate.go $(DISPLAYERS)
 	$(UPX) $(UPXFLAGS) -o $@ $<
 	touch $@
 
-png2prg_linux: $(SRC)
+$(TARGET): $(SRC)
 	CGO_ENABLED=$(CGO) GOOS=linux GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^
 
-png2prg_darwin: $(SRC)
+png2prg_darwin_amd64: $(SRC)
 	CGO_ENABLED=$(CGO) GOOS=darwin GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^
 
-png2prg.exe: $(SRC)
+png2prg_win_amd64.exe: $(SRC)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^
 
-test: png2prg_linux
-	./png2prg_linux $(FLAGS) -o z.prg $(TESTPIC)
+test: $(TARGET)
+	./$(TARGET) $(FLAGS) -o z.prg $(TESTPIC)
 	$(X64) z.prg >/dev/null
 
-testpack: png2prg_linux
-	./png2prg_linux $(FLAGS) -o z.prg $(TESTPIC)
+testpack: $(TARGET)
+	./$(TARGET) $(FLAGS) -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_guess.prg z.prg
-	./png2prg_linux $(FLAGSNG) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGSNG) -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_noguess.prg z.prg
-	./png2prg_linux $(FLAGSNG2) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGSNG2) -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_noguess2.prg z.prg
-	./png2prg_linux $(FLAGSFORCE) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGSFORCE) -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_force_manual_colors.prg z.prg
 	$(X64) zz_guess.prg >/dev/null
 
 clean:
-	rm -f png2prg_linux png2prg_darwin png2prg.exe GEN_*.go *.prg *.upx
+	rm -f $(TARGET) png2prg_darwin_amd64 png2prg_win_amd64.exe GEN_*.go *.prg *.upx
