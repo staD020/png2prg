@@ -97,6 +97,7 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 func (img *sourceImage) convertToKoala() (Koala, error) {
 	k := Koala{
 		BgColor:        img.backgroundColor.colorIndex,
+		BorderColor:    img.borderColor.colorIndex,
 		SourceFilename: img.sourceFilename,
 	}
 
@@ -147,6 +148,7 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 func (img *sourceImage) convertToHires() (Hires, error) {
 	h := Hires{
 		SourceFilename: img.sourceFilename,
+		BorderColor:    img.borderColor.colorIndex,
 	}
 
 	for char := 0; char < 1000; char++ {
@@ -188,6 +190,7 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error) {
 	c := SingleColorCharset{
 		SourceFilename: img.sourceFilename,
+		BorderColor:    img.borderColor.colorIndex,
 	}
 	_, palette := img.maxColorsPerChar()
 	cc := sortColors(palette)
@@ -334,6 +337,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	c.BgColor = colorIndex2[0]
 	c.D022Color = colorIndex2[1]
 	c.D023Color = colorIndex2[2]
+	c.BorderColor = img.borderColor.colorIndex
 
 	if noPackChars {
 		for char := 0; char < 256; char++ {

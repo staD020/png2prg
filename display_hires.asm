@@ -29,6 +29,8 @@ start:
 	}
 		inx
 		bne !-
+		lda hires_source+$1f40+1000
+		sta $d020
 
 		lda #$ff
 !loop:
@@ -81,6 +83,10 @@ smc_dest:
 	!:  cmp $d012
 		bne !-
 		jsr fade_pass
+
+		ldx $d020
+		lda t_color_fade,x
+		sta $d020
 
 		dey
 		bne !loop-

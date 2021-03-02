@@ -30,6 +30,9 @@ start:
 		sta $d022
 		lda charset_source+$beb
 		sta $d023
+		lda charset_source+$bec
+		sta $d020
+
 	!:
 		tya
 	.for (var i=0; i<4; i++) {

@@ -158,6 +158,11 @@ func (img *sourceImage) analyze() error {
 			}
 		}
 	}
+	if err := img.findBorderColor(); err != nil {
+		if verbose {
+			log.Printf("skipping: findBorderColor failed: %v", err)
+		}
+	}
 	if img.graphicsType == multiColorBitmap {
 		if err := img.findBackgroundColor(); err != nil {
 			return fmt.Errorf("findBackgroundColor failed: %v", err)
@@ -435,6 +440,22 @@ func (img *sourceImage) findBackgroundColor() error {
 		return nil
 	}
 	return fmt.Errorf("background color not found")
+}
+
+func (img *sourceImage) findBorderColor() error {
+	if img.xOffset == 0 || img.yOffset == 0 {
+		return fmt.Errorf("border color not found")
+	}
+
+	r, g, b, _ := img.image.At(img.xOffset-10, img.yOffset-10).RGBA()
+	rgb := RGB{byte(r), byte(g), byte(b)}
+	if ci, ok := img.palette[rgb]; ok {
+		img.borderColor = colorInfo{rgb: rgb, colorIndex: ci}
+	}
+	if verbose {
+		log.Printf("findBorderColor found: %v", img.borderColor)
+	}
+	return nil
 }
 
 func (img *sourceImage) makeCharColors() error {

@@ -107,6 +107,7 @@ type sourceImage struct {
 	charColors             [1000]map[RGB]byte
 	backgroundCandidates   map[RGB]byte
 	backgroundColor        colorInfo
+	borderColor            colorInfo
 	preferredBitpairColors bitpairColors
 	graphicsType           graphicsType
 }
@@ -117,6 +118,7 @@ type Koala struct {
 	ScreenColor    [1000]byte
 	D800Color      [1000]byte
 	BgColor        byte
+	BorderColor    byte
 }
 
 type MultiColorChar struct {
@@ -131,6 +133,7 @@ type Hires struct {
 	SourceFilename string
 	Bitmap         [8000]byte
 	ScreenColor    [1000]byte
+	BorderColor    byte
 }
 
 type MultiColorCharset struct {
@@ -141,12 +144,14 @@ type MultiColorCharset struct {
 	BgColor        byte
 	D022Color      byte
 	D023Color      byte
+	BorderColor    byte
 }
 
 type SingleColorCharset struct {
 	SourceFilename string
 	Bitmap         [0x800]byte
 	Screen         [1000]byte
+	BorderColor    byte
 }
 
 type SingleColorSprites struct {
@@ -289,7 +294,8 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	if display {
 		header = displayers[multiColorBitmap]
 	}
-	return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{k.BgColor}})
+	bgBorder := k.BgColor | k.BorderColor<<4
+	return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder}})
 }
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
@@ -297,7 +303,7 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	if display {
 		header = displayers[singleColorBitmap]
 	}
-	return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:]})
+	return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], []byte{h.BorderColor}})
 }
 
 func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
@@ -305,7 +311,7 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if display {
 		header = displayers[multiColorCharset]
 	}
-	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BgColor, c.D022Color, c.D023Color}})
+	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BgColor, c.D022Color, c.D023Color, c.BorderColor}})
 }
 
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {

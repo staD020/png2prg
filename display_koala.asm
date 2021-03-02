@@ -19,7 +19,6 @@ start:
 		jsr vblank
 		ldx #0
 		stx $d011
-		stx $d020
 	!:
 	.for (var i=0; i<4; i++) {
 		lda koala_source+$1f40+(i*$100),x
@@ -31,6 +30,11 @@ start:
 		bne !-
 		lda koala_source+$2710
 		sta $d021
+		lsr
+		lsr
+		lsr
+		lsr
+		sta $d020
 
 		lda #$ff
 !loop:
@@ -82,6 +86,9 @@ smc_dest:
 		ldx $d021
 		lda t_color_fade,x
 		sta $d021
+		ldx $d020
+		lda t_color_fade,x
+		sta $d020
 
 		lda #$70
 	!:  cmp $d012
