@@ -24,9 +24,9 @@ var (
 
 func init() {
 	flag.BoolVar(&quiet, "q", false, "quiet")
-	flag.BoolVar(&quiet, "quiet", false, "quiet")
+	flag.BoolVar(&quiet, "quiet", false, "quiet, only display errors")
 	flag.BoolVar(&verbose, "v", false, "verbose")
-	flag.BoolVar(&verbose, "verbose", false, "verbose")
+	flag.BoolVar(&verbose, "verbose", false, "verbose output")
 	flag.BoolVar(&display, "d", false, "display")
 	flag.BoolVar(&display, "display", false, "include displayer")
 	flag.BoolVar(&help, "h", false, "help")
@@ -36,7 +36,7 @@ func init() {
 	flag.StringVar(&targetdir, "td", "", "targetdir")
 	flag.StringVar(&targetdir, "targetdir", "", "specify targetdir")
 	flag.StringVar(&graphicsMode, "m", "", "mode")
-	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode koala, hires, mccharset, sccharset, scsprites or mcsprites")
+	flag.StringVar(&graphicsMode, "mode", "", "force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites")
 
 	flag.BoolVar(&noGuess, "ng", false, "no-guess")
 	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpair-colors")
