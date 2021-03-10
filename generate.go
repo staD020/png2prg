@@ -24,6 +24,8 @@ const (
 	scCharsetDisplayerFilename = "display_sc_charset.prg"
 	scCharsetDestinationVar    = "scchardisplayb64"
 
+	mcSpriteDisplayerFilename = "display_mc_sprites.prg"
+	mcSpriteDestinationVar    = "mcspritedisplayb64"
 	scSpriteDisplayerFilename = "display_sc_sprites.prg"
 	scSpriteDestinationVar    = "scspritedisplayb64"
 )
@@ -48,6 +50,7 @@ func main() {
 		displayer{hiresDisplayerFilename, hiresDestinationVar},
 		displayer{mcCharsetDisplayerFilename, mcCharsetDestinationVar},
 		displayer{scCharsetDisplayerFilename, scCharsetDestinationVar},
+		displayer{mcSpriteDisplayerFilename, mcSpriteDestinationVar},
 		displayer{scSpriteDisplayerFilename, scSpriteDestinationVar},
 	}
 

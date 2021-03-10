@@ -190,8 +190,11 @@ func initDisplayers() error {
 	if displayers[singleColorCharset], err = base64.StdEncoding.DecodeString(scchardisplayb64); err != nil {
 		return fmt.Errorf("unable to decode scchardisplayb64: %v", err)
 	}
+	if displayers[multiColorSprites], err = base64.StdEncoding.DecodeString(mcspritedisplayb64); err != nil {
+		return fmt.Errorf("unable to decode mcspritedisplayb64: %v", err)
+	}
 	if displayers[singleColorSprites], err = base64.StdEncoding.DecodeString(scspritedisplayb64); err != nil {
-		return fmt.Errorf("unable to decode scchardisplayb64: %v", err)
+		return fmt.Errorf("unable to decode scspritedisplayb64: %v", err)
 	}
 	return nil
 }
@@ -339,16 +342,11 @@ func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
-	if display && !quiet {
-		fmt.Printf("warning: no displayer support for %s, maybe try without -d/-display\n", multiColorSprites)
-	}
 	header := defaultHeader()
 	if display {
 		header = displayers[multiColorSprites]
 		header = append(header, s.Columns, s.Rows, s.BgColor, s.D025Color, s.SpriteColor, s.D026Color)
 	}
-
-	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.D025Color, s.SpriteColor, s.D026Color}})
 	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }
 

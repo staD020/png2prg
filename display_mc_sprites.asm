@@ -58,6 +58,7 @@ init_sprites:
 		sta $d017
 		sta $d01b
 		sta $d01d
+		lda #$ff
 		sta $d01c	// single/multicol
 
 		ldx #7
@@ -65,6 +66,10 @@ init_sprites:
 	!:	sta $d027,x
 		dex
 		bpl !-
+		lda spr_d025col
+		sta $d025
+		lda spr_d026col
+		sta $d026
 
 		ldx #$f
 		lda #0
@@ -138,12 +143,25 @@ vblank:
 		rts
 // -------------------------------------------
 
+/*
+.C:0910  02          JAM
+.C:0911  50 0F       BVC $0922
+.C:0913  00          BRK
+.C:0914  01 00       ORA ($00,X)
+.C:0916  00          BRK
+.C:0917  00          BRK
+.C:0918  00          BRK
+.C:0919  00          BRK
+*/
+
 .pc = * "sprites_source" virtual
 sprites_source:
 
 spr_columns:	.byte 0
 spr_rows:		.byte 0
 spr_bgcol:		.byte 0
+spr_d025col:    .byte 0
 spr_spritecol:	.byte 0
+spr_d026col:    .byte 0
 
 spr_bitmap:
