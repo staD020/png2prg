@@ -65,8 +65,7 @@ func handleAnimation(imgs []sourceImage) error {
 			fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
 		}
 
-		var prgs [][]byte
-		prgs, err = processKoalaAnimation(kk)
+		prgs, err := processKoalaAnimation(kk)
 		if err != nil {
 			return fmt.Errorf("processKoalaAnimation failed: %v", err)
 		}
