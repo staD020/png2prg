@@ -23,6 +23,9 @@ const (
 	mcCharsetDestinationVar    = "mcchardisplayb64"
 	scCharsetDisplayerFilename = "display_sc_charset.prg"
 	scCharsetDestinationVar    = "scchardisplayb64"
+
+	scSpriteDisplayerFilename = "display_sc_sprites.prg"
+	scSpriteDestinationVar    = "scspritedisplayb64"
 )
 
 func main() {
@@ -45,6 +48,7 @@ func main() {
 		displayer{hiresDisplayerFilename, hiresDestinationVar},
 		displayer{mcCharsetDisplayerFilename, mcCharsetDestinationVar},
 		displayer{scCharsetDisplayerFilename, scCharsetDestinationVar},
+		displayer{scSpriteDisplayerFilename, scSpriteDestinationVar},
 	}
 
 	for _, d := range dd {

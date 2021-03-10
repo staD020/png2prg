@@ -159,6 +159,8 @@ type SingleColorSprites struct {
 	Bitmap         []byte
 	SpriteColor    byte
 	BgColor        byte
+	Columns        byte
+	Rows           byte
 }
 
 type MultiColorSprites struct {
@@ -168,6 +170,8 @@ type MultiColorSprites struct {
 	BgColor        byte
 	D025Color      byte
 	D026Color      byte
+	Columns        byte
+	Rows           byte
 }
 
 var displayers = make(map[graphicsType][]byte, 0)
@@ -184,6 +188,9 @@ func initDisplayers() error {
 		return fmt.Errorf("unable to decode mcchardisplayb64: %v", err)
 	}
 	if displayers[singleColorCharset], err = base64.StdEncoding.DecodeString(scchardisplayb64); err != nil {
+		return fmt.Errorf("unable to decode scchardisplayb64: %v", err)
+	}
+	if displayers[singleColorSprites], err = base64.StdEncoding.DecodeString(scspritedisplayb64); err != nil {
 		return fmt.Errorf("unable to decode scchardisplayb64: %v", err)
 	}
 	return nil
@@ -323,19 +330,24 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
-	if display && !quiet {
-		fmt.Printf("no displayer support for %s, maybe try without -d/-display\n", singleColorSprites)
-	}
 	header := defaultHeader()
-	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.SpriteColor}})
+	if display {
+		header = displayers[singleColorSprites]
+		header = append(header, s.Columns, s.Rows, s.BgColor, s.SpriteColor)
+	}
 	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }
 
 func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	if display && !quiet {
-		fmt.Printf("no displayer support for %s, maybe try without -d/-display\n", multiColorSprites)
+		fmt.Printf("warning: no displayer support for %s, maybe try without -d/-display\n", multiColorSprites)
 	}
 	header := defaultHeader()
+	if display {
+		header = displayers[multiColorSprites]
+		header = append(header, s.Columns, s.Rows, s.BgColor, s.D025Color, s.SpriteColor, s.D026Color)
+	}
+
 	//return writeData(w, [][]byte{header, s.Bitmap[:], []byte{s.BgColor, s.D025Color, s.SpriteColor, s.D026Color}})
 	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }

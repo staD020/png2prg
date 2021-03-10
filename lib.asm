@@ -16,3 +16,6 @@
 .function charsetToD018(addr) {
     .return [ [ addr & $3fff ] / $800 ] << 1
 }
+.function toSpritePtr(addr) {
+    .return [ addr & $3fff ] / $40
+}

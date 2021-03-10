@@ -407,9 +407,14 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 }
 
 func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error) {
-	s := SingleColorSprites{SourceFilename: img.sourceFilename}
 	maxX := img.width / 24
 	maxY := img.height / 21
+	s := SingleColorSprites{
+		SourceFilename: img.sourceFilename,
+		Columns:        byte(maxX),
+		Rows:           byte(maxY),
+	}
+	fmt.Println("spr:", s)
 	if maxX == 0 || maxY == 0 {
 		return s, fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", maxX, maxY)
 	}
@@ -432,6 +437,9 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 			}
 		}
 	}
+
+	s.BgColor = cc[0].colorIndex
+	s.SpriteColor = cc[1].colorIndex
 
 	colorIndex1 := map[RGB]byte{}
 	colorIndex2 := map[byte]byte{}
@@ -514,14 +522,14 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 		s.BgColor = img.preferredBitpairColors[0]
 	}
 
-	maxX := img.width / 24
-	maxY := img.height / 21
-	if maxX == 0 || maxY == 0 {
-		return s, fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", maxX, maxY)
+	s.Columns = byte(img.width / 24)
+	s.Rows = byte(img.height / 21)
+	if s.Columns == 0 || s.Rows == 0 {
+		return s, fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", s.Columns, s.Rows)
 	}
 
-	for spriteY := 0; spriteY < maxY; spriteY++ {
-		for spriteX := 0; spriteX < maxX; spriteX++ {
+	for spriteY := 0; spriteY < int(s.Rows); spriteY++ {
+		for spriteX := 0; spriteX < int(s.Columns); spriteX++ {
 			for y := 0; y < 21; y++ {
 				yOffset := img.yOffset + y + spriteY*21
 				for x := 0; x < 3; x++ {
@@ -540,7 +548,7 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 		}
 	}
 	if verbose {
-		log.Printf("converted %d sprites", maxX*maxY)
+		log.Printf("converted %d sprites", s.Columns*s.Rows)
 	}
 	return s, nil
 }
