@@ -96,9 +96,9 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 
 func (img *sourceImage) convertToKoala() (Koala, error) {
 	k := Koala{
-		BgColor:        img.backgroundColor.ColorIndex,
-		BorderColor:    img.borderColor.ColorIndex,
-		SourceFilename: img.sourceFilename,
+		BackgroundColor: img.backgroundColor.ColorIndex,
+		BorderColor:     img.borderColor.ColorIndex,
+		SourceFilename:  img.sourceFilename,
 	}
 
 	if len(img.preferredBitpairColors) == 0 {
@@ -227,7 +227,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 	}
 
 	//c.CharColor = colorIndex2[1]
-	//c.BgColor = colorIndex2[0]
+	//c.BackgroundColor = colorIndex2[0]
 
 	if noPackChars {
 		for char := 0; char < 256; char++ {
@@ -334,7 +334,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	charMap := []charBytes{}
 
 	c.CharColor = colorIndex2[3] | 8
-	c.BgColor = colorIndex2[0]
+	c.BackgroundColor = colorIndex2[0]
 	c.D022Color = colorIndex2[1]
 	c.D023Color = colorIndex2[2]
 	c.BorderColor = img.borderColor.ColorIndex
@@ -438,7 +438,7 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 		}
 	}
 
-	s.BgColor = cc[0].ColorIndex
+	s.BackgroundColor = cc[0].ColorIndex
 	s.SpriteColor = cc[1].ColorIndex
 
 	colorIndex1 := map[RGB]byte{}
@@ -519,7 +519,7 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 		s.D025Color = img.preferredBitpairColors[1]
 		fallthrough
 	case len(img.preferredBitpairColors) > 0:
-		s.BgColor = img.preferredBitpairColors[0]
+		s.BackgroundColor = img.preferredBitpairColors[0]
 	}
 
 	s.Columns = byte(img.width / 24)

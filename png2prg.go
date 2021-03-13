@@ -113,20 +113,20 @@ type sourceImage struct {
 }
 
 type Koala struct {
-	SourceFilename string
-	Bitmap         [8000]byte
-	ScreenColor    [1000]byte
-	D800Color      [1000]byte
-	BgColor        byte
-	BorderColor    byte
+	SourceFilename  string
+	Bitmap          [8000]byte
+	ScreenColor     [1000]byte
+	D800Color       [1000]byte
+	BackgroundColor byte
+	BorderColor     byte
 }
 
 type MultiColorChar struct {
-	CharIndex   int
-	Bitmap      [8]byte
-	BgColor     byte
-	ScreenColor byte
-	D800Color   byte
+	CharIndex       int
+	Bitmap          [8]byte
+	BackgroundColor byte
+	ScreenColor     byte
+	D800Color       byte
 }
 
 type Hires struct {
@@ -137,14 +137,14 @@ type Hires struct {
 }
 
 type MultiColorCharset struct {
-	SourceFilename string
-	Bitmap         [0x800]byte
-	Screen         [1000]byte
-	CharColor      byte
-	BgColor        byte
-	D022Color      byte
-	D023Color      byte
-	BorderColor    byte
+	SourceFilename  string
+	Bitmap          [0x800]byte
+	Screen          [1000]byte
+	CharColor       byte
+	BackgroundColor byte
+	D022Color       byte
+	D023Color       byte
+	BorderColor     byte
 }
 
 type SingleColorCharset struct {
@@ -155,23 +155,23 @@ type SingleColorCharset struct {
 }
 
 type SingleColorSprites struct {
-	SourceFilename string
-	Bitmap         []byte
-	SpriteColor    byte
-	BgColor        byte
-	Columns        byte
-	Rows           byte
+	SourceFilename  string
+	Bitmap          []byte
+	SpriteColor     byte
+	BackgroundColor byte
+	Columns         byte
+	Rows            byte
 }
 
 type MultiColorSprites struct {
-	SourceFilename string
-	Bitmap         []byte
-	SpriteColor    byte
-	BgColor        byte
-	D025Color      byte
-	D026Color      byte
-	Columns        byte
-	Rows           byte
+	SourceFilename  string
+	Bitmap          []byte
+	SpriteColor     byte
+	BackgroundColor byte
+	D025Color       byte
+	D026Color       byte
+	Columns         byte
+	Rows            byte
 }
 
 var displayers = make(map[graphicsType][]byte, 0)
@@ -304,7 +304,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	if display {
 		header = displayers[multiColorBitmap]
 	}
-	bgBorder := k.BgColor | k.BorderColor<<4
+	bgBorder := k.BackgroundColor | k.BorderColor<<4
 	return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder}})
 }
 
@@ -321,7 +321,7 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if display {
 		header = displayers[multiColorCharset]
 	}
-	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BgColor, c.D022Color, c.D023Color, c.BorderColor}})
+	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor}})
 }
 
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
@@ -336,7 +336,7 @@ func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if display {
 		header = displayers[singleColorSprites]
-		header = append(header, s.Columns, s.Rows, s.BgColor, s.SpriteColor)
+		header = append(header, s.Columns, s.Rows, s.BackgroundColor, s.SpriteColor)
 	}
 	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }
@@ -345,7 +345,7 @@ func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if display {
 		header = displayers[multiColorSprites]
-		header = append(header, s.Columns, s.Rows, s.BgColor, s.D025Color, s.SpriteColor, s.D026Color)
+		header = append(header, s.Columns, s.Rows, s.BackgroundColor, s.D025Color, s.SpriteColor, s.D026Color)
 	}
 	return writeData(w, [][]byte{header, s.Bitmap[:]})
 }

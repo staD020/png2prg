@@ -255,11 +255,11 @@ func exportKoalaAnims(anims [][]MultiColorChar) [][]byte {
 
 func (k *Koala) MultiColorChar(charIndex int) MultiColorChar {
 	mc := MultiColorChar{
-		CharIndex:   charIndex,
-		Bitmap:      [8]byte{},
-		BgColor:     k.BgColor,
-		ScreenColor: k.ScreenColor[charIndex],
-		D800Color:   k.D800Color[charIndex],
+		CharIndex:       charIndex,
+		Bitmap:          [8]byte{},
+		BackgroundColor: k.BackgroundColor,
+		ScreenColor:     k.ScreenColor[charIndex],
+		D800Color:       k.D800Color[charIndex],
 	}
 	for i := range mc.Bitmap {
 		mc.Bitmap[i] = k.Bitmap[charIndex*8+i]
