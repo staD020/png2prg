@@ -30,16 +30,16 @@ In verbose mode (-v) it outputs locations of color clashes, if any.
 Png2prg is mostly able to autodetect the correct graphics mode, but you can
 also force a specific graphics mode with the -mode flag:
 
-  ./png2prg -m koala image.png
+    ./png2prg -m koala image.png
 
 ## Koala or Hires Bitmap
 
-  Bitmap: $2000 - $3f3f
-  Screen: $3f40 - $4327
-  D020:   $4328         (singlecolor only)
-  D800:   $4328 - $470f (multicolor only)
-  D021:   $4710         (multicolor only, low-nibble)
-  D020:   $4710         (multicolor only, high-nibble)
+    Bitmap: $2000 - $3f3f
+    Screen: $3f40 - $4327
+    D020:   $4328         (singlecolor only)
+    D800:   $4328 - $470f (multicolor only)
+    D021:   $4710         (multicolor only, low-nibble)
+    D020:   $4710         (multicolor only, high-nibble)
 
 ## Single or Multicolor Charset
 
@@ -50,13 +50,13 @@ added in a future release, if the need arises.
 By default charsets are packed, they only contain unique characaters.
 If you do not want charpacking, eg for a 1x1 charset, please use -no-pack
 
-  Charset:   $2000-$27ff
-  Screen:    $2800-$2be7
-  CharColor: $2be8       (multicolor only)
-  D021:      $2be9       (multicolor only)
-  D022:      $2bea       (multicolor only)
-  D023:      $2beb       (multicolor only)
-  D020:      $2bec       (multicolor only)
+    Charset:   $2000-$27ff
+    Screen:    $2800-$2be7
+    CharColor: $2be8       (multicolor only)
+    D021:      $2be9       (multicolor only)
+    D022:      $2bea       (multicolor only)
+    D023:      $2beb       (multicolor only)
+    D020:      $2bec       (multicolor only)
 
 ## Single or Multicolor Sprites
 
@@ -65,9 +65,9 @@ the image is considered to contain sprites.
 
 The image will be converted left to right, top to bottom.
 
-  Sprite 1: $2000-$203f
-  Sprite 2: $2040-$207f
-  ...
+    Sprite 1: $2000-$203f
+    Sprite 2: $2040-$207f
+    ...
 
 ## Bitpair Colors
 
@@ -81,11 +81,11 @@ color-order. Use c64 colors, so 0 for black, 1 for white, 2 for red, etc.
 The following example will force background color 0 for bitpair 00 and
 prefer colors 6,14,3 for bitpairs 01,10,11:
 
-  ./png2prg -bitpair-colors 0,6,14,3 image.png
+    ./png2prg -bitpair-colors 0,6,14,3 image.png
 
 It's also possible to explicitly skip certain bitpairs preferences with -1:
 
-  ./png2prg -bitpair-colors 0,-1,-1,3 image.png
+    ./png2prg -bitpair-colors 0,-1,-1,3 image.png
 
 ## Sprite Animation
 
@@ -102,26 +102,27 @@ containing the modified characters.
 The frame files are following this format.
 Each frame consists of 1 or more chunks. A chunk looks like this:
 
-  .byte $03    // number of chars in this chunk
-               // $00 marks end of frame
-               // $ff marks end of all frames
-  .word bitmap // bitmap address of this chunk (the high byte is <$20)
-  .word screen // screenram address (the high byte is <$04)
+    .byte $03    // number of chars in this chunk
+                 // $00 marks end of frame
+                 // $ff marks end of all frames
+    .word bitmap // bitmap address of this chunk (the high byte is <$20)
+    .word screen // screenram address (the high byte is <$04)
 
-  For each char in this chunk:
+    For each char in this chunk:
 
-    .byte 0,31,15,7,8,34,0,128 // pixels
-    .byte $64                  // screenram colors
-    .byte $01                  // colorram color
-    ...                        // next char(s)
+      .byte 0,31,15,7,8,34,0,128 // pixels
+      .byte $64                  // screenram colors
+      .byte $01                  // colorram color
+      ...                        // next char(s)
 
-  ...          // next chunks
-  .byte 0      // end of frame
-  ...          // next frame(s)
-  .byte $ff    // end of all frames
+    ...          // next chunks
+    .byte 0      // end of frame
+    ...          // next frame(s)
+    .byte $ff    // end of all frames
 
 ## Options
 
+```
   -bitpair-colors string
       prefer these colors in 2bit space, eg 0,6,14,3
   -bpc string
@@ -158,3 +159,4 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
   -v  verbose
   -verbose
       verbose output
+```
