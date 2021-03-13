@@ -20,7 +20,7 @@ TESTPIC=testdata/sit_gollum.png
 
 png2prg: $(TARGET)
 
-all: $(TARGET) png2prg_darwin_amd64 png2prg_win_amd64.exe
+all: $(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe
 
 compress: $(TARGET).upx png2prg_darwin_amd64.upx png2prg_win_amd64.exe.upx
 
@@ -39,6 +39,9 @@ $(TARGET): $(SRC)
 
 png2prg_darwin_amd64: $(SRC)
 	CGO_ENABLED=$(CGO) GOOS=darwin GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^
+
+png2prg_darwin_arm64: $(SRC)
+	CGO_ENABLED=$(CGO) GOOS=darwin GOARCH=arm64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^
 
 png2prg_win_amd64.exe: $(SRC)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ $^
@@ -59,4 +62,4 @@ testpack: $(TARGET)
 	$(X64) zz_guess.prg >/dev/null
 
 clean:
-	rm -f $(TARGET) png2prg_darwin_amd64 png2prg_win_amd64.exe GEN_*.go *.prg *.upx
+	rm -f $(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe GEN_*.go *.prg *.upx
