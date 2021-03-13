@@ -63,9 +63,7 @@ func main() {
 	}
 	currentGraphicsType = stringToGraphicsType(graphicsMode)
 	if display {
-		if err := initDisplayers(); err != nil {
-			log.Fatalf("initDisplayers failed: %v", err)
-		}
+		initDisplayers()
 	}
 
 	if err := processFiles(ff...); err != nil {

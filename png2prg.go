@@ -3,7 +3,7 @@ package main
 //go:generate go run generate.go
 
 import (
-	"encoding/base64"
+	_ "embed"
 	"fmt"
 	"image"
 	_ "image/gif"
@@ -106,6 +106,14 @@ type sourceImage struct {
 	graphicsType           graphicsType
 }
 
+type MultiColorChar struct {
+	CharIndex       int
+	Bitmap          [8]byte
+	BackgroundColor byte
+	ScreenColor     byte
+	D800Color       byte
+}
+
 type Koala struct {
 	SourceFilename  string
 	Bitmap          [8000]byte
@@ -113,14 +121,6 @@ type Koala struct {
 	D800Color       [1000]byte
 	BackgroundColor byte
 	BorderColor     byte
-}
-
-type MultiColorChar struct {
-	CharIndex       int
-	Bitmap          [8]byte
-	BackgroundColor byte
-	ScreenColor     byte
-	D800Color       byte
 }
 
 type Hires struct {
@@ -170,27 +170,31 @@ type MultiColorSprites struct {
 
 var displayers = make(map[graphicsType][]byte, 0)
 
-func initDisplayers() error {
-	var err error
-	if displayers[multiColorBitmap], err = base64.StdEncoding.DecodeString(koaladisplayb64); err != nil {
-		return fmt.Errorf("unable to decode koaladisplayb64: %v", err)
-	}
-	if displayers[singleColorBitmap], err = base64.StdEncoding.DecodeString(hiresdisplayb64); err != nil {
-		return fmt.Errorf("unable to decode hiresdisplayb64: %v", err)
-	}
-	if displayers[multiColorCharset], err = base64.StdEncoding.DecodeString(mcchardisplayb64); err != nil {
-		return fmt.Errorf("unable to decode mcchardisplayb64: %v", err)
-	}
-	if displayers[singleColorCharset], err = base64.StdEncoding.DecodeString(scchardisplayb64); err != nil {
-		return fmt.Errorf("unable to decode scchardisplayb64: %v", err)
-	}
-	if displayers[multiColorSprites], err = base64.StdEncoding.DecodeString(mcspritedisplayb64); err != nil {
-		return fmt.Errorf("unable to decode mcspritedisplayb64: %v", err)
-	}
-	if displayers[singleColorSprites], err = base64.StdEncoding.DecodeString(scspritedisplayb64); err != nil {
-		return fmt.Errorf("unable to decode scspritedisplayb64: %v", err)
-	}
-	return nil
+//go:embed "display_koala.prg"
+var koalaDisplay []byte
+
+//go:embed "display_hires.prg"
+var hiresDisplay []byte
+
+//go:embed "display_mc_charset.prg"
+var mcCharsetDisplay []byte
+
+//go:embed "display_sc_charset.prg"
+var scCharsetDisplay []byte
+
+//go:embed "display_mc_sprites.prg"
+var mcSpritesDisplay []byte
+
+//go:embed "display_sc_sprites.prg"
+var scSpritesDisplay []byte
+
+func initDisplayers() {
+	displayers[multiColorBitmap] = koalaDisplay
+	displayers[singleColorBitmap] = hiresDisplay
+	displayers[multiColorCharset] = mcCharsetDisplay
+	displayers[singleColorCharset] = scCharsetDisplay
+	displayers[multiColorSprites] = mcSpritesDisplay
+	displayers[singleColorSprites] = scSpritesDisplay
 }
 
 func processFiles(filenames ...string) (err error) {
