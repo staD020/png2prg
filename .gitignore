@@ -1,2 +1,5 @@
 GEN_*.go
 *.prg
+png2prg_linux*
+png2prg_darwin*
+png2prg_win*
