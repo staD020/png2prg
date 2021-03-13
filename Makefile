@@ -22,7 +22,7 @@ png2prg: $(TARGET)
 
 all: $(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe
 
-compress: $(TARGET).upx png2prg_darwin_amd64.upx png2prg_win_amd64.exe.upx
+compress: $(TARGET).upx png2prg_darwin_amd64.upx png2prg_darwin_arm64.upx png2prg_win_amd64.exe.upx
 
 GEN_display.go: generate.go $(DISPLAYERS)
 	go generate
