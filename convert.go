@@ -26,11 +26,11 @@ func parseBitPairColors(bp string) ([]byte, error) {
 func sortColors(charColors map[RGB]byte) (cc []colorInfo) {
 	i := 0
 	for rgb, colorIndex := range charColors {
-		cc = append(cc, colorInfo{rgb: rgb, colorIndex: colorIndex})
+		cc = append(cc, colorInfo{RGB: rgb, ColorIndex: colorIndex})
 		i++
 	}
 	sort.Slice(cc, func(i, j int) bool {
-		return cc[i].colorIndex < cc[j].colorIndex
+		return cc[i].ColorIndex < cc[j].ColorIndex
 	})
 	return cc
 }
@@ -43,8 +43,8 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 
 	// set background
 	if img.graphicsType != singleColorBitmap {
-		colorIndex1[img.backgroundColor.rgb] = byte(0)
-		colorIndex2[byte(0)] = img.backgroundColor.colorIndex
+		colorIndex1[img.backgroundColor.RGB] = byte(0)
+		colorIndex2[byte(0)] = img.backgroundColor.ColorIndex
 	}
 	// which bitpairs do we have left
 	bitpairs := []byte{1, 2, 3}
@@ -63,8 +63,8 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 			}
 		OUTER:
 			for _, ci := range cc {
-				if preferColor == ci.colorIndex {
-					colorIndex1[ci.rgb] = byte(preferBitpair)
+				if preferColor == ci.ColorIndex {
+					colorIndex1[ci.RGB] = byte(preferBitpair)
 					colorIndex2[byte(preferBitpair)] = preferColor
 
 					for i := range bitpairs {
@@ -80,15 +80,15 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 
 	// fill or replace missing colors
 	for _, ci := range cc {
-		if _, ok := colorIndex1[ci.rgb]; !ok {
+		if _, ok := colorIndex1[ci.RGB]; !ok {
 			// col not found
 			if len(bitpairs) == 0 {
 				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
 			}
 			var bitpair byte
 			bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[:len(bitpairs)-1]
-			colorIndex1[ci.rgb] = bitpair
-			colorIndex2[bitpair] = ci.colorIndex
+			colorIndex1[ci.RGB] = bitpair
+			colorIndex2[bitpair] = ci.ColorIndex
 		}
 	}
 	return colorIndex1, colorIndex2, nil
@@ -96,8 +96,8 @@ func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byt
 
 func (img *sourceImage) convertToKoala() (Koala, error) {
 	k := Koala{
-		BgColor:        img.backgroundColor.colorIndex,
-		BorderColor:    img.borderColor.colorIndex,
+		BgColor:        img.backgroundColor.ColorIndex,
+		BorderColor:    img.borderColor.ColorIndex,
 		SourceFilename: img.sourceFilename,
 	}
 
@@ -148,7 +148,7 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 func (img *sourceImage) convertToHires() (Hires, error) {
 	h := Hires{
 		SourceFilename: img.sourceFilename,
-		BorderColor:    img.borderColor.colorIndex,
+		BorderColor:    img.borderColor.ColorIndex,
 	}
 
 	for char := 0; char < 1000; char++ {
@@ -190,7 +190,7 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error) {
 	c := SingleColorCharset{
 		SourceFilename: img.sourceFilename,
-		BorderColor:    img.borderColor.colorIndex,
+		BorderColor:    img.borderColor.ColorIndex,
 	}
 	_, palette := img.maxColorsPerChar()
 	cc := sortColors(palette)
@@ -202,7 +202,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 
 	if forceBgCol >= 0 {
 		for i, col := range cc {
-			if col.colorIndex == byte(forceBgCol) {
+			if col.ColorIndex == byte(forceBgCol) {
 				cc[0], cc[i] = cc[i], cc[0]
 				if verbose {
 					log.Printf("forced background color %d was found", forceBgCol)
@@ -220,8 +220,8 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 			return c, fmt.Errorf("Too many colors.")
 		}
 		if _, ok := colorIndex2[bit]; !ok {
-			colorIndex1[ci.rgb] = bit
-			colorIndex2[bit] = ci.colorIndex
+			colorIndex1[ci.RGB] = bit
+			colorIndex2[bit] = ci.ColorIndex
 		}
 		bit++
 	}
@@ -305,12 +305,12 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	cc := sortColors(palette)
 	// we must sort reverse to avoid a high color in bitpair 11
 	sort.Slice(cc, func(i, j int) bool {
-		return cc[i].colorIndex > cc[j].colorIndex
+		return cc[i].ColorIndex > cc[j].ColorIndex
 	})
 
 	if len(img.preferredBitpairColors) == 0 {
 		for _, v := range cc {
-			img.preferredBitpairColors = append(img.preferredBitpairColors, v.colorIndex)
+			img.preferredBitpairColors = append(img.preferredBitpairColors, v.ColorIndex)
 		}
 	}
 
@@ -337,7 +337,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	c.BgColor = colorIndex2[0]
 	c.D022Color = colorIndex2[1]
 	c.D023Color = colorIndex2[2]
-	c.BorderColor = img.borderColor.colorIndex
+	c.BorderColor = img.borderColor.ColorIndex
 
 	if noPackChars {
 		for char := 0; char < 256; char++ {
@@ -428,7 +428,7 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 
 	if forceBgCol >= 0 {
 		for i, col := range cc {
-			if col.colorIndex == byte(forceBgCol) {
+			if col.ColorIndex == byte(forceBgCol) {
 				cc[0], cc[i] = cc[i], cc[0]
 				if verbose {
 					log.Printf("forced background color %d was found", forceBgCol)
@@ -438,8 +438,8 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 		}
 	}
 
-	s.BgColor = cc[0].colorIndex
-	s.SpriteColor = cc[1].colorIndex
+	s.BgColor = cc[0].ColorIndex
+	s.SpriteColor = cc[1].ColorIndex
 
 	colorIndex1 := map[RGB]byte{}
 	colorIndex2 := map[byte]byte{}
@@ -449,8 +449,8 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 			return s, fmt.Errorf("Too many colors.")
 		}
 		if _, ok := colorIndex2[bit]; !ok {
-			colorIndex1[ci.rgb] = bit
-			colorIndex2[bit] = ci.colorIndex
+			colorIndex1[ci.RGB] = bit
+			colorIndex2[bit] = ci.ColorIndex
 		}
 		bit++
 	}
@@ -493,7 +493,7 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 	cc := sortColors(img.palette)
 	if len(img.preferredBitpairColors) == 0 {
 		for _, v := range cc {
-			img.preferredBitpairColors = append(img.preferredBitpairColors, v.colorIndex)
+			img.preferredBitpairColors = append(img.preferredBitpairColors, v.ColorIndex)
 		}
 	}
 

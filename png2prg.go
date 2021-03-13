@@ -17,10 +17,15 @@ import (
 	"strings"
 )
 
-const version = "0.7-dev"
+const version = "0.8"
 
 type RGB struct {
 	R, G, B byte
+}
+
+type colorInfo struct {
+	ColorIndex byte
+	RGB        RGB
 }
 
 type C64RGB struct {
@@ -76,11 +81,6 @@ func (t graphicsType) String() string {
 	default:
 		return "unknown"
 	}
-}
-
-type colorInfo struct {
-	rgb        RGB
-	colorIndex byte
 }
 
 type bitpairColors []byte

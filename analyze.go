@@ -222,7 +222,7 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 		log.Printf("sumColors: %v", sumColors)
 	}
 	if img.graphicsType == multiColorBitmap && len(img.preferredBitpairColors) == 0 {
-		img.preferredBitpairColors = append(img.preferredBitpairColors, img.backgroundColor.colorIndex)
+		img.preferredBitpairColors = append(img.preferredBitpairColors, img.backgroundColor.ColorIndex)
 	}
 	for i := len(img.preferredBitpairColors); i < maxColors; i++ {
 		max := 0
@@ -404,7 +404,7 @@ func (img *sourceImage) findBackgroundColor() error {
 				if verbose {
 					log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 				}
-				img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
+				img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
 				return nil
 			}
 		}
@@ -421,13 +421,13 @@ func (img *sourceImage) findBackgroundColor() error {
 			if verbose {
 				log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 			}
-			img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
+			img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
 			return nil
 		case colorIndex == byte(forceBgCol):
 			if verbose {
 				log.Printf("findBackgroundColor: found preferred background color %d\n", forceBgCol)
 			}
-			img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
+			img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
 			return nil
 		}
 	}
@@ -436,7 +436,7 @@ func (img *sourceImage) findBackgroundColor() error {
 		if !quiet {
 			fmt.Printf("findBackgroundColor: we tried looking for color %d, but we have to settle for color %d\n", forceBgCol, colorIndex)
 		}
-		img.backgroundColor = colorInfo{rgb: rgb, colorIndex: colorIndex}
+		img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
 		return nil
 	}
 	return fmt.Errorf("background color not found")
@@ -450,7 +450,7 @@ func (img *sourceImage) findBorderColor() error {
 	r, g, b, _ := img.image.At(img.xOffset-10, img.yOffset-10).RGBA()
 	rgb := RGB{byte(r), byte(g), byte(b)}
 	if ci, ok := img.palette[rgb]; ok {
-		img.borderColor = colorInfo{rgb: rgb, colorIndex: ci}
+		img.borderColor = colorInfo{RGB: rgb, ColorIndex: ci}
 	}
 	if verbose {
 		log.Printf("findBorderColor found: %v", img.borderColor)
