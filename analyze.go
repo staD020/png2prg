@@ -574,7 +574,7 @@ func (img *sourceImage) setSourceColors() {
 	img.colors = cc
 }
 
-func (img *sourceImage) distanceAndMap(palette [16]C64RGB) (float64, map[RGB]byte) {
+func (img *sourceImage) distanceAndMap(palette [16]colorInfo) (float64, map[RGB]byte) {
 	curMap := make(map[RGB]byte, 16)
 	totalDistance := 0.0
 	for _, rgb := range img.colors {
@@ -590,7 +590,7 @@ func (img *sourceImage) distanceAndMap(palette [16]C64RGB) (float64, map[RGB]byt
 	return totalDistance, curMap
 }
 
-func (r RGB) colorIndexAndDistance(palette [16]C64RGB) (byte, float64) {
+func (r RGB) colorIndexAndDistance(palette [16]colorInfo) (byte, float64) {
 	distance := r.distanceTo(palette[0].RGB)
 	closestColorIndex := 0
 	for i := 0; i < len(palette); i++ {

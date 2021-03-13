@@ -28,12 +28,6 @@ type colorInfo struct {
 	RGB        RGB
 }
 
-type C64RGB struct {
-	Name       string
-	ColorIndex byte
-	RGB        RGB
-}
-
 type graphicsType byte
 
 const (
