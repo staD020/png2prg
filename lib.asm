@@ -1,5 +1,9 @@
 .importonce
 
+.function versionString() {
+	.return "0.7"
+}
+
 .macro vblank() {
     !:  lda $d011
         bpl !-

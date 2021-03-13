@@ -6,11 +6,11 @@
 .import source "lib.asm"
 
 .pc = $0801 "basic upstart"
-//:BasicUpstart(start)
-.byte $17,$08,$e5,$07, $9e,$32,$30,$37
-.byte $33,$20,$50,$4e, $47,$32,$50,$52
-.byte $47,$20,$30,$2e, $37
-
+		.byte <basicend, >basicend, <2021, >2021, $9e
+		.text toIntString(start)
+		.text " PNG2PRG " + versionString()
+basicend:
+		.byte 0, 0, 0
 .pc = $0819 "start"
 start:
 		sei
