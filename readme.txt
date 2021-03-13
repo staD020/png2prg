@@ -1,7 +1,7 @@
-png2prg 0.6 by burglar
+png2prg 0.7-dev by burglar
 usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]
 
-# PNG2PRG 0.6 by Burglar
+# PNG2PRG 0.7-dev by Burglar
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or multicolor
 bitmap or charset. It will find the best matching palette and backgroundcolor
@@ -13,7 +13,13 @@ The resulting .prg includes the 2-byte start address and optional displayer.
 
 This tool can be used in all buildchains on most platforms.
 
-## Supported Graphics Modes:
+## What it is *not*
+
+Png2prg is not a tool to wire fullcolor images. It needs input images to
+already be compliant with c64 color and size restrictions.
+In verbose mode (-v) it outputs locations of color clashes, if any.
+
+## Supported Graphics Modes
 
   koala:     multicolor bitmap (max 4 colors per char)
   hires:     singlecolor bitmap (max 2 colors per char)
@@ -27,17 +33,16 @@ also force a specific graphics mode with the -mode flag:
 
   ./png2prg -m koala image.png
 
-## Koala or Hires Bitmap:
-
-Png2prg automatically detects hires bitmaps based on the maximum
-amount of colors per character in the bitmap.
+## Koala or Hires Bitmap
 
   Bitmap: $2000 - $3f3f
   Screen: $3f40 - $4327
+  D020:   $4328         (singlecolor only)
   D800:   $4328 - $470f (multicolor only)
-  D021:   $4710         (multicolor only)
+  D021:   $4710         (multicolor only, low-nibble)
+  D020:   $4710         (multicolor only, high-nibble)
 
-## Single or Multicolor Charset:
+## Single or Multicolor Charset
 
 Currently only images with max 4 colors can be converted into a charset.
 Support for individual d800 colors and mixed single/multicolor chars may be
@@ -52,8 +57,9 @@ If you do not want charpacking, eg for a 1x1 charset, please use -no-pack
   D021:      $2be9       (multicolor only)
   D022:      $2bea       (multicolor only)
   D023:      $2beb       (multicolor only)
+  D020:      $2bec       (multicolor only)
 
-## Single or Multicolor Sprites:
+## Single or Multicolor Sprites
 
 If the source image size is a multiple of a 24x21 pixel sprite,
 the image is considered to contain sprites.
@@ -64,7 +70,7 @@ The image will be converted left to right, top to bottom.
   Sprite 2: $2040-$207f
   ...
 
-## Bitpair Colors:
+## Bitpair Colors
 
 By default, png2prg guesses bitpair colors by itself. In most cases you
 don't need to configure anything. It will provide a mostly normalized image
@@ -82,11 +88,11 @@ It's also possible to explicitly skip certain bitpairs preferences with -1:
 
   ./png2prg -bitpair-colors 0,-1,-1,3 image.png
 
-## Sprite Animation:
+## Sprite Animation
 
 Each frame will be concatenated in the output .prg.
 
-## Bitmap Animation (only koala):
+## Bitmap Animation (only koala)
 
 If multiple files are added, they are treated as animation frames.
 You can also supply an animated .gif.
@@ -114,41 +120,41 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
   ...          // next frame(s)
   .byte $ff    // end of all frames
 
-## Options:
+## Options
 
   -bitpair-colors string
-    	prefer these colors in 2bit space, eg 0,6,14,3
+      prefer these colors in 2bit space, eg 0,6,14,3
   -bpc string
-    	bitpair-colors
-  -d	display
+      bitpair-colors
+  -d  display
   -display
-    	include displayer
-  -h	help
+      include displayer
+  -h  help
   -help
-    	help
+      help
   -m string
-    	mode
+      mode
   -mode string
-    	force graphics mode koala, hires, mccharset, sccharset, scsprites or mcsprites
+      force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites
   -ng
-    	no-guess
+      no-guess
   -no-guess
-    	do not guess preferred bitpair-colors
+      do not guess preferred bitpair-colors
   -no-pack
-    	do not pack chars (only for sc/mc charset)
+      do not pack chars (only for sc/mc charset)
   -np
-    	no-pack
+      no-pack
   -o string
-    	out
+      out
   -out string
-    	specify outfile.prg, by default it changes extension to .prg
-  -q	quiet
+      specify outfile.prg, by default it changes extension to .prg
+  -q  quiet
   -quiet
-    	quiet
+      quiet, only display errors
   -targetdir string
-    	specify targetdir
+      specify targetdir
   -td string
-    	targetdir
-  -v	verbose
+      targetdir
+  -v  verbose
   -verbose
-    	verbose
+      verbose output
