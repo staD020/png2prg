@@ -103,6 +103,7 @@ func printHelp() {
 	fmt.Println("## Sprite Animation")
 	fmt.Println()
 	fmt.Println("Each frame will be concatenated in the output .prg.")
+	fmt.Println("You can supply an animated .gif or multiple image files.")
 	fmt.Println()
 	fmt.Println("## Bitmap Animation (only koala)")
 	fmt.Println()

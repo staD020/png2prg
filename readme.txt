@@ -1,7 +1,6 @@
-png2prg 0.7-dev by burglar
 usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]
 
-# PNG2PRG 0.7-dev by Burglar
+# PNG2PRG 0.8 by Burglar
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or multicolor
 bitmap or charset. It will find the best matching palette and backgroundcolor
@@ -91,6 +90,7 @@ It's also possible to explicitly skip certain bitpairs preferences with -1:
 ## Sprite Animation
 
 Each frame will be concatenated in the output .prg.
+You can supply an animated .gif or multiple image files.
 
 ## Bitmap Animation (only koala)
 
