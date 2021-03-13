@@ -20,12 +20,12 @@ In verbose mode (-v) it outputs locations of color clashes, if any.
 
 ## Supported Graphics Modes
 
-  koala:     multicolor bitmap (max 4 colors per char)
-  hires:     singlecolor bitmap (max 2 colors per char)
-  mccharset: multicolor charset (max 4 colors)
-  sccharset: singlecolor charset (max 2 colors)
-  mcsprites: multicolor sprites (max 4 colors)
-  scsprites: singlecolor sprites (max 2 colors)
+    koala:     multicolor bitmap (max 4 colors per char)
+    hires:     singlecolor bitmap (max 2 colors per char)
+    mccharset: multicolor charset (max 4 colors)
+    sccharset: singlecolor charset (max 2 colors)
+    mcsprites: multicolor sprites (max 4 colors)
+    scsprites: singlecolor sprites (max 2 colors)
 
 Png2prg is mostly able to autodetect the correct graphics mode, but you can
 also force a specific graphics mode with the -mode flag:
