@@ -1,7 +1,7 @@
 .importonce
 
 .function versionString() {
-	.return "0.8"
+	.return "0.9"
 }
 
 .macro vblank() {
