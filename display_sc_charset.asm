@@ -40,18 +40,11 @@ smc_src:
 		ldx charset_source+$7ff
 smc_dest:
 		stx charset+$7ff
-		//lda #$ff
 		dcp smc_src+1
-		//dec smc_src+1
-		//lda smc_src+1
-		//cmp #$ff
 		bne !+
 		dec smc_src+2
 	!:
 		dcp smc_dest+1
-		//dec smc_dest+1
-		//lda smc_dest+1
-		//cmp #$ff
 		bne !+
 		dec smc_dest+2
 	!:

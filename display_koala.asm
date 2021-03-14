@@ -1,5 +1,5 @@
 
-.const fade_speed = 4
+.const fade_speed = 1
 .const bitmap     = $2000
 .const screenram  = $0400
 .const colorram   = $d800
@@ -42,18 +42,11 @@ smc_src:
 		ldx koala_source+$1f3f
 smc_dest:
 		stx bitmap+$1f3f
-		//lda #$ff
 		dcp smc_src+1
-		//dec smc_src+1
-		//lda smc_src+1
-		//cmp #$ff
 		bne !+
 		dec smc_src+2
 	!:
 		dcp smc_dest+1
-		//dec smc_dest+1
-		//lda smc_dest+1
-		//cmp #$ff
 		bne !+
 		dec smc_dest+2
 	!:
