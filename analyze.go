@@ -105,6 +105,24 @@ func (img *sourceImage) checkBounds() error {
 		return nil
 	case img.hasSpriteDimensions():
 		return nil
+	case currentGraphicsType == singleColorSprites || currentGraphicsType == multiColorSprites:
+		if verbose {
+			log.Printf("sprites forced, allowing non-sprite dimension %d * %d", img.width, img.height)
+		}
+		if img.width%24 == 0 {
+			img.width = int(math.Floor(float64(img.width)/24)) * 24
+		} else {
+			img.width = int(math.Floor(float64(img.width)/24)+1) * 24
+		}
+		if img.height%21 == 0 {
+			img.height = int(math.Floor(float64(img.height)/21)) * 21
+		} else {
+			img.height = int(math.Floor(float64(img.height)/21)+1) * 21
+		}
+		if verbose {
+			log.Printf("forcing dimension %d * %d", img.width, img.height)
+		}
+		return nil
 	}
 	return fmt.Errorf("image is not 320x200, 384x272 or x*24 x y*21 pixels, but %d x %d pixels", img.width, img.height)
 }
@@ -557,13 +575,19 @@ func (img *sourceImage) analyzePalette() {
 }
 
 func (img *sourceImage) setSourceColors() {
+	// img.xOffset, img.yOffset = img.image.Bounds().Min.X, img.image.Bounds().Min.Y
+	// img.width, img.height = img.image.Bounds().Max.X-img.xOffset, img.image.Bounds().Max.Y-img.yOffset
 	m := make(map[RGB]bool, 16)
-	for x := 0; x < img.width; x += 2 {
-		for y := 0; y < img.height; y++ {
+	rgb0 := RGB{byte(0), byte(0), byte(0)}
+	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x += 2 {
+		for y := 0; y < img.image.Bounds().Max.Y-img.yOffset; y++ {
 			r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
 			rgb := RGB{byte(r), byte(g), byte(b)}
 			if _, ok := m[rgb]; !ok {
 				m[rgb] = true
+				if rgb == rgb0 {
+					fmt.Println("rgb:", rgb)
+				}
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]
 
-# PNG2PRG 0.8 by Burglar
+# PNG2PRG 0.9-dev by Burglar
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or multicolor
 bitmap or charset. It will find the best matching palette and backgroundcolor
@@ -52,8 +52,8 @@ If you do not want charpacking, eg for a 1x1 charset, please use -no-pack
 
     Charset:   $2000-$27ff
     Screen:    $2800-$2be7
-    CharColor: $2be8       (multicolor only)
-    D021:      $2be9       (multicolor only)
+    CharColor: $2be8
+    D021:      $2be9
     D022:      $2bea       (multicolor only)
     D023:      $2beb       (multicolor only)
     D020:      $2bec       (multicolor only)

@@ -142,10 +142,12 @@ type MultiColorCharset struct {
 }
 
 type SingleColorCharset struct {
-	SourceFilename string
-	Bitmap         [0x800]byte
-	Screen         [1000]byte
-	BorderColor    byte
+	SourceFilename  string
+	Bitmap          [0x800]byte
+	Screen          [1000]byte
+	CharColor       byte
+	BackgroundColor byte
+	BorderColor     byte
 }
 
 type SingleColorSprites struct {
@@ -327,7 +329,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if display {
 		header = displayers[singleColorCharset]
 	}
-	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:]})
+	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor}})
 }
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {

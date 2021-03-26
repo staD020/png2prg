@@ -20,9 +20,10 @@ start:
 		ldx #0
 		stx $d011
 		stx $d020
-		stx $d021
+		lda charset_source+$800+1000+1
+		sta $d021
 	!:
-		lda #1
+		lda charset_source+$800+1000
 	.for (var i=0; i<4; i++) {
 		sta $d800+(i*$100),x
 	}

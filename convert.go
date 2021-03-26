@@ -182,7 +182,6 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 		if _, ok := colorIndex2[0]; ok {
 			h.ScreenColor[char] = h.ScreenColor[char] | colorIndex2[0]
 		}
-
 	}
 	return h, nil
 }
@@ -226,8 +225,8 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 		bit++
 	}
 
-	//c.CharColor = colorIndex2[1]
-	//c.BackgroundColor = colorIndex2[0]
+	c.CharColor = colorIndex2[1]
+	c.BackgroundColor = colorIndex2[0]
 
 	if noPackChars {
 		for char := 0; char < 256; char++ {
@@ -414,7 +413,6 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 		Columns:        byte(maxX),
 		Rows:           byte(maxY),
 	}
-	fmt.Println("spr:", s)
 	if maxX == 0 || maxY == 0 {
 		return s, fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", maxX, maxY)
 	}
