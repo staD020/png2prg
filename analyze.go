@@ -528,12 +528,13 @@ func (img *sourceImage) colorMapFromChar(char int) map[RGB]byte {
 	x, y := xyFromChar(char)
 	x += img.xOffset
 	y += img.yOffset
-	for j := 0; j < 32; j++ {
-		pixelx, pixely := xyFromPixel(j)
-		r, g, b, _ := img.image.At(x+pixelx, y+pixely).RGBA()
-		rgb := RGB{byte(r), byte(g), byte(b)}
-		if _, ok := charColors[rgb]; !ok {
-			charColors[rgb] = img.palette[rgb]
+	for pixely := y; pixely < y+8; pixely++ {
+		for pixelx := x; pixelx < x+8; pixelx++ {
+			r, g, b, _ := img.image.At(pixelx, pixely).RGBA()
+			rgb := RGB{byte(r), byte(g), byte(b)}
+			if _, ok := charColors[rgb]; !ok {
+				charColors[rgb] = img.palette[rgb]
+			}
 		}
 	}
 	return charColors
@@ -542,10 +543,6 @@ func (img *sourceImage) colorMapFromChar(char int) map[RGB]byte {
 func xyFromChar(i int) (int, int) {
 	return 8*i - (320 * int(math.Floor(float64(i/40)))),
 		8 * int(math.Floor(float64(i/40)))
-}
-
-func xyFromPixel(i int) (x, y int) {
-	return i << 1 & 7, i >> 2
 }
 
 // analyzePalette finds the closest paletteMap and sets img.palette
