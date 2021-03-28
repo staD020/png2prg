@@ -224,11 +224,11 @@ func (img *sourceImage) analyzeSprites() error {
 	if err := img.findBackgroundColor(); err != nil {
 		return fmt.Errorf("findBackgroundColor failed: %v", err)
 	}
-
-	if !noGuess {
-		max, _, sumColors := img.countSpriteColors()
-		img.guessPreferredBitpairColors(max, sumColors)
+	if noGuess {
+		return nil
 	}
+	max, _, sumColors := img.countSpriteColors()
+	img.guessPreferredBitpairColors(max, sumColors)
 	return nil
 }
 
@@ -518,11 +518,6 @@ func (img *sourceImage) makeCharColors() error {
 	return nil
 }
 
-func (img *sourceImage) xyOffsetFromChar(char int) (x, y int) {
-	x, y = xyFromChar(char)
-	return x + img.xOffset, y + img.yOffset
-}
-
 func (img *sourceImage) colorMapFromChar(char int) map[RGB]byte {
 	charColors := make(map[RGB]byte, 16)
 	x, y := xyFromChar(char)
@@ -538,6 +533,11 @@ func (img *sourceImage) colorMapFromChar(char int) map[RGB]byte {
 		}
 	}
 	return charColors
+}
+
+func (img *sourceImage) xyOffsetFromChar(char int) (x, y int) {
+	x, y = xyFromChar(char)
+	return x + img.xOffset, y + img.yOffset
 }
 
 func xyFromChar(i int) (int, int) {
@@ -572,8 +572,6 @@ func (img *sourceImage) analyzePalette() {
 }
 
 func (img *sourceImage) setSourceColors() {
-	// img.xOffset, img.yOffset = img.image.Bounds().Min.X, img.image.Bounds().Min.Y
-	// img.width, img.height = img.image.Bounds().Max.X-img.xOffset, img.image.Bounds().Max.Y-img.yOffset
 	m := make(map[RGB]bool, 16)
 	rgb0 := RGB{byte(0), byte(0), byte(0)}
 	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x += 2 {
