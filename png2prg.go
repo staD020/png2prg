@@ -1,7 +1,5 @@
 package main
 
-//go:generate go run generate.go
-
 import (
 	_ "embed"
 	"fmt"
