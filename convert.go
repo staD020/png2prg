@@ -4,24 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
-	"strconv"
-	"strings"
 )
-
-func parseBitPairColors(bp string) ([]byte, error) {
-	var result []byte
-	for _, v := range strings.Split(bp, ",") {
-		i, err := strconv.Atoi(v)
-		if err != nil {
-			return result, fmt.Errorf("strconv.Atoi conversion of %q to integers failed: %v", bp, err)
-		}
-		if i < -1 || i > 15 {
-			return result, fmt.Errorf("incorrect color %d", i)
-		}
-		result = append(result, byte(i))
-	}
-	return result, nil
-}
 
 func sortColors(charColors map[RGB]byte) (cc []colorInfo) {
 	i := 0
