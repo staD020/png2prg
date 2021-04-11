@@ -315,8 +315,7 @@ func (img *sourceImage) countSpriteColors() (int, []byte, [16]int) {
 
 	for y := 0; y < img.height; y++ {
 		for x := 0; x < img.width; x++ {
-			r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
-			rgb := RGB{byte(r), byte(g), byte(b)}
+			rgb := img.colorAtXY(x, y)
 			if ci, ok := img.palette[rgb]; ok {
 				sum[ci]++
 				continue
@@ -480,9 +479,7 @@ func (img *sourceImage) findBorderColor() error {
 	if img.xOffset == 0 || img.yOffset == 0 {
 		return fmt.Errorf("border color not found")
 	}
-
-	r, g, b, _ := img.image.At(img.xOffset-10, img.yOffset-10).RGBA()
-	rgb := RGB{byte(r), byte(g), byte(b)}
+	rgb := img.colorAtXY(-10, -10)
 	if ci, ok := img.palette[rgb]; ok {
 		img.borderColor = colorInfo{RGB: rgb, ColorIndex: ci}
 	}
@@ -537,18 +534,20 @@ func (img *sourceImage) makeCharColors() error {
 func (img *sourceImage) colorMapFromChar(char int) map[RGB]byte {
 	charColors := make(map[RGB]byte, 16)
 	x, y := xyFromChar(char)
-	x += img.xOffset
-	y += img.yOffset
 	for pixely := y; pixely < y+8; pixely++ {
 		for pixelx := x; pixelx < x+8; pixelx++ {
-			r, g, b, _ := img.image.At(pixelx, pixely).RGBA()
-			rgb := RGB{byte(r), byte(g), byte(b)}
+			rgb := img.colorAtXY(pixelx, pixely)
 			if _, ok := charColors[rgb]; !ok {
 				charColors[rgb] = img.palette[rgb]
 			}
 		}
 	}
 	return charColors
+}
+
+func (img *sourceImage) colorAtXY(x, y int) RGB {
+	r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
+	return RGB{byte(r), byte(g), byte(b)}
 }
 
 func (img *sourceImage) xyOffsetFromChar(char int) (x, y int) {
@@ -592,8 +591,7 @@ func (img *sourceImage) setSourceColors() {
 	rgb0 := RGB{byte(0), byte(0), byte(0)}
 	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x += 2 {
 		for y := 0; y < img.image.Bounds().Max.Y-img.yOffset; y++ {
-			r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
-			rgb := RGB{byte(r), byte(g), byte(b)}
+			rgb := img.colorAtXY(x, y)
 			if _, ok := m[rgb]; !ok {
 				m[rgb] = true
 				if rgb == rgb0 {

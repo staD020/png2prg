@@ -101,13 +101,12 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 		}
 
 		bitmapIndex := char * 8
-		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
+		x, y := xyFromChar(char)
 
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel += 2 {
-				r, g, b, _ := img.image.At(imageXIndex+pixel, imageYIndex+byteIndex).RGBA()
-				rgb := RGB{byte(r), byte(g), byte(b)}
+				rgb := img.colorAtXY(x+pixel, y+byteIndex)
 				if bmppattern, ok := colorIndex1[rgb]; ok {
 					bmpbyte = bmpbyte | (bmppattern << (6 - byte(pixel)))
 				} else {
@@ -153,19 +152,17 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 		}
 
 		bitmapIndex := char * 8
-		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
+		x, y := xyFromChar(char)
 
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel++ {
-				r, g, b, _ := img.image.At(imageXIndex+pixel, imageYIndex+byteIndex).RGBA()
-				rgb := RGB{byte(r), byte(g), byte(b)}
+				rgb := img.colorAtXY(x+pixel, y+byteIndex)
 				if bmppattern, ok := colorIndex1[rgb]; ok {
 					bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 				} else {
 					if verbose {
 						log.Printf("rgb: %v not found in char: %d.", rgb, char)
-						x, y := xyFromChar(char)
 						log.Printf("x, y = %d, %d", x, y)
 						log.Printf("colorIndex1: %v", colorIndex1)
 					}
@@ -229,18 +226,16 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 	if noPackChars {
 		for char := 0; char < 256; char++ {
 			bitmapIndex := char * 8
-			imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
+			x, y := xyFromChar(char)
 			for byteIndex := 0; byteIndex < 8; byteIndex++ {
 				bmpbyte := byte(0)
 				for pixel := 0; pixel < 8; pixel++ {
-					r, g, b, _ := img.image.At(imageXIndex+pixel, imageYIndex+byteIndex).RGBA()
-					rgb := RGB{byte(r), byte(g), byte(b)}
+					rgb := img.colorAtXY(x+pixel, y+byteIndex)
 					if bmppattern, ok := colorIndex1[rgb]; ok {
 						bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 					} else {
 						if verbose {
 							log.Printf("rgb %v not found in char %d.", rgb, char)
-							x, y := xyFromChar(char)
 							log.Printf("x, y = %d, %d", x, y)
 							log.Printf("colorIndex1: %v", colorIndex1)
 						}
@@ -257,19 +252,17 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 	charMap := []charBytes{}
 
 	for char := 0; char < 1000; char++ {
-		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
 		cbuf := charBytes{}
+		x, y := xyFromChar(char)
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel++ {
-				r, g, b, _ := img.image.At(imageXIndex+pixel, imageYIndex+byteIndex).RGBA()
-				rgb := RGB{byte(r), byte(g), byte(b)}
+				rgb := img.colorAtXY(x+pixel, y+byteIndex)
 				if bmppattern, ok := colorIndex1[rgb]; ok {
 					bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 				} else {
 					if verbose {
 						log.Printf("rgb %v not found in char %d.", rgb, char)
-						x, y := xyFromChar(char)
 						log.Printf("x, y = %d, %d", x, y)
 						log.Printf("colorIndex1: %v", colorIndex1)
 					}
@@ -355,18 +348,16 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	if noPackChars {
 		for char := 0; char < 256; char++ {
 			bitmapIndex := char * 8
-			imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
+			x, y := xyFromChar(char)
 			for byteIndex := 0; byteIndex < 8; byteIndex++ {
 				bmpbyte := byte(0)
 				for pixel := 0; pixel < 8; pixel += 2 {
-					r, g, b, _ := img.image.At(imageXIndex+pixel, imageYIndex+byteIndex).RGBA()
-					rgb := RGB{byte(r), byte(g), byte(b)}
+					rgb := img.colorAtXY(x+pixel, y+byteIndex)
 					if bmppattern, ok := colorIndex1[rgb]; ok {
 						bmpbyte |= bmppattern << (6 - byte(pixel))
 					} else {
 						if verbose {
 							log.Printf("rgb %v not found in char %d.", rgb, char)
-							x, y := xyFromChar(char)
 							log.Printf("x, y = %d, %d", x, y)
 							log.Printf("colorIndex1: %v", colorIndex1)
 						}
@@ -380,19 +371,17 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	}
 
 	for char := 0; char < 1000; char++ {
-		imageXIndex, imageYIndex := img.xyOffsetFromChar(char)
+		x, y := xyFromChar(char)
 		cbuf := charBytes{}
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel += 2 {
-				r, g, b, _ := img.image.At(imageXIndex+pixel, imageYIndex+byteIndex).RGBA()
-				rgb := RGB{byte(r), byte(g), byte(b)}
+				rgb := img.colorAtXY(x+pixel, y+byteIndex)
 				if bmppattern, ok := colorIndex1[rgb]; ok {
 					bmpbyte |= bmppattern << (6 - byte(pixel))
 				} else {
 					if verbose {
 						log.Printf("rgb %v not found in char %d.", rgb, char)
-						x, y := xyFromChar(char)
 						log.Printf("x, y = %d, %d", x, y)
 						log.Printf("colorIndex1: %v", colorIndex1)
 					}
@@ -492,13 +481,12 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 	for spriteY := 0; spriteY < maxY; spriteY++ {
 		for spriteX := 0; spriteX < maxX; spriteX++ {
 			for y := 0; y < 21; y++ {
-				yOffset := img.yOffset + y + spriteY*21
+				yOffset := y + spriteY*21
 				for x := 0; x < 3; x++ {
-					xOffset := img.xOffset + x*8 + spriteX*24
+					xOffset := x*8 + spriteX*24
 					bmpbyte := byte(0)
 					for pixel := 0; pixel < 8; pixel++ {
-						r, g, b, _ := img.image.At(xOffset+pixel, yOffset).RGBA()
-						rgb := RGB{byte(r), byte(g), byte(b)}
+						rgb := img.colorAtXY(xOffset+pixel, yOffset)
 						if bmppattern, ok := colorIndex1[rgb]; ok {
 							bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 						} else {
@@ -564,13 +552,12 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 	for spriteY := 0; spriteY < int(s.Rows); spriteY++ {
 		for spriteX := 0; spriteX < int(s.Columns); spriteX++ {
 			for y := 0; y < 21; y++ {
-				yOffset := img.yOffset + y + spriteY*21
+				yOffset := y + spriteY*21
 				for x := 0; x < 3; x++ {
-					xOffset := img.xOffset + x*8 + spriteX*24
+					xOffset := x*8 + spriteX*24
 					bmpbyte := byte(0)
 					for pixel := 0; pixel < 8; pixel += 2 {
-						r, g, b, _ := img.image.At(xOffset+(pixel), yOffset).RGBA()
-						rgb := RGB{byte(r), byte(g), byte(b)}
+						rgb := img.colorAtXY(xOffset+pixel, yOffset)
 						if bmppattern, ok := colorIndex1[rgb]; ok {
 							bmpbyte |= bmppattern << (6 - byte(pixel))
 						} else {
