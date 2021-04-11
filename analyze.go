@@ -550,11 +550,6 @@ func (img *sourceImage) colorAtXY(x, y int) RGB {
 	return RGB{byte(r), byte(g), byte(b)}
 }
 
-func (img *sourceImage) xyOffsetFromChar(char int) (x, y int) {
-	x, y = xyFromChar(char)
-	return x + img.xOffset, y + img.yOffset
-}
-
 func xyFromChar(i int) (int, int) {
 	return 8*i - (320 * int(math.Floor(float64(i/40)))),
 		8 * int(math.Floor(float64(i/40)))
