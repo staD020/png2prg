@@ -583,15 +583,11 @@ func (img *sourceImage) analyzePalette() {
 
 func (img *sourceImage) setSourceColors() {
 	m := make(map[RGB]bool, 16)
-	rgb0 := RGB{byte(0), byte(0), byte(0)}
 	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x += 2 {
 		for y := 0; y < img.image.Bounds().Max.Y-img.yOffset; y++ {
 			rgb := img.colorAtXY(x, y)
 			if _, ok := m[rgb]; !ok {
 				m[rgb] = true
-				if rgb == rgb0 {
-					fmt.Println("rgb:", rgb)
-				}
 			}
 		}
 	}
