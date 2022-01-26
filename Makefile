@@ -20,7 +20,8 @@ FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
 #TESTPIC=testdata/ilesj_orbital_impaler.png
 #TESTPIC=testdata/nikaj_trd.png
 #TESTPIC=testdata/deev_desolate_hires.png
-TESTPIC=testdata/the_sarge_steady_eddie_ready_hires.png
+#TESTPIC=testdata/the_sarge_steady_eddie_ready_hires.png
+TESTPIC=testdata/carrion_still_waiting.png
 
 png2prg: $(TARGET)
 
