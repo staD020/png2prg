@@ -154,7 +154,7 @@ generate_fade_pass:
 		lax #$00
 		tay
 !loop:
-		lda #$af            // lax zp_src_screen_lo
+		lda #$ae            // ldx zp_src_screen_lo
 		jsr store_byte
 		lda zp_src_screen_lo
 		jsr store_byte
@@ -173,7 +173,7 @@ generate_fade_pass:
 		lda zp_screen_hi
 		jsr store_byte
 
-		lda #$af            // lax zp_src_d800_lo
+		lda #$ae            // ldx zp_src_d800_lo
 		jsr store_byte
 		lda zp_src_d800_lo
 		jsr store_byte
@@ -287,18 +287,18 @@ t_color_fade:
 .pc = fade_pass_address "fade_pass" virtual
 fade_pass:
 /*
-.C:4800  AF 00 04    LAX $0400
+.C:4800  AE 00 04    LDX $0400
 .C:4803  BD 00 09    LDA $0900,X
 .C:4806  8D 00 04    STA $0400
-.C:4809  AF 00 D8    LAX $D800
+.C:4809  AE 00 D8    LDX $D800
 .C:480c  BD 00 09    LDA $0900,X
 .C:480f  8D 00 D8    STA $D800
 */
 	.for (var i=0; i<1000; i++) {
-		lax $0400+i
+		ldx $0400+i
 		lda t_color_fade,x
 		sta $0400+i
-		lax $d800+i
+		ldx $d800+i
 		lda t_color_fade,x
 		sta $d800+i
 	}
