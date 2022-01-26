@@ -1,7 +1,7 @@
 
 .const DEBUG = false
 .const GENDEBUG = false
-.const LOOP = false
+.const LOOP = true
 .const fade_speed = 1
 .const steps = 16
 .const bitmap     = $2000
