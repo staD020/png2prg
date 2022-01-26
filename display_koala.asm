@@ -2,6 +2,7 @@
 .const DEBUG = false
 .const GENDEBUG = false
 .const LOOP = true
+.const PERFRAME = false
 .const fade_speed = 1
 .const steps = 16
 .const bitmap     = $2000
@@ -86,6 +87,13 @@ smc_yval:	ldy #steps-1
 		dex
 		bne !-
 
+.if (PERFRAME) {
+		lda #$ef
+	!:	cmp $dc01
+		bne !-
+	!:	cmp $dc01
+		beq !-
+}
 		ldx src_colorram+1000
 		lda t_color_fade,x
 		sta $d021
