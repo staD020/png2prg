@@ -24,7 +24,7 @@
 .import source "lib.asm"
 
 .pc = $0801 "basic upstart"
-		.byte <basicend, >basicend, <2021, >2021, $9e
+		.byte <basicend, >basicend, <2022, >2022, $9e
 		.text toIntString(start)
 		.text " PNG2PRG " + versionString()
 basicend:
@@ -73,9 +73,10 @@ smc_dest:	stx bitmap+$1f3f
 		jsr vblank
 		lda #$3b
 		sta $d011
-.pc = * "fade loop"
-!loop:
-smc_yval:	ldy #$0f
+
+.pc = * "fade_loop"
+fade_loop:
+smc_yval:	ldy #steps-1
 		.if (DEBUG) inc $d020
 		jsr generate_phase_col_tables
 		.if (DEBUG) dec $d020
@@ -109,25 +110,26 @@ smc_yval:	ldy #$0f
 		lda smc_yval+1
 		cmp #$ff
 		beq !done+
-		cmp #7
-		bne !loop-
+		cmp #(steps/2)-1
+		bne fade_loop
 
 		lda #$ef
 	!:	cmp $dc01
 		bne !-
-		beq !loop-
+		beq fade_loop
 !done:
 	.if (LOOP) {
 		lda #$ef
 	!:	cmp $dc01
 		bne !-
 		jsr reset_phase
-		lda #$0f
+		lda #steps-1
 		sta smc_yval + 1
-		bne !loop-
+		bne fade_loop
 	} else {
 		jmp $fce2
 	}
+.pc = * "vblank"
 vblank:
 		:vblank()
 		rts
@@ -203,13 +205,13 @@ generate_fade_pass:
 		cpx #$e7
 		bne not_last
 		cpy #$03
-		beq done
+		beq !done+
 not_last:
 		inx
 		bne !loop-
 		iny
 		bne !loop-
-done:
+!done:
 		lda #$60            // rts
 store_byte:
 		sta fade_pass
@@ -221,12 +223,12 @@ store_byte:
 .pc = * "generate_phase_col_tables"
 generate_phase_col_tables:
 !next_step:
-		lda #<t_color_fade
-		sta smc_totpercol + 1
+//		lda #<t_color_fade
+//		sta smc_totpercol + 1
 !loop:
 		// start with color 0
 		ldx #0
-!:
+	!:
 		// y points to hi-nibble of color x
 		ldy t_col2index,x // y = 0, $10, $20, .., $f0
 smc_fadepercol1:
@@ -243,18 +245,20 @@ smc_totpercol:
 		inc smc_totpercol + 1
 		inx
 		cpx #$10
-		bne !-
+		bcc !-
 
 		lda smc_fadepercol1 + 1
-		clc
-		adc #$10
+		// clc not needed , carry is always set
+		adc #$0f
 		sta smc_fadepercol1 + 1
 		bcc !loop-
 
+		// prepare code for next phase
 		inc smc_fadepercol1 + 1
 		inc smc_fadepercol2 + 1
 		rts
 // --------------------------------
+.pc = * "reset_phase"
 reset_phase:
 	.if (LOOP) {
 		lda #<t_fadepercol
@@ -263,7 +267,7 @@ reset_phase:
 		rts
 	}
 // ------------------------------
-.pc = * "fader.t_col2index"
+.pc = * "t_col2index"
 t_col2index:
 		.fill $10, i*$10
 // ------------------------------

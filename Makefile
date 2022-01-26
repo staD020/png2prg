@@ -17,7 +17,7 @@ FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
 TESTPIC=testdata/ste_ghosts_goblins.gif
-TESTPIC=testdata/ilesj_orbital_impaler.png
+#TESTPIC=testdata/ilesj_orbital_impaler.png
 #TESTPIC=testdata/nikaj_trd.png
 
 png2prg: $(TARGET)
