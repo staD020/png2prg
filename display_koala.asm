@@ -124,7 +124,7 @@ smc_yval:	ldy #$0f
 		jsr reset_phase
 		lda #$0f
 		sta smc_yval + 1
-		jmp !loop-
+		bne !loop-
 	} else {
 		jmp $fce2
 	}
