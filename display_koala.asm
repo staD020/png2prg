@@ -53,6 +53,7 @@ start:
 	}
 		inx
 		bne !-
+
 		lda #$ff
 !loop:
 smc_src:	ldx koala_source+$1f3f
@@ -130,7 +131,12 @@ smc_yval:	ldy #steps-1
 		lda #$ef
 	!:	cmp $dc01
 		bne !-
-		jsr reset_phase
+
+		// reset phase
+		lda #<t_fadepercol
+		sta smc_fadepercol1 + 1
+		sta smc_fadepercol2 + 1
+
 		lda #steps-1
 		sta smc_yval + 1
 		bne fade_loop
@@ -230,9 +236,8 @@ store_byte:
 // --------------------------------
 .pc = * "generate_phase_col_tables"
 generate_phase_col_tables:
-!next_step:
-//		lda #<t_color_fade
-//		sta smc_totpercol + 1
+		//lda #<t_color_fade
+		//sta smc_totpercol + 1
 !loop:
 		// start with color 0
 		ldx #0
@@ -265,15 +270,6 @@ smc_totpercol:
 		inc smc_fadepercol1 + 1
 		inc smc_fadepercol2 + 1
 		rts
-// --------------------------------
-.pc = * "reset_phase"
-reset_phase:
-	.if (LOOP) {
-		lda #<t_fadepercol
-		sta smc_fadepercol1 + 1
-		sta smc_fadepercol2 + 1
-		rts
-	}
 // ------------------------------
 .pc = * "t_col2index"
 t_col2index:
