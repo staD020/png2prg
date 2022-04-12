@@ -1,9 +1,9 @@
 
 .const DEBUG = false
 .const GENDEBUG = false
-.const LOOP = true
+.const LOOP = false
 .const PERFRAME = false
-.const fade_speed = 1
+.const fade_speed = 2
 .const steps = 16
 .const bitmap     = $2000
 .const screenram  = $0400
@@ -229,6 +229,7 @@ not_last:
 		lda #$60            // rts
 store_byte:
 		sta fade_pass
+		.if (GENDEBUG) sta $d020
 		inc store_byte+1
 		bne !+
 		inc store_byte+2

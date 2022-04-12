@@ -388,7 +388,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 	}
 
 	for _, charcolormap := range backgroundCharColors {
-		for rgb, _ := range candidates {
+		for rgb := range candidates {
 			if _, ok := charcolormap[rgb]; !ok {
 				if verbose {
 					log.Printf("not a bgcol candidate, delete: %v", rgb)

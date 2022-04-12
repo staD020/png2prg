@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
 	"image"
@@ -13,6 +14,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	tscrunch "github.com/staD020/TSCrunch"
 )
 
 const version = "0.9-dev"
@@ -276,12 +279,30 @@ func processFiles(filenames ...string) (err error) {
 		return fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
 	}
 
+	if display {
+		buf := &bytes.Buffer{}
+		if _, err = c.WriteTo(buf); err != nil {
+			return fmt.Errorf("WriteTo buffer failed: %v", err)
+		}
+		tscConfig := tscrunch.Config{
+			PRG:     true,
+			QUIET:   true,
+			INPLACE: false,
+			JumpTo:  "$0819",
+		}
+		c, err = tscrunch.New(tscConfig, buf.Bytes())
+		if err != nil {
+			return fmt.Errorf("tscrunch.New failed: %v", err)
+		}
+	}
+
 	destFilename := destinationFilename(img.sourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
 		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
 	}
 	defer f.Close()
+
 	if _, err = c.WriteTo(f); err != nil {
 		return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
 	}
@@ -303,7 +324,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 		header = displayers[multiColorBitmap]
 	}
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
-	return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder}})
+	return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
 }
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
@@ -311,7 +332,7 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	if display {
 		header = displayers[singleColorBitmap]
 	}
-	return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], []byte{h.BorderColor}})
+	return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
 }
 
 func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
@@ -319,7 +340,7 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if display {
 		header = displayers[multiColorCharset]
 	}
-	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor}})
+	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], {c.CharColor, c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor}})
 }
 
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
@@ -327,7 +348,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if display {
 		header = displayers[singleColorCharset]
 	}
-	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor}})
+	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], {c.CharColor, c.BackgroundColor}})
 }
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {

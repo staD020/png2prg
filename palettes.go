@@ -1,7 +1,7 @@
 package main
 
 var c64palettes = map[string][16]colorInfo{
-	"vice": [16]colorInfo{
+	"vice": {
 		{0, RGB{0x00, 0x00, 0x00}},
 		{1, RGB{0xff, 0xff, 0xff}},
 		{2, RGB{0xbc, 0x52, 0x41}},
@@ -19,7 +19,7 @@ var c64palettes = map[string][16]colorInfo{
 		{14, RGB{0x9e, 0x8d, 0xff}},
 		{15, RGB{0xd5, 0xd5, 0xd5}},
 	},
-	"vice old lum": [16]colorInfo{
+	"vice old lum": {
 		{0, RGB{0x00, 0x00, 0x00}},
 		{1, RGB{0xff, 0xff, 0xff}},
 		{2, RGB{0xa9, 0x38, 0x26}},
@@ -37,7 +37,7 @@ var c64palettes = map[string][16]colorInfo{
 		{14, RGB{0xaa, 0x99, 0xff}},
 		{15, RGB{0xf2, 0xf2, 0xf2}},
 	},
-	"pepto": [16]colorInfo{
+	"pepto": {
 		{0, RGB{0x00, 0x00, 0x00}},
 		{1, RGB{0xff, 0xff, 0xff}},
 		{2, RGB{0x68, 0x37, 0x2b}},
@@ -55,7 +55,7 @@ var c64palettes = map[string][16]colorInfo{
 		{14, RGB{0x6c, 0x5e, 0xb5}},
 		{15, RGB{0x95, 0x95, 0x95}},
 	},
-	"pantaloon": [16]colorInfo{
+	"pantaloon": {
 		{0, RGB{0, 0, 0}},
 		{1, RGB{255, 255, 255}},
 		{2, RGB{104, 55, 43}},
@@ -73,7 +73,7 @@ var c64palettes = map[string][16]colorInfo{
 		{14, RGB{117, 161, 236}},
 		{15, RGB{193, 193, 193}},
 	},
-	"archmage": [16]colorInfo{
+	"archmage": {
 		{0, RGB{0x00, 0x00, 0x00}},
 		{1, RGB{0xff, 0xff, 0xff}},
 		{2, RGB{0x89, 0x40, 0x36}},
@@ -91,7 +91,7 @@ var c64palettes = map[string][16]colorInfo{
 		{14, RGB{0x7c, 0x70, 0xda}},
 		{15, RGB{0xab, 0xab, 0xab}},
 	},
-	"electric cocillana": [16]colorInfo{
+	"electric cocillana": {
 		{0, RGB{0x00, 0x00, 0x00}},
 		{1, RGB{0xff, 0xff, 0xff}},
 		{2, RGB{0x8b, 0x1f, 0x00}},
@@ -109,7 +109,7 @@ var c64palettes = map[string][16]colorInfo{
 		{14, RGB{0x4a, 0x94, 0xd6}},
 		{15, RGB{0xbd, 0xbd, 0xbd}},
 	},
-	"ste": [16]colorInfo{
+	"ste": {
 		{0, RGB{0x00, 0x00, 0x00}},
 		{1, RGB{0xff, 0xff, 0xff}},
 		{2, RGB{0xc8, 0x35, 0x35}},
