@@ -280,19 +280,9 @@ func processFiles(filenames ...string) (err error) {
 	}
 
 	if display {
-		buf := &bytes.Buffer{}
-		if _, err = c.WriteTo(buf); err != nil {
-			return fmt.Errorf("WriteTo buffer failed: %v", err)
-		}
-		conf := tscrunch.Config{
-			PRG:     true,
-			QUIET:   true,
-			INPLACE: false,
-			JumpTo:  "$0819",
-		}
-		c, err = tscrunch.New(conf, buf.Bytes())
+		c, err = injectCrunch(c)
 		if err != nil {
-			return fmt.Errorf("tscrunch.New failed: %v", err)
+			return fmt.Errorf("injectCrunch failed: %v", err)
 		}
 	}
 
@@ -311,6 +301,24 @@ func processFiles(filenames ...string) (err error) {
 	}
 
 	return nil
+}
+
+func injectCrunch(in io.WriterTo) (io.WriterTo, error) {
+	buf := &bytes.Buffer{}
+	if _, err := in.WriteTo(buf); err != nil {
+		return nil, fmt.Errorf("WriteTo buffer failed: %v", err)
+	}
+	conf := tscrunch.Config{
+		PRG:     true,
+		QUIET:   true,
+		INPLACE: false,
+		JumpTo:  "$0819",
+	}
+	out, err := tscrunch.New(conf, buf.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("tscrunch.New failed: %v", err)
+	}
+	return out, nil
 }
 
 // defaultHeader returns the startaddress of a file located at 0x2000
@@ -335,6 +343,10 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if display {
 		header = displayers[singleColorBitmap]
+		fill := 0x2000 - 0x7ff - len(header)
+		for i := 0; i < fill; i++ {
+			header = append(header, 0)
+		}
 	}
 	return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
 }
