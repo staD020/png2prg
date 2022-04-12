@@ -209,12 +209,12 @@ func processFiles(filenames ...string) (err error) {
 	imgs, err := newSourceImages(filenames...)
 	switch {
 	case err != nil:
-		return fmt.Errorf("newSourceImages failed: %v", err)
+		return fmt.Errorf("newSourceImages failed: %w", err)
 	case len(imgs) == 0:
 		return fmt.Errorf("no images found")
 	case len(imgs) > 1:
 		if err = handleAnimation(imgs); err != nil {
-			return fmt.Errorf("handleAnimation failed: %v", err)
+			return fmt.Errorf("handleAnimation failed: %w", err)
 		}
 		return nil
 	}
@@ -224,36 +224,36 @@ func processFiles(filenames ...string) (err error) {
 		log.Printf("processing file %q", img.sourceFilename)
 	}
 	if err = img.analyze(); err != nil {
-		return fmt.Errorf("analyze %q failed: %v", img.sourceFilename, err)
+		return fmt.Errorf("analyze %q failed: %w", img.sourceFilename, err)
 	}
 
 	var c io.WriterTo
 	switch img.graphicsType {
 	case multiColorBitmap:
 		if c, err = img.convertToKoala(); err != nil {
-			return fmt.Errorf("convertToKoala %q failed: %v", img.sourceFilename, err)
+			return fmt.Errorf("convertToKoala %q failed: %w", img.sourceFilename, err)
 		}
 	case singleColorBitmap:
 		if c, err = img.convertToHires(); err != nil {
-			return fmt.Errorf("convertToHires %q failed: %v", img.sourceFilename, err)
+			return fmt.Errorf("convertToHires %q failed: %w", img.sourceFilename, err)
 		}
 	case singleColorCharset:
 		if c, err = img.convertToSingleColorCharset(); err != nil {
 			if graphicsMode != "" {
-				return fmt.Errorf("convertToSingleColorCharset %q failed: %v", img.sourceFilename, err)
+				return fmt.Errorf("convertToSingleColorCharset %q failed: %w", img.sourceFilename, err)
 			}
 			if !quiet {
 				fmt.Printf("falling back to %s because convertToSingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
 			}
 			img.graphicsType = singleColorBitmap
 			if c, err = img.convertToHires(); err != nil {
-				return fmt.Errorf("convertToHires %q failed: %v", img.sourceFilename, err)
+				return fmt.Errorf("convertToHires %q failed: %w", img.sourceFilename, err)
 			}
 		}
 	case multiColorCharset:
 		if c, err = img.convertToMultiColorCharset(); err != nil {
 			if graphicsMode != "" {
-				return fmt.Errorf("convertToMultiColorCharset %q failed: %v", img.sourceFilename, err)
+				return fmt.Errorf("convertToMultiColorCharset %q failed: %w", img.sourceFilename, err)
 			}
 			if !quiet {
 				fmt.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
@@ -261,19 +261,19 @@ func processFiles(filenames ...string) (err error) {
 			img.graphicsType = multiColorBitmap
 			err = img.findBackgroundColor()
 			if err != nil {
-				return fmt.Errorf("findBackgroundColor %q failed: %v", img.sourceFilename, err)
+				return fmt.Errorf("findBackgroundColor %q failed: %w", img.sourceFilename, err)
 			}
 			if c, err = img.convertToKoala(); err != nil {
-				return fmt.Errorf("convertToKoala %q failed: %v", img.sourceFilename, err)
+				return fmt.Errorf("convertToKoala %q failed: %w", img.sourceFilename, err)
 			}
 		}
 	case singleColorSprites:
 		if c, err = img.convertToSingleColorSprites(); err != nil {
-			return fmt.Errorf("convertToSingleColorSprites %q failed: %v", img.sourceFilename, err)
+			return fmt.Errorf("convertToSingleColorSprites %q failed: %w", img.sourceFilename, err)
 		}
 	case multiColorSprites:
 		if c, err = img.convertToMultiColorSprites(); err != nil {
-			return fmt.Errorf("convertToMultiColorSprites %q failed: %v", img.sourceFilename, err)
+			return fmt.Errorf("convertToMultiColorSprites %q failed: %w", img.sourceFilename, err)
 		}
 	default:
 		return fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
@@ -282,19 +282,19 @@ func processFiles(filenames ...string) (err error) {
 	if display {
 		c, err = injectCrunch(c)
 		if err != nil {
-			return fmt.Errorf("injectCrunch failed: %v", err)
+			return fmt.Errorf("injectCrunch failed: %w", err)
 		}
 	}
 
 	destFilename := destinationFilename(img.sourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
-		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
+		return fmt.Errorf("os.Create %q failed: %w", destFilename, err)
 	}
 	defer f.Close()
 
 	if _, err = c.WriteTo(f); err != nil {
-		return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
+		return fmt.Errorf("WriteTo %q failed: %w", destFilename, err)
 	}
 	if !quiet {
 		fmt.Printf("converted %q to %q in %q format\n", img.sourceFilename, destFilename, img.graphicsType)
@@ -303,10 +303,10 @@ func processFiles(filenames ...string) (err error) {
 	return nil
 }
 
-func injectCrunch(in io.WriterTo) (io.WriterTo, error) {
+func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 	buf := &bytes.Buffer{}
-	if _, err := in.WriteTo(buf); err != nil {
-		return nil, fmt.Errorf("WriteTo buffer failed: %v", err)
+	if _, err := c.WriteTo(buf); err != nil {
+		return nil, fmt.Errorf("WriteTo buffer failed: %w", err)
 	}
 	conf := tscrunch.Config{
 		PRG:     true,
@@ -314,11 +314,11 @@ func injectCrunch(in io.WriterTo) (io.WriterTo, error) {
 		INPLACE: false,
 		JumpTo:  "$0819",
 	}
-	out, err := tscrunch.New(conf, buf.Bytes())
+	c, err := tscrunch.New(conf, buf.Bytes())
 	if err != nil {
-		return nil, fmt.Errorf("tscrunch.New failed: %v", err)
+		return nil, fmt.Errorf("tscrunch.New failed: %w", err)
 	}
-	return out, nil
+	return c, nil
 }
 
 // defaultHeader returns the startaddress of a file located at 0x2000
