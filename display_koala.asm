@@ -8,7 +8,7 @@
 .const bitmap     = $2000
 .const screenram  = $0400
 .const colorram   = $d800
-.const fade_pass_address = $4000
+.const fade_pass_address = $4800
 .const src_screenram = $c000
 .const src_colorram = $c400
 
@@ -33,12 +33,13 @@ basicend:
 .pc = $0819 "start"
 start:
 		sei
-		jsr generate_fade_pass
 		jsr vblank
+		lda #0
+		sta $d011
+		sta $d020
+		sta $d021
+		jsr generate_fade_pass
 		ldx #0
-		stx $d011
-		stx $d020
-		stx $d021
 	!:
 		lda #0
 	.for (var i=0; i<4; i++) {
@@ -53,20 +54,6 @@ start:
 	}
 		inx
 		bne !-
-
-		lda #$ff
-!loop:
-smc_src:	ldx koala_source+$1f3f
-smc_dest:	stx bitmap+$1f3f
-		dcp smc_src+1
-		bne !+
-		dec smc_src+2
-	!:	dcp smc_dest+1
-		bne !+
-		dec smc_dest+2
-	!:	ldx smc_dest+2
-		cpx #>(bitmap-1)
-		bne !loop-
 
 		lda #toD018(screenram, bitmap)
 		sta $d018
@@ -281,13 +268,14 @@ t_col2index:
 t_fadepercol:
 :colorfade_table()
 // ------------------------------
-.pc = * "koala_source" virtual
-koala_source:
-// ------------------------------
 .align $100
 .pc = * "t_color_fade" virtual
 t_color_fade:
 		.fill $100, 0
+// ------------------------------
+.pc = bitmap "koala_source" virtual
+koala_source:
+.fill $2711, 0
 // ------------------------------
 .pc = fade_pass_address "fade_pass" virtual
 fade_pass:

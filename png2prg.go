@@ -284,13 +284,13 @@ func processFiles(filenames ...string) (err error) {
 		if _, err = c.WriteTo(buf); err != nil {
 			return fmt.Errorf("WriteTo buffer failed: %v", err)
 		}
-		tscConfig := tscrunch.Config{
+		conf := tscrunch.Config{
 			PRG:     true,
 			QUIET:   true,
 			INPLACE: false,
 			JumpTo:  "$0819",
 		}
-		c, err = tscrunch.New(tscConfig, buf.Bytes())
+		c, err = tscrunch.New(conf, buf.Bytes())
 		if err != nil {
 			return fmt.Errorf("tscrunch.New failed: %v", err)
 		}
@@ -322,6 +322,10 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if display {
 		header = displayers[multiColorBitmap]
+		fill := 0x2000 - 0x7ff - len(header)
+		for i := 0; i < fill; i++ {
+			header = append(header, 0)
+		}
 	}
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
 	return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
