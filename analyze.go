@@ -16,18 +16,18 @@ import (
 func newSourceImage(filename string) (img sourceImage, err error) {
 	img.sourceFilename = filename
 	if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
-		return img, fmt.Errorf("setPreferredBitpairColors failed: %v", err)
+		return img, fmt.Errorf("setPreferredBitpairColors failed: %w", err)
 	}
 	f, err := os.Open(filename)
 	if err != nil {
-		return img, fmt.Errorf("could not os.Open file %q: %v", filename, err)
+		return img, fmt.Errorf("could not os.Open file %q: %w", filename, err)
 	}
 	defer f.Close()
 	if img.image, _, err = image.Decode(f); err != nil {
-		return img, fmt.Errorf("image.Decode %q failed: %v", filename, err)
+		return img, fmt.Errorf("image.Decode %q failed: %w", filename, err)
 	}
 	if err = img.checkBounds(); err != nil {
-		return img, fmt.Errorf("img.checkBounds failed %q: %v", filename, err)
+		return img, fmt.Errorf("img.checkBounds failed %q: %w", filename, err)
 	}
 	if verbose && (img.xOffset != 0 || img.yOffset != 0) {
 		log.Printf("img.xOffset, yOffset = %d, %d\n", img.xOffset, img.yOffset)
@@ -41,13 +41,13 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 		case ".gif":
 			f, err := os.Open(filename)
 			if err != nil {
-				return nil, fmt.Errorf("os.Open could not open file %q: %v", filename, err)
+				return nil, fmt.Errorf("os.Open could not open file %q: %w", filename, err)
 			}
 			defer f.Close()
 
 			g, err := gif.DecodeAll(f)
 			if err != nil {
-				return nil, fmt.Errorf("gif.DecodeAll %q failed: %v", filename, err)
+				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", filename, err)
 			}
 			if verbose {
 				log.Printf("file %q has %d frames", filename, len(g.Image))
@@ -59,17 +59,17 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 					image:          rawImage,
 				}
 				if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
-					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %v", bitpairColorsString, err)
+					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)
 				}
 				if err = img.checkBounds(); err != nil {
-					return nil, fmt.Errorf("img.checkBounds failed %q: %v", filename, err)
+					return nil, fmt.Errorf("img.checkBounds failed %q: %w", filename, err)
 				}
 				imgs = append(imgs, img)
 			}
 		default:
 			img, err := newSourceImage(filename)
 			if err != nil {
-				return nil, fmt.Errorf("newSourceImage %q failed: %v", filename, err)
+				return nil, fmt.Errorf("newSourceImage %q failed: %w", filename, err)
 			}
 			imgs = append(imgs, img)
 		}
@@ -80,7 +80,7 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 	if v != "" {
 		if img.preferredBitpairColors, err = parseBitPairColors(v); err != nil {
-			return fmt.Errorf("parseBitPairColors %q failed: %v", v, err)
+			return fmt.Errorf("parseBitPairColors %q failed: %w", v, err)
 		}
 		if verbose {
 			log.Printf("will prefer bitpair colors: %v", img.preferredBitpairColors)
@@ -94,7 +94,7 @@ func parseBitPairColors(bp string) ([]byte, error) {
 	for _, v := range strings.Split(bp, ",") {
 		i, err := strconv.Atoi(v)
 		if err != nil {
-			return result, fmt.Errorf("strconv.Atoi conversion of %q to integers failed: %v", bp, err)
+			return result, fmt.Errorf("strconv.Atoi conversion of %q to integers failed: %w", bp, err)
 		}
 		if i < -1 || i > 15 {
 			return result, fmt.Errorf("incorrect color %d", i)
@@ -154,7 +154,7 @@ func (img *sourceImage) analyze() error {
 	}
 
 	if err := img.makeCharColors(); err != nil {
-		return fmt.Errorf("img.makeCharColors failed: %v", err)
+		return fmt.Errorf("img.makeCharColors failed: %w", err)
 	}
 
 	max, _ := img.maxColorsPerChar()
@@ -199,7 +199,7 @@ func (img *sourceImage) analyze() error {
 	}
 	if img.graphicsType == multiColorBitmap {
 		if err := img.findBackgroundColor(); err != nil {
-			return fmt.Errorf("findBackgroundColor failed: %v", err)
+			return fmt.Errorf("findBackgroundColor failed: %w", err)
 		}
 	}
 	if !noGuess {
@@ -238,7 +238,7 @@ func (img *sourceImage) analyzeSprites() error {
 	}
 
 	if err := img.findBackgroundColor(); err != nil {
-		return fmt.Errorf("findBackgroundColor failed: %v", err)
+		return fmt.Errorf("findBackgroundColor failed: %w", err)
 	}
 	if noGuess {
 		return nil

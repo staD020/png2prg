@@ -203,7 +203,7 @@ func initDisplayers() {
 func processFiles(filenames ...string) (err error) {
 	if len(filenames) < 1 {
 		log.Println("no files supplied, nothing to do.")
-		return err
+		return nil
 	}
 
 	imgs, err := newSourceImages(filenames...)
