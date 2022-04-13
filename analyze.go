@@ -11,6 +11,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/kettek/apng"
 )
 
 func newSourceImage(filename string) (img sourceImage, err error) {
@@ -57,6 +59,34 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 				img := sourceImage{
 					sourceFilename: filename,
 					image:          rawImage,
+				}
+				if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
+					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)
+				}
+				if err = img.checkBounds(); err != nil {
+					return nil, fmt.Errorf("img.checkBounds failed %q: %w", filename, err)
+				}
+				imgs = append(imgs, img)
+			}
+		case ".apng":
+			f, err := os.Open(filename)
+			if err != nil {
+				return nil, fmt.Errorf("os.Open could not open file %q: %w", filename, err)
+			}
+			defer f.Close()
+
+			a, err := apng.DecodeAll(f)
+			if err != nil {
+				return nil, fmt.Errorf("apng.DecodeAll %q failed: %w", filename, err)
+			}
+			if verbose {
+				log.Printf("file %q has %d frames", filename, len(a.Frames))
+			}
+
+			for _, frame := range a.Frames {
+				img := sourceImage{
+					sourceFilename: filename,
+					image:          frame.Image,
 				}
 				if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
 					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)
