@@ -83,10 +83,10 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 				log.Printf("file %q has %d frames", filename, len(a.Frames))
 			}
 
-			for _, frame := range a.Frames {
+			for _, f := range a.Frames {
 				img := sourceImage{
 					sourceFilename: filename,
-					image:          frame.Image,
+					image:          f.Image,
 				}
 				if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
 					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)

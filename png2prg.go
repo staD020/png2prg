@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	tscrunch "github.com/staD020/TSCrunch"
+	"github.com/staD020/TSCrunch"
 )
 
 const version = "0.9-dev"
@@ -308,13 +308,13 @@ func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 	if _, err := c.WriteTo(buf); err != nil {
 		return nil, fmt.Errorf("WriteTo buffer failed: %w", err)
 	}
-	conf := tscrunch.Config{
+	conf := TSCrunch.Config{
 		PRG:     true,
 		QUIET:   true,
 		INPLACE: false,
 		JumpTo:  "$0819",
 	}
-	c, err := tscrunch.New(conf, buf.Bytes())
+	c, err := TSCrunch.New(conf, buf.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("tscrunch.New failed: %w", err)
 	}
