@@ -50,7 +50,7 @@ png2prg_darwin_arm64: $(SRC) $(DISPLAYERS)
 png2prg_win_amd64.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@
 
-test: $(TARGET)
+test: $(TARGET) $(TESTPIC)
 	./$(TARGET) $(FLAGS) -o z.prg $(TESTPIC)
 	$(X64) z.prg >/dev/null
 

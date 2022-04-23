@@ -15,10 +15,11 @@ var (
 	quiet               bool
 	verbose             bool
 	display             bool
-	noPackChars         bool
+	noPack              bool
 	bitpairColorsString string
 	noGuess             bool
 	graphicsMode        string
+	includeSID          string
 	currentGraphicsType graphicsType
 )
 
@@ -40,10 +41,11 @@ func init() {
 
 	flag.BoolVar(&noGuess, "ng", false, "no-guess")
 	flag.BoolVar(&noGuess, "no-guess", false, "do not guess preferred bitpair-colors")
-	flag.BoolVar(&noPackChars, "np", false, "no-pack")
-	flag.BoolVar(&noPackChars, "no-pack", false, "do not pack chars (only for sc/mc charset)")
+	flag.BoolVar(&noPack, "np", false, "no-pack")
+	flag.BoolVar(&noPack, "no-pack", false, "do not pack chars (only for sc/mc charset), do not crunch (displayer)")
 	flag.StringVar(&bitpairColorsString, "bpc", "", "bitpair-colors")
 	flag.StringVar(&bitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
+	flag.StringVar(&includeSID, "sid", "", "include .sid in displayer")
 }
 
 func main() {

@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/staD020/TSCrunch"
+	"github.com/staD020/sid"
 )
 
 const version = "0.9-dev"
@@ -279,7 +280,7 @@ func processFiles(filenames ...string) (err error) {
 		return fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
 	}
 
-	if display {
+	if display && !noPack {
 		c, err = injectCrunch(c)
 		if err != nil {
 			return fmt.Errorf("injectCrunch failed: %w", err)
@@ -326,14 +327,35 @@ func defaultHeader() []byte {
 	return []byte{0x00, 0x20}
 }
 
+func zeroFill(s []byte, n int) []byte {
+	for i := 0; i < n; i++ {
+		s = append(s, 0)
+	}
+	return s
+}
+
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if display {
 		header = displayers[multiColorBitmap]
-		fill := 0x2000 - 0x7ff - len(header)
-		for i := 0; i < fill; i++ {
-			header = append(header, 0)
+		if includeSID != "" {
+			s, err := sid.LoadSID(includeSID)
+			if err != nil {
+				return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+			}
+			load := s.LoadAddress()
+			if int(load) < len(header)+0x7ff {
+				return 0, fmt.Errorf("s.LoadAddress %s is too low", load)
+			}
+			header[0x829-0x7ff] = byte(load & 0xff)
+			header[0x82a-0x7ff] = byte(load >> 8)
+			play := s.PlayAddress()
+			header[0x916-0x7ff] = byte(play & 0xff)
+			header[0x917-0x7ff] = byte(play >> 8)
+			header = zeroFill(header, int(load)-0x7ff-len(header))
+			header = append(header, s.RawBytes()...)
 		}
+		header = zeroFill(header, 0x2000-0x7ff-len(header))
 	}
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
 	return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
@@ -343,10 +365,7 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if display {
 		header = displayers[singleColorBitmap]
-		fill := 0x2000 - 0x7ff - len(header)
-		for i := 0; i < fill; i++ {
-			header = append(header, 0)
-		}
+		header = zeroFill(header, 0x2000-0x7ff-len(header))
 	}
 	return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
 }

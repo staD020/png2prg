@@ -223,7 +223,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 	c.CharColor = colorIndex2[1]
 	c.BackgroundColor = colorIndex2[0]
 
-	if noPackChars {
+	if noPack {
 		for char := 0; char < 256; char++ {
 			bitmapIndex := char * 8
 			x, y := xyFromChar(char)
@@ -345,7 +345,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	c.D023Color = colorIndex2[2]
 	c.BorderColor = img.borderColor.ColorIndex
 
-	if noPackChars {
+	if noPack {
 		for char := 0; char < 256; char++ {
 			bitmapIndex := char * 8
 			x, y := xyFromChar(char)
