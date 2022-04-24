@@ -160,6 +160,7 @@ vblank:
 		:vblank()
 rrts:	rts
 // --------------------------------
+.pc = * "irq"
 irq:
 		pha
 		txa

@@ -388,11 +388,53 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
+	s := &sid.SID{}
+	load := sid.Word(0)
 	if display {
 		header = displayers[singleColorBitmap]
+		if includeSID != "" {
+			s, err = sid.LoadSID(includeSID)
+			if err != nil {
+				return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+			}
+			init := s.InitAddress()
+			header[0x82d-0x7ff] = init.LowByte()
+			header[0x82e-0x7ff] = init.HighByte()
+			play := s.PlayAddress()
+			header[0x8e4-0x7ff] = play.LowByte()
+			header[0x8e5-0x7ff] = play.HighByte()
+			load = s.LoadAddress()
+			switch {
+			case int(load) < len(header)+0x7ff:
+				return 0, fmt.Errorf("sid LoadAddress %s is too low", load)
+			case load > 0xcff && load < 0x1fff:
+				header = zeroFill(header, int(load)-0x7ff-len(header))
+				header = append(header, s.RawBytes()...)
+				if len(header) > 0x2000-0x7ff {
+					return 0, fmt.Errorf("sid memory overflow 0x%04x", len(header)+0x7ff)
+				}
+				if verbose {
+					log.Printf("injected %q: %s", includeSID, s)
+				}
+			case load < 0x6c00:
+				return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap", load)
+			}
+		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 	}
-	return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
+	if load < 0x6c00 {
+		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
+	}
+
+	buf := make([]byte, load-0x4329)
+	n, err = writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}, buf, s.RawBytes()})
+	if err != nil {
+		return n, err
+	}
+	if verbose {
+		log.Printf("injected %q: %s", includeSID, s)
+	}
+	return n, nil
 }
 
 func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {

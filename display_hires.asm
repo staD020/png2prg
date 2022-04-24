@@ -27,10 +27,30 @@ basicend:
 start:
 		sei
 		jsr vblank
+		lda #$35
+		sta $01
 		lda #0
 		sta $d011
 		sta $d020
 		sta $d021
+		jsr rrts // music init
+		lda #$7f
+		sta $dc0d
+		lda $dc0d
+		lda #0
+		sta $d011
+		lda #$42
+		sta $d012
+		lda #<irq
+		sta $fffe
+		lda #>irq
+		sta $ffff
+
+		lda #1
+		sta $d01a
+		inc $d019
+		cli
+
 		jsr generate_fade_pass
 		ldx #0
 	!:
@@ -98,12 +118,32 @@ smc_yval:	ldy #steps-1
 		sta smc_yval + 1
 		bne fade_loop
 	} else {
+		sei
+		lda #$37
+		sta $01
 		jmp $fce2
 	}
 .pc = * "vblank"
 vblank:
 		:vblank()
-		rts
+rrts:	rts
+// --------------------------------
+.pc = * "irq"
+irq:
+		pha
+		txa
+		pha
+		tya
+		pha
+		jsr rrts
+		lda #1
+		sta $d019
+		pla
+		tay
+		pla
+		tax
+		pla
+		rti
 // --------------------------------
 .pc = * "generate_fade_pass"
 
