@@ -362,7 +362,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 					return 0, fmt.Errorf("sid memory overflow 0x%04x", len(header)+0x7ff)
 				}
 				if verbose {
-					log.Printf("injected %q", includeSID)
+					log.Printf("injected %q: %s", includeSID, s)
 				}
 			case load < 0x9000:
 				return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap", load)
@@ -381,7 +381,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 		return n, err
 	}
 	if verbose {
-		log.Printf("injected %q", includeSID)
+		log.Printf("injected %q: %s", includeSID, s)
 	}
 	return n, nil
 }
