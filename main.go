@@ -45,7 +45,7 @@ func init() {
 	flag.BoolVar(&noPack, "no-pack", false, "do not pack chars (only for sc/mc charset), do not crunch (displayer)")
 	flag.StringVar(&bitpairColorsString, "bpc", "", "bitpair-colors")
 	flag.StringVar(&bitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
-	flag.StringVar(&includeSID, "sid", "", "include .sid in displayer")
+	flag.StringVar(&includeSID, "sid", "", "include .sid (0e00-1fff or 9000-fff0) in displayer")
 }
 
 func main() {

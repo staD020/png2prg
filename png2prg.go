@@ -336,29 +336,54 @@ func zeroFill(s []byte, n int) []byte {
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
+	s := &sid.SID{}
+	load := sid.Word(0)
 	if display {
 		header = displayers[multiColorBitmap]
 		if includeSID != "" {
-			s, err := sid.LoadSID(includeSID)
+			s, err = sid.LoadSID(includeSID)
 			if err != nil {
 				return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
 			}
-			load := s.LoadAddress()
-			if int(load) < len(header)+0x7ff {
-				return 0, fmt.Errorf("s.LoadAddress %s is too low", load)
-			}
-			header[0x829-0x7ff] = byte(load & 0xff)
-			header[0x82a-0x7ff] = byte(load >> 8)
+			init := s.InitAddress()
+			header[0x82d-0x7ff] = init.LowByte()
+			header[0x82e-0x7ff] = init.HighByte()
 			play := s.PlayAddress()
-			header[0x916-0x7ff] = byte(play & 0xff)
-			header[0x917-0x7ff] = byte(play >> 8)
-			header = zeroFill(header, int(load)-0x7ff-len(header))
-			header = append(header, s.RawBytes()...)
+			header[0x916-0x7ff] = play.LowByte()
+			header[0x917-0x7ff] = play.HighByte()
+			load = s.LoadAddress()
+			switch {
+			case int(load) < len(header)+0x7ff:
+				return 0, fmt.Errorf("sid LoadAddress %s is too low", load)
+			case load > 0xcff && load < 0x1fff:
+				header = zeroFill(header, int(load)-0x7ff-len(header))
+				header = append(header, s.RawBytes()...)
+				if len(header) > 0x2000-0x7ff {
+					return 0, fmt.Errorf("sid memory overflow 0x%04x", len(header)+0x7ff)
+				}
+				if verbose {
+					log.Printf("injected %q", includeSID)
+				}
+			case load < 0x9000:
+				return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap", load)
+			}
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 	}
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
-	return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
+	if load < 0x9000 {
+		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
+	}
+
+	buf := make([]byte, load-0x4711)
+	n, err = writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}, buf, s.RawBytes()})
+	if err != nil {
+		return n, err
+	}
+	if verbose {
+		log.Printf("injected %q", includeSID)
+	}
+	return n, nil
 }
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {

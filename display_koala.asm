@@ -34,6 +34,9 @@ basicend:
 start:
 		sei
 		jsr vblank
+		lda #$35
+		sta $01
+
 		lda #0
 		sta $d011
 		sta $d020
@@ -43,15 +46,10 @@ start:
 		lda #$7f
 		sta $dc0d
 		lda $dc0d
-
-		lda #$35
-		sta $01
-
-		lda #$0
+		lda #0
 		sta $d011
 		lda #$42
 		sta $d012
-
 		lda #<irq
 		sta $fffe
 		lda #>irq
@@ -179,7 +177,6 @@ irq:
 		rti
 // --------------------------------
 .pc = * "generate_fade_pass"
-
 generate_fade_pass:
 		lda #<screenram
 		sta zp_screen_lo

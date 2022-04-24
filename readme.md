@@ -90,12 +90,12 @@ It's also possible to explicitly skip certain bitpairs preferences with -1:
 ## Sprite Animation
 
 Each frame will be concatenated in the output .prg.
-You can supply an animated .gif or multiple image files.
+You can supply an animated .gif, .apng or multiple image files.
 
 ## Bitmap Animation (only koala)
 
 If multiple files are added, they are treated as animation frames.
-You can also supply an animated .gif.
+You can also supply an animated .gif or .apng.
 The first image will be exported and each frame as a separate .prg,
 containing the modified characters.
 
@@ -124,39 +124,41 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
 ```
   -bitpair-colors string
-      prefer these colors in 2bit space, eg 0,6,14,3
+    	prefer these colors in 2bit space, eg 0,6,14,3
   -bpc string
-      bitpair-colors
-  -d  display
+    	bitpair-colors
+  -d	display
   -display
-      include displayer
-  -h  help
+    	include displayer
+  -h	help
   -help
-      help
+    	help
   -m string
-      mode
+    	mode
   -mode string
-      force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites
+    	force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites
   -ng
-      no-guess
+    	no-guess
   -no-guess
-      do not guess preferred bitpair-colors
+    	do not guess preferred bitpair-colors
   -no-pack
-      do not pack chars (only for sc/mc charset)
+    	do not pack chars (only for sc/mc charset), do not crunch (displayer)
   -np
-      no-pack
+    	no-pack
   -o string
-      out
+    	out
   -out string
-      specify outfile.prg, by default it changes extension to .prg
-  -q  quiet
+    	specify outfile.prg, by default it changes extension to .prg
+  -q	quiet
   -quiet
-      quiet, only display errors
+    	quiet, only display errors
+  -sid string
+    	include .sid (0e00-1fff or 9000-fff0) in displayer
   -targetdir string
-      specify targetdir
+    	specify targetdir
   -td string
-      targetdir
-  -v  verbose
+    	targetdir
+  -v	verbose
   -verbose
-      verbose output
+    	verbose output
 ```
