@@ -9,6 +9,7 @@ Vice screenshots with default borders (384x272) are automatically cropped.
 Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
+For koala and hires, the displayer also supports adding a .sid.
 
 This tool can be used in all buildchains on most platforms.
 
@@ -153,7 +154,7 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
   -quiet
     	quiet, only display errors
   -sid string
-    	include .sid (0e00-1fff or 9000-fff0) in displayer
+    	include .sid (0x0e00-0x1fff or 0x9000+) in displayer
   -targetdir string
     	specify targetdir
   -td string

@@ -9,7 +9,7 @@ UPXFLAGS=--best
 
 LDFLAGS=-s -w
 CGO=0
-GOBUILDFLAGS=-v
+GOBUILDFLAGS=-v -trimpath
 TARGET=png2prg_linux_amd64
 
 FLAGS=-d -v
@@ -18,12 +18,11 @@ FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
 #TESTPIC=testdata/ste_ghosts_goblins.gif
 #TESTPIC=testdata/ilesj_orbital_impaler.png
-#TESTPIC=testdata/nikaj_trd.png
 #TESTPIC=testdata/deev_desolate_hires.png
 #TESTPIC=testdata/the_sarge_steady_eddie_ready_hires.png
 #TESTPIC=testdata/carrion_still_waiting.png
-#TESTPIC=testdata/bizzmo_wool.gif
-TESTPIC=testdata/mirage_parrot.png
+TESTPIC=testdata/bizzmo_wool.gif
+#TESTPIC=testdata/mirage_parrot.png
 
 png2prg: $(TARGET)
 
@@ -55,16 +54,16 @@ test: $(TARGET) $(TESTPIC)
 	$(X64) z.prg >/dev/null
 
 testpack: $(TARGET)
-	./$(TARGET) $(FLAGS) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGS) -np -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_guess.sfx.exo z.prg
 	dali --sfx 2073 -o zz_guess.sfx.dali z.prg
-	./$(TARGET) $(FLAGSNG) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGSNG) -np -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_noguess.sfx.exo z.prg
 	dali --sfx 2073 -o zz_noguess.sfx.dali z.prg
-	./$(TARGET) $(FLAGSNG2) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGSNG2) -np -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_noguess2.sfx.exo z.prg
 	dali --sfx 2073 -o zz_noguess2.sfx.dali z.prg
-	./$(TARGET) $(FLAGSFORCE) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGSFORCE) -np -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_force_manual_colors.sfx.exo z.prg
 	dali --sfx 2073 -o zz_force_manual_colors.sfx.dali z.prg
 	$(X64) zz_guess.sfx.exo >/dev/null
