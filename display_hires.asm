@@ -37,8 +37,6 @@ start:
 		lda #$7f
 		sta $dc0d
 		lda $dc0d
-		lda #0
-		sta $d011
 		lda #$42
 		sta $d012
 		lda #<irq
@@ -121,6 +119,8 @@ smc_yval:	ldy #steps-1
 		sei
 		lda #$37
 		sta $01
+		lda #0
+		sta $d418
 		jmp $fce2
 	}
 .pc = * "vblank"

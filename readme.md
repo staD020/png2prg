@@ -2,7 +2,7 @@ usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td 
 
 # PNG2PRG 0.9-dev by Burglar
 
-Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or multicolor
+Png2prg converts a 320x200 image (png/gif/jpeg/apng) to a c64 hires or multicolor
 bitmap or charset. It will find the best matching palette and backgroundcolor
 automatically, no need to modify your source images or configure a palette.
 Vice screenshots with default borders (384x272) are automatically cropped.

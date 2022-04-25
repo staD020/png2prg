@@ -46,8 +46,6 @@ start:
 		lda #$7f
 		sta $dc0d
 		lda $dc0d
-		lda #0
-		sta $d011
 		lda #$42
 		sta $d012
 		lda #<irq
@@ -153,6 +151,8 @@ smc_yval:	ldy #steps-1
 		sei
 		lda #$37
 		sta $01
+		lda #0
+		sta $d418
 		jmp $fce2
 	}
 .pc = * "vblank"
@@ -168,8 +168,7 @@ irq:
 		tya
 		pha
 		jsr rrts
-		lda #1
-		sta $d019
+		inc $d019
 		pla
 		tay
 		pla
@@ -290,7 +289,7 @@ smc_totpercol:
 		bcc !-
 
 		lda smc_fadepercol1 + 1
-		// clc not needed , carry is always set
+		// clc not needed, carry is always set
 		adc #$0f
 		sta smc_fadepercol1 + 1
 		bcc !loop-
