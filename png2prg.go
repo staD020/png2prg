@@ -313,7 +313,7 @@ func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 		PRG:     true,
 		QUIET:   true,
 		INPLACE: false,
-		JumpTo:  "$0819",
+		JumpTo:  "$081f",
 	}
 	c, err := TSCrunch.New(conf, buf.Bytes())
 	if err != nil {
@@ -346,11 +346,11 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 				return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
 			}
 			init := s.InitAddress()
-			header[0x82d-0x7ff] = init.LowByte()
-			header[0x82e-0x7ff] = init.HighByte()
+			header[0x81a-0x7ff] = init.LowByte()
+			header[0x81b-0x7ff] = init.HighByte()
 			play := s.PlayAddress()
-			header[0x916-0x7ff] = play.LowByte()
-			header[0x917-0x7ff] = play.HighByte()
+			header[0x81d-0x7ff] = play.LowByte()
+			header[0x81e-0x7ff] = play.HighByte()
 			load = s.LoadAddress()
 			switch {
 			case int(load) < len(header)+0x7ff:

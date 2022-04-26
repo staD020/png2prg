@@ -30,7 +30,14 @@
 		.text " PNG2PRG " + versionString()
 basicend:
 		.byte 0, 0, 0
-.pc = $0819 "start"
+.pc = $0819 "music_init"
+music_init:
+		jmp rrts
+.pc = * "music_play"
+music_play:
+		jmp rrts
+
+.pc = * "start"
 start:
 		sei
 		jsr vblank
@@ -41,7 +48,7 @@ start:
 		sta $d011
 		sta $d020
 		sta $d021
-		jsr rrts // music init
+		jsr music_init
 
 		lda #$7f
 		sta $dc0d
@@ -75,11 +82,11 @@ start:
 		inx
 		bne !-
 
+		jsr vblank
 		lda #toD018(screenram, bitmap)
 		sta $d018
 		lda #$d8
 		sta $d016
-		jsr vblank
 		lda #$3b
 		sta $d011
 
@@ -167,7 +174,9 @@ irq:
 		pha
 		tya
 		pha
-		jsr rrts
+		.if (DEBUG) dec $d020
+		jsr music_play
+		.if (DEBUG) inc $d020
 		inc $d019
 		pla
 		tay
