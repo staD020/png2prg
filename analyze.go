@@ -108,13 +108,14 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 }
 
 func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
-	if v != "" {
-		if img.preferredBitpairColors, err = parseBitPairColors(v); err != nil {
-			return fmt.Errorf("parseBitPairColors %q failed: %w", v, err)
-		}
-		if verbose {
-			log.Printf("will prefer bitpair colors: %v", img.preferredBitpairColors)
-		}
+	if v == "" {
+		return nil
+	}
+	if img.preferredBitpairColors, err = parseBitPairColors(v); err != nil {
+		return fmt.Errorf("parseBitPairColors %q failed: %w", v, err)
+	}
+	if verbose {
+		log.Printf("will prefer bitpair colors: %v", img.preferredBitpairColors)
 	}
 	return nil
 }
