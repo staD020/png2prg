@@ -59,16 +59,16 @@ test: $(TARGET) $(TESTPIC)
 testpack: $(TARGET)
 	./$(TARGET) $(FLAGS) -np -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_guess.sfx.exo z.prg
-	dali --sfx 2073 -o zz_guess.sfx.dali z.prg
+	dali --sfx 2079 -o zz_guess.sfx.dali z.prg
 	./$(TARGET) $(FLAGSNG) -np -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_noguess.sfx.exo z.prg
-	dali --sfx 2073 -o zz_noguess.sfx.dali z.prg
+	dali --sfx 2079 -o zz_noguess.sfx.dali z.prg
 	./$(TARGET) $(FLAGSNG2) -np -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_noguess2.sfx.exo z.prg
-	dali --sfx 2073 -o zz_noguess2.sfx.dali z.prg
+	dali --sfx 2079 -o zz_noguess2.sfx.dali z.prg
 	./$(TARGET) $(FLAGSFORCE) -np -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_force_manual_colors.sfx.exo z.prg
-	dali --sfx 2073 -o zz_force_manual_colors.sfx.dali z.prg
+	dali --sfx 2079 -o zz_force_manual_colors.sfx.dali z.prg
 	$(X64) zz_guess.sfx.exo >/dev/null
 
 clean:
