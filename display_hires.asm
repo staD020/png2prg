@@ -40,20 +40,27 @@ start:
 		sta $d011
 		sta $d020
 		sta $d021
+
+		// default pal 50 hz: $4cc7
+		lda #$c7
+		sta $dc04
+		lda #$4c
+		sta $dc05
+
+		lax #0
+		tay
 		jsr music_init
-		lda #$7f
-		sta $dc0d
-		lda $dc0d
-		lda #$42
-		sta $d012
 		lda #<irq
 		sta $fffe
 		lda #>irq
 		sta $ffff
 
-		lda #1
-		sta $d01a
-		inc $d019
+		lda #$80
+	!:	cmp $d012
+		bne !-
+
+		lda #%00010001
+		sta $dc0e
 		cli
 
 		jsr generate_fade_pass
@@ -145,8 +152,7 @@ irq:
 		.if (DEBUG) dec $d020
 		jsr music_play
 		.if (DEBUG) inc $d020
-		lda #1
-		sta $d019
+		lda $dc0d
 		pla
 		tay
 		pla

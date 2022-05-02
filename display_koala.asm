@@ -12,7 +12,7 @@
 .const src_screenram = $c000
 .const src_colorram = $c400
 
-.const zp_start = 10
+.const zp_start = $c0
 .const zp_screen_lo = zp_start + 0
 .const zp_screen_hi = zp_start + 1
 .const zp_d800_lo = zp_start + 2
@@ -48,21 +48,27 @@ start:
 		sta $d011
 		sta $d020
 		sta $d021
-		jsr music_init
 
-		lda #$7f
-		sta $dc0d
-		lda $dc0d
-		lda #$42
-		sta $d012
+		// default pal 50 hz: $4cc7
+		lda #$c7
+		sta $dc04
+		lda #$4c
+		sta $dc05
+
+		lax #0
+		tay
+		jsr music_init
 		lda #<irq
 		sta $fffe
 		lda #>irq
 		sta $ffff
 
-		lda #1
-		sta $d01a
-		inc $d019
+		lda #$80
+	!:	cmp $d012
+		bne !-
+
+		lda #%00010001
+		sta $dc0e
 		cli
 
 		jsr generate_fade_pass
@@ -136,8 +142,8 @@ smc_yval:	ldy #steps-1
 		cmp #(steps/2)-1
 		bne fade_loop
 
-		lda #$ef
-	!:	cmp $dc01
+	!:	lda $dc01
+		cmp #$ef
 		bne !-
 		beq fade_loop
 !done:
@@ -177,7 +183,7 @@ irq:
 		.if (DEBUG) dec $d020
 		jsr music_play
 		.if (DEBUG) inc $d020
-		inc $d019
+		lda $dc0d
 		pla
 		tay
 		pla

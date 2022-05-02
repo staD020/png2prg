@@ -23,6 +23,9 @@ FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
 #TESTPIC=testdata/carrion_still_waiting.png
 TESTPIC=testdata/bizzmo_wool.gif
 #TESTPIC=testdata/mirage_parrot.png
+#TESTSID=testdata/Rivalry_tune_5.sid
+#TESTSID=testdata/jasonpage_eighth_90.sid
+TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
 
 png2prg: $(TARGET)
 
@@ -50,7 +53,7 @@ png2prg_win_amd64.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@
 
 test: $(TARGET) $(TESTPIC)
-	./$(TARGET) $(FLAGS) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGS) -sid $(TESTSID) -o z.prg $(TESTPIC)
 	$(X64) z.prg >/dev/null
 
 testpack: $(TARGET)
