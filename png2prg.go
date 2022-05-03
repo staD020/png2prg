@@ -280,7 +280,7 @@ func processFiles(filenames ...string) (err error) {
 		return fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
 	}
 
-	if display && !noPack {
+	if display && !noCrunch {
 		c, err = injectCrunch(c)
 		if err != nil {
 			return fmt.Errorf("injectCrunch failed: %w", err)
