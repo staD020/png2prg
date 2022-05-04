@@ -97,9 +97,11 @@ smc_yval:	ldy #steps-1
 		dex
 		bne !-
 
-		lda #$70
-	!:	cmp $d012
-		bne !-
+	!:	lda $d012
+		cmp #$60
+		bcc !-
+		cmp #$80
+		bcs !-
 
 		.if (DEBUG) dec $d020
 		jsr fade_pass

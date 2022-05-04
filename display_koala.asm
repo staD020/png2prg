@@ -127,9 +127,11 @@ smc_yval:	ldy #steps-1
 		lda t_color_fade,x
 		sta $d020
 
-		lda #$70
-	!:	cmp $d012
-		bne !-
+	!:	lda $d012
+		cmp #$70
+		bcc !-
+		cmp #$90
+		bcs !-
 
 		.if (DEBUG) dec $d020
 		jsr fade_pass
