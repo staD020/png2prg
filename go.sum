@@ -10,5 +10,7 @@ github.com/mattomatic/dijkstra v0.0.0-20130617153013-6f6d134eb237 h1:acuCHBjzG7M
 github.com/mattomatic/dijkstra v0.0.0-20130617153013-6f6d134eb237/go.mod h1:UOnLAUmVG5paym8pD3C4B9BQylUDC2vXFJJpT7JrlEA=
 github.com/staD020/TSCrunch v0.0.0-20220507050918-c18f1d578ccc h1:y+AwdkbsPpmHJa2sf3mGt6XiatnfbMvdLtXoixnxgJ8=
 github.com/staD020/TSCrunch v0.0.0-20220507050918-c18f1d578ccc/go.mod h1:Cfa/303JH78inVjg+G1/2r3JuqIrI31lYO395xS2Yho=
+github.com/staD020/TSCrunch v0.0.0-20220507063554-0327f1233452 h1:Nebw7AhrqVA+zOwN4773z9qkAraK0oZLVCC2fcUeZ90=
+github.com/staD020/TSCrunch v0.0.0-20220507063554-0327f1233452/go.mod h1:Cfa/303JH78inVjg+G1/2r3JuqIrI31lYO395xS2Yho=
 github.com/staD020/sid v0.0.0-20220502182631-6409ac756b2d h1:czWfEEfVUuHEpE5SWo3NlphaVvFCmvHCp8vyDBtS/u4=
 github.com/staD020/sid v0.0.0-20220502182631-6409ac756b2d/go.mod h1:1Z333YXPSPSD4TLk7C2+lNbFXIkRFyKhyYIQdB6zSaw=
