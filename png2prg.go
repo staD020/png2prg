@@ -309,13 +309,13 @@ func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 	if _, err := c.WriteTo(buf); err != nil {
 		return nil, fmt.Errorf("WriteTo buffer failed: %w", err)
 	}
-	conf := TSCrunch.Config{
+	opt := TSCrunch.Options{
 		PRG:     true,
 		QUIET:   true,
 		INPLACE: false,
 		JumpTo:  "$081f",
 	}
-	c, err := TSCrunch.New(conf, buf.Bytes())
+	c, err := TSCrunch.New(opt, buf)
 	if err != nil {
 		return nil, fmt.Errorf("tscrunch.New failed: %w", err)
 	}

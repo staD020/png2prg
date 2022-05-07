@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/kettek/apng v0.0.0-20191108220231-414630eed80f
-	github.com/staD020/TSCrunch v0.0.0-20220506171707-d412115cdbb8
+	github.com/staD020/TSCrunch v0.0.0-20220506204018-6cf6edcabb22
 	github.com/staD020/sid v0.0.0-20220502182631-6409ac756b2d
 )
 

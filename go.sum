@@ -14,6 +14,10 @@ github.com/staD020/TSCrunch v0.0.0-20220425084113-e155947a5398 h1:46OKJUL7b2u0li
 github.com/staD020/TSCrunch v0.0.0-20220425084113-e155947a5398/go.mod h1:Vp0VVNOHQP5Q31iBrbvfeV2XkrpNeTgGIyCCvANYd9A=
 github.com/staD020/TSCrunch v0.0.0-20220506171707-d412115cdbb8 h1:vd+A1Qy6R/9mqm1ajLZnRq3FcGZZ8mz8xAXvtiFSwvk=
 github.com/staD020/TSCrunch v0.0.0-20220506171707-d412115cdbb8/go.mod h1:Vp0VVNOHQP5Q31iBrbvfeV2XkrpNeTgGIyCCvANYd9A=
+github.com/staD020/TSCrunch v0.0.0-20220506201356-a1a47eae2311 h1:Vq0RnlYNTvmL6bqHNGOeoPTDOTZ83NZ80hFER1+IN2s=
+github.com/staD020/TSCrunch v0.0.0-20220506201356-a1a47eae2311/go.mod h1:Cfa/303JH78inVjg+G1/2r3JuqIrI31lYO395xS2Yho=
+github.com/staD020/TSCrunch v0.0.0-20220506204018-6cf6edcabb22 h1:lVPnJI08S0DwixFMn8vi0rnheIuF6rC9qcNRONvZjtc=
+github.com/staD020/TSCrunch v0.0.0-20220506204018-6cf6edcabb22/go.mod h1:Cfa/303JH78inVjg+G1/2r3JuqIrI31lYO395xS2Yho=
 github.com/staD020/sid v0.0.0-20220423115216-39142b8682cf h1:7hfOiCYk0Mz92mrj9jnxTXogu3kfqFb0tuodtyGOa6g=
 github.com/staD020/sid v0.0.0-20220423115216-39142b8682cf/go.mod h1:1Z333YXPSPSD4TLk7C2+lNbFXIkRFyKhyYIQdB6zSaw=
 github.com/staD020/sid v0.0.0-20220424004901-bb4b530dc517 h1:Z5Ki5WEvnoHtkuKdro6AdrJAdSAdJYgaWuhwawzrn7k=
