@@ -1,7 +1,4 @@
-png2prg 0.9-dev by burglar
-usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]
-
-# PNG2PRG 0.9-dev by Burglar
+# PNG2PRG 1.0 by Burglar
 
 Png2prg converts a 320x200 image (png/gif/jpeg/apng) to a c64 hires or multicolor
 bitmap or charset. It will find the best matching palette and backgroundcolor
@@ -129,57 +126,59 @@ By default it will also crunch the resulting file with Antonio Savona's
 
 For koala and hires, the displayer also supports adding a .sid. Multispeed sids
 are supported, as long as the sid initializes the CIA timers correctly.
+You can use sids located from $0d00-$1fff or $9000+.
+If needed, you can relocate most sids with lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).
 
 ## Credits
 
 Png2prg was written by Burglar, using the following third-party libraries:
 
-- [TSCrunch](https://github.com/tonysavon/TSCrunch/) was written by Antonio Savona.
+- [TSCrunch](https://github.com/tonysavon/TSCrunch/) by Antonio Savona.
 - [APNG enhancements](https://github.com/kettek/apng) Copyright (c) 2018 Ketchetwahmeegwun T. Southall / kts of kettek.
 
 ## Options
 
 ```
   -bitpair-colors string
-        prefer these colors in 2bit space, eg 0,6,14,3
+      prefer these colors in 2bit space, eg 0,6,14,3
   -bpc string
-        bitpair-colors
-  -d    display
+      bitpair-colors
+  -d  display
   -display
-        include displayer
-  -h    help
+      include displayer
+  -h  help
   -help
-        help
+      help
   -m string
-        mode
+      mode
   -mode string
-        force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites
+      force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites
   -nc
-        no-crunch
+      no-crunch
   -ng
-        no-guess
+      no-guess
   -no-crunch
-        do not TSCrunch koala/hires displayer
+      do not TSCrunch koala/hires displayer
   -no-guess
-        do not guess preferred bitpair-colors
+      do not guess preferred bitpair-colors
   -no-pack
-        do not pack chars (only for sc/mc charset)
+      do not pack chars (only for sc/mc charset)
   -np
-        no-pack
+      no-pack
   -o string
-        out
+      out
   -out string
-        specify outfile.prg, by default it changes extension to .prg
-  -q    quiet
+      specify outfile.prg, by default it changes extension to .prg
+  -q  quiet
   -quiet
-        quiet, only display errors
+      quiet, only display errors
   -sid string
-        include .sid (0x0d00-0x1fff or 0x9000+) in displayer
+      include .sid (0x0d00-0x1fff or 0x9000+) in displayer
   -targetdir string
-        specify targetdir
+      specify targetdir
   -td string
-        targetdir
-  -v    verbose
+      targetdir
+  -v  verbose
   -verbose
-        verbose output
+      verbose output
 ```

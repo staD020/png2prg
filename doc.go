@@ -11,7 +11,6 @@ func printUsage() {
 }
 
 func printHelp() {
-	printUsage()
 	fmt.Println()
 	fmt.Printf("# PNG2PRG %v by Burglar\n", version)
 	fmt.Println()
@@ -141,12 +140,14 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("For koala and hires, the displayer also supports adding a .sid. Multispeed sids")
 	fmt.Println("are supported, as long as the sid initializes the CIA timers correctly.")
+	fmt.Println("You can use sids located from $0d00-$1fff or $9000+.")
+	fmt.Println("If needed, you can relocate most sids with lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).")
 	fmt.Println()
 	fmt.Println("## Credits")
 	fmt.Println()
 	fmt.Println("Png2prg was written by Burglar, using the following third-party libraries:")
 	fmt.Println()
-	fmt.Println("- [TSCrunch](https://github.com/tonysavon/TSCrunch/) was written by Antonio Savona.")
+	fmt.Println("- [TSCrunch](https://github.com/tonysavon/TSCrunch/) by Antonio Savona.")
 	fmt.Println("- [APNG enhancements](https://github.com/kettek/apng) Copyright (c) 2018 Ketchetwahmeegwun T. Southall / kts of kettek.")
 	fmt.Println()
 	fmt.Println("## Options")

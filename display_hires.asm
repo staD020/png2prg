@@ -9,7 +9,7 @@
 .const fade_pass_address = $4800
 .const src_screenram = $c000
 
-.const zp_start = 10
+.const zp_start = $78
 .const zp_screen_lo = zp_start + 0
 .const zp_screen_hi = zp_start + 1
 .const zp_src_screen_lo = zp_start + 2

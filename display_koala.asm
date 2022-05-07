@@ -12,7 +12,7 @@
 .const src_screenram = $c000
 .const src_colorram = $c400
 
-.const zp_start = $c0
+.const zp_start = $78
 .const zp_screen_lo = zp_start + 0
 .const zp_screen_hi = zp_start + 1
 .const zp_d800_lo = zp_start + 2
