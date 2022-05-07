@@ -487,11 +487,8 @@ func destinationFilename(filename string) (destfilename string) {
 	if len(targetdir) > 0 {
 		destfilename = filepath.Dir(targetdir+string(os.PathSeparator)) + string(os.PathSeparator)
 	}
-	switch {
-	case len(outfile) > 0:
+	if len(outfile) > 0 {
 		return destfilename + outfile
-	case len(outfile) == 0:
-		return destfilename + filepath.Base(strings.TrimSuffix(filename, filepath.Ext(filename))+".prg")
 	}
-	return destfilename
+	return destfilename + filepath.Base(strings.TrimSuffix(filename, filepath.Ext(filename))+".prg")
 }

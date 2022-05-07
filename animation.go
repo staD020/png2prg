@@ -83,7 +83,7 @@ func handleAnimation(imgs []sourceImage) error {
 			return fmt.Errorf("writeData %q failed: %v", destFilename, err)
 		}
 		for _, s := range mcSprites {
-			_, err = writeData(f, [][]byte{s.Bitmap[:]})
+			_, err = writeData(f, [][]byte{s.Bitmap})
 			if err != nil {
 				return fmt.Errorf("writeData %q failed: %v", destFilename, err)
 			}
@@ -99,7 +99,7 @@ func handleAnimation(imgs []sourceImage) error {
 			return fmt.Errorf("writeData %q failed: %v", destFilename, err)
 		}
 		for _, s := range scSprites {
-			_, err = writeData(f, [][]byte{s.Bitmap[:]})
+			_, err = writeData(f, [][]byte{s.Bitmap})
 			if err != nil {
 				return fmt.Errorf("writeData %q failed: %v", destFilename, err)
 			}
@@ -127,7 +127,7 @@ func writePrgFile(filename string, prg []byte) error {
 	}
 	defer f.Close()
 
-	_, err = writeData(f, [][]byte{defaultHeader(), prg[:]})
+	_, err = writeData(f, [][]byte{defaultHeader(), prg})
 	if err != nil {
 		return fmt.Errorf("writeData %q failed: %v", filename, err)
 	}
