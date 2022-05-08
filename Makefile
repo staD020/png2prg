@@ -11,6 +11,7 @@ LDFLAGS=-s -w
 CGO=0
 GOBUILDFLAGS=-v -trimpath
 TARGET=png2prg_linux_amd64
+ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe
 
 FLAGS=-d -v
 FLAGSNG=-d -v -no-guess
@@ -30,7 +31,7 @@ TESTSID=testdata/Rivalry_tune_5.sid
 
 png2prg: $(TARGET)
 
-all: $(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe
+all: $(ALLTARGETS)
 
 compress: $(TARGET).upx png2prg_darwin_amd64.upx png2prg_darwin_arm64.upx png2prg_win_amd64.exe.upx
 
