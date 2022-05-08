@@ -328,10 +328,7 @@ func defaultHeader() []byte {
 }
 
 func zeroFill(s []byte, n int) []byte {
-	for i := 0; i < n; i++ {
-		s = append(s, 0)
-	}
-	return s
+	return append(s, make([]byte, n)...)
 }
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
