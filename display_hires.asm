@@ -136,6 +136,7 @@ smc_yval:	ldy #steps-1
 		lda #$37
 		sta $01
 		lda #0
+		sta $d011
 		sta $d418
 		jmp $fce2
 	}
