@@ -166,6 +166,7 @@ smc_yval:	ldy #steps-1
 		sei
 		lda #$37
 		sta $01
+		jsr vblank
 		lda #0
 		sta $d011
 		sta $d418

@@ -132,6 +132,9 @@ init_sprites:
 		lda #$ef
 	!:	cmp $dc01
 		bne !-
+		jsr vblank
+		lda #0
+		sta $d011
 		jmp $fce2
 vblank:
 		:vblank()
