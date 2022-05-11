@@ -1,8 +1,9 @@
 # PNG2PRG 1.0 by Burglar
 
-Png2prg converts a 320x200 image (png/gif/jpeg/apng) to a c64 hires or multicolor
-bitmap or charset. It will find the best matching palette and backgroundcolor
-automatically, no need to modify your source images or configure a palette.
+Png2prg converts a 320x200 image (png/gif/jpeg/apng) to a c64 hires or
+multicolor bitmap or charset. It will find the best matching palette and
+backgroundcolor automatically, no need to modify your source images or
+configure a palette.
 Vice screenshots with default borders (384x272) are automatically cropped.
 Images in sprite dimensions will be converted to sprites.
 
@@ -133,8 +134,16 @@ If needed, you can relocate most sids with lft's [sidreloc](http://www.linusakes
 
 Png2prg was written by Burglar, using the following third-party libraries:
 
-- [TSCrunch](https://github.com/tonysavon/TSCrunch/) by Antonio Savona.
-- [APNG enhancements](https://github.com/kettek/apng) Copyright (c) 2018 Ketchetwahmeegwun T. Southall / kts of kettek.
+[TSCrunch](https://github.com/tonysavon/TSCrunch/) by Antonio Savona for the
+added crunching of the displayers png2prg can generate.
+
+[Colfade Doc](https://csdb.dk/release/?id=132276) by Veto for the colfade
+tables used in the koala and hires displayers.
+
+[Kick Assembler](http://www.theweb.dk/KickAssembler/) by Slammer to compile the displayers.
+
+[APNG enhancements](https://github.com/kettek/apng) Copyright (c) 2018
+Ketchetwahmeegwun T. Southall / kts of kettek for .apng support as input format.
 
 ## Options
 
