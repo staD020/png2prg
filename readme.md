@@ -134,16 +134,16 @@ If needed, you can relocate most sids with lft's [sidreloc](http://www.linusakes
 
 Png2prg was written by Burglar, using the following third-party libraries:
 
-[TSCrunch](https://github.com/tonysavon/TSCrunch/) by Antonio Savona for the
-added crunching of the displayers png2prg can generate.
+[TSCrunch 1.3](https://github.com/tonysavon/TSCrunch/) by Antonio Savona for the optional crunching when you export
+the image with a displayer.
 
 [Colfade Doc](https://csdb.dk/release/?id=132276) by Veto for the colfade
 tables used in the koala and hires displayers.
 
 [Kick Assembler](http://www.theweb.dk/KickAssembler/) by Slammer to compile the displayers.
 
-[APNG enhancements](https://github.com/kettek/apng) Copyright (c) 2018
-Ketchetwahmeegwun T. Southall / kts of kettek for .apng support as input format.
+[APNG enhancements](https://github.com/kettek/apng) Copyright (c) 2018 Ketchetwahmeegwun T. Southall / kts of kettek
+for .apng support as input format.
 
 ## Options
 
