@@ -22,13 +22,15 @@ FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
 #TESTPIC=testdata/deev_desolate_hires.png
 #TESTPIC=testdata/the_sarge_steady_eddie_ready_hires.png
 #TESTPIC=testdata/carrion_still_waiting.png
-TESTPIC=testdata/bizzmo_wool.gif
+#TESTPIC=testdata/bizzmo_wool.gif
 #TESTPIC=testdata/mirage_parrot.png
 #TESTPIC=testdata/sander_ld.png
+TESTPIC=testdata/sander_sander.png
 #TESTSID=testdata/Rivalry_tune_5.sid
 #TESTSID=testdata/jasonpage_eighth_90.sid
 #TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
-TESTSID=testdata/lman_hellyeah.sid
+#TESTSID=testdata/lman_hellyeah.sid
+TESTSID=testdata/Lift_Off_V2.sid
 
 png2prg: $(TARGET)
 

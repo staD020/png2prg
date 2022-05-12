@@ -7,7 +7,7 @@ import (
 )
 
 func printUsage() {
-	fmt.Println("usage: ./png2prg [-help -h -d -q -v -bitpair-colors 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]")
+	fmt.Println("usage: ./png2prg [-help -h -d -q -v -bpc 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]")
 }
 
 func printHelp() {
@@ -148,8 +148,8 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("Png2prg was written by Burglar, using the following third-party libraries:")
 	fmt.Println()
-	fmt.Println("[TSCrunch 1.3](https://github.com/tonysavon/TSCrunch/) by Antonio Savona for the optional crunching when you export")
-	fmt.Println("the image with a displayer.")
+	fmt.Println("[TSCrunch 1.3](https://github.com/tonysavon/TSCrunch/) by Antonio Savona for optional crunching when exporting")
+	fmt.Println("an image with a displayer.")
 	fmt.Println()
 	fmt.Println("[Colfade Doc](https://csdb.dk/release/?id=132276) by Veto for the colfade")
 	fmt.Println("tables used in the koala and hires displayers.")

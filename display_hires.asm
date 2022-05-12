@@ -9,7 +9,7 @@
 .const fade_pass_address = $4800
 .const src_screenram = $c000
 
-.const zp_start = $78
+.const zp_start = $0334
 .const zp_screen_lo = zp_start + 0
 .const zp_screen_hi = zp_start + 1
 .const zp_src_screen_lo = zp_start + 2
@@ -208,10 +208,20 @@ generate_fade_pass:
 		cpy #$03
 		beq !done+
 not_last:
-		inx
-		bne !loop-
-		iny
-		bne !loop-
+	.if (zp_start < $f9) {
+			inx
+			bne !loop-
+			iny
+			bne !loop-
+	} else {
+			inx
+			beq !+
+	jmploop:
+			jmp !loop-
+		!:
+			iny
+			bne jmploop
+	}
 !done:
 		lda #$60            // rts
 store_byte:
