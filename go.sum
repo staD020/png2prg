@@ -4,12 +4,8 @@ github.com/RyanCarrier/dijkstra-1 v0.0.0-20170512020943-0e5801a26345 h1:fgSpoKVi
 github.com/RyanCarrier/dijkstra-1 v0.0.0-20170512020943-0e5801a26345/go.mod h1:OK4EvWJ441LQqGzed5NGB6vKBAE34n3z7iayPcEwr30=
 github.com/albertorestifo/dijkstra v0.0.0-20160910063646-aba76f725f72 h1:uGeGZl8PxSq8VZGG4QK5njJTFA4/G/x5CYORvQVXtAE=
 github.com/albertorestifo/dijkstra v0.0.0-20160910063646-aba76f725f72/go.mod h1:o+JdB7VetTHjLhU0N57x18B9voDBQe0paApdEAEoEfw=
-github.com/kettek/apng v0.0.0-20191108220231-414630eed80f h1:dnCYnTSltLuPMfc7dMrkz2uBUcEf/OFBR8yRh3oRT98=
-github.com/kettek/apng v0.0.0-20191108220231-414630eed80f/go.mod h1:x78/VRQYKuCftMWS0uK5e+F5RJ7S4gSlESRWI0Prl6Q=
 github.com/mattomatic/dijkstra v0.0.0-20130617153013-6f6d134eb237 h1:acuCHBjzG7MFTugvx3buC4m5rLDLaKC9J8C9jtlraRc=
 github.com/mattomatic/dijkstra v0.0.0-20130617153013-6f6d134eb237/go.mod h1:UOnLAUmVG5paym8pD3C4B9BQylUDC2vXFJJpT7JrlEA=
-github.com/staD020/TSCrunch v0.0.0-20220507063554-0327f1233452 h1:Nebw7AhrqVA+zOwN4773z9qkAraK0oZLVCC2fcUeZ90=
-github.com/staD020/TSCrunch v0.0.0-20220507063554-0327f1233452/go.mod h1:Cfa/303JH78inVjg+G1/2r3JuqIrI31lYO395xS2Yho=
 github.com/staD020/TSCrunch v0.0.0-20220507192226-62c8ebba0165 h1:XAGDurg42PkdS/UPs+vMOKmB9G5Hr5AKdVdycEDHkc4=
 github.com/staD020/TSCrunch v0.0.0-20220507192226-62c8ebba0165/go.mod h1:Cfa/303JH78inVjg+G1/2r3JuqIrI31lYO395xS2Yho=
 github.com/staD020/sid v0.0.0-20220507110022-56b1c9956b6a h1:dxBZzsSF32iLb5ahYLUThlBlyMACXOaewTvE+dGKeeY=
