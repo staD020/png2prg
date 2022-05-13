@@ -9,7 +9,7 @@ Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
 The displayer for koala and hires includes fullscreen fade-in/out and
-optionally a .sid tune.
+optionally a .sid tune. This effectively makes png2prg a pic&tune.
 
 This tool can be used in all buildchains on most platforms.
 
@@ -132,7 +132,7 @@ are supported, as long as the sid initializes the CIA timers correctly.
 You can use sids located from $0d00-$1fff or $9000+.
 If needed, you can relocate most sids using lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).
 
-## Changes since 0.8
+## Changes for version 1.0
 
  - Added fullscreen fade in/out to koala and hires displayers.
  - Added optional .sid support for koala and hires displayers.
