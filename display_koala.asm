@@ -12,7 +12,7 @@
 .const src_screenram = $c000
 .const src_colorram = $c400
 
-.const zp_start = $0334
+.const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
 .const zp_screen_lo = zp_start + 0
 .const zp_screen_hi = zp_start + 1
 .const zp_d800_lo = zp_start + 2

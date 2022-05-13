@@ -1,4 +1,4 @@
-# PNG2PRG 1.0 by Burglar
+# PNG2PRG 1.0-rc2 by Burglar
 
 Png2prg converts a 320x200 image (png/gif/jpeg/apng) to a c64 hires or
 multicolor bitmap or charset. It will find the best matching palette and
@@ -134,8 +134,8 @@ If needed, you can relocate most sids with lft's [sidreloc](http://www.linusakes
 
 Png2prg was written by Burglar, using the following third-party libraries:
 
-[TSCrunch 1.3](https://github.com/tonysavon/TSCrunch/) by Antonio Savona for the optional crunching when you export
-the image with a displayer.
+[TSCrunch 1.3](https://github.com/tonysavon/TSCrunch/) by Antonio Savona for optional crunching when exporting
+an image with a displayer.
 
 [Colfade Doc](https://csdb.dk/release/?id=132276) by Veto for the colfade
 tables used in the koala and hires displayers.
