@@ -1,6 +1,6 @@
 # PNG2PRG 1.0-rc2 by Burglar
 
-Png2prg converts a 320x200 image (png/gif/jpeg/apng) to a c64 hires or
+Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset or sprites. It will find the best matching palette
 and backgroundcolor automatically, no need to modify your source images or
 configure a palette.
@@ -91,12 +91,12 @@ It's also possible to explicitly skip certain bitpairs preferences with -1:
 ## Sprite Animation
 
 Each frame will be concatenated in the output .prg.
-You can supply an animated .gif, .apng or multiple image files.
+You can supply an animated .gif or multiple image files.
 
 ## Bitmap Animation (only koala)
 
 If multiple files are added, they are treated as animation frames.
-You can also supply an animated .gif or .apng.
+You can also supply an animated .gif.
 The first image will be exported and each frame as a separate .prg,
 containing the modified characters.
 
@@ -143,9 +143,6 @@ an image with a displayer.
 tables used in the koala and hires displayers.
 
 [Kick Assembler](http://www.theweb.dk/KickAssembler/) by Slammer to compile the displayers.
-
-[APNG enhancements](https://github.com/kettek/apng) Copyright (c) 2018 Ketchetwahmeegwun T. Southall / kts of kettek
-for .apng support as input format.
 
 ## Options
 
