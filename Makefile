@@ -1,7 +1,7 @@
 SRC=main.go png2prg.go palettes.go animation.go analyze.go convert.go doc.go
 DISPLAYERS=display_koala.prg display_hires.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg
 ASMLIB=lib.asm
-ASM=java -jar ./tools/KickAss-5.19.jar
+ASM=java -jar ./tools/KickAss-5.24.jar
 ASMFLAGS=-showmem -time
 X64=x64sc
 UPX=upx
