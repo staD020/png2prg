@@ -132,6 +132,12 @@ are supported, as long as the sid initializes the CIA timers correctly.
 You can use sids located from $0d00-$1fff or $9000+.
 If needed, you can relocate most sids using lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).
 
+## Changes since 0.8
+
+ - Added fullscreen fade in/out to koala and hires displayers.
+ - Added optional .sid support for koala and hires displayers.
+ - Added optional crunching for all displayers using TSCrunch.
+
 ## Credits
 
 Png2prg was written by Burglar, using the following third-party libraries:

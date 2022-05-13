@@ -53,7 +53,7 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 				log.Printf("file %q has %d frames", filename, len(g.Image))
 			}
 
-			for _, rawImage := range g.Image {
+			for i, rawImage := range g.Image {
 				img := sourceImage{
 					sourceFilename: filename,
 					image:          rawImage,
@@ -62,7 +62,7 @@ func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
 					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)
 				}
 				if err = img.checkBounds(); err != nil {
-					return nil, fmt.Errorf("img.checkBounds failed %q: %w", filename, err)
+					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", filename, i, err)
 				}
 				imgs = append(imgs, img)
 			}
@@ -592,7 +592,7 @@ func (img *sourceImage) setSourceColors() {
 			}
 		}
 	}
-	cc := []RGB{}
+	cc := make([]RGB, 0, 16)
 	for rgb := range m {
 		cc = append(cc, rgb)
 	}
@@ -600,19 +600,19 @@ func (img *sourceImage) setSourceColors() {
 }
 
 func (img *sourceImage) distanceAndMap(palette [16]colorInfo) (float64, map[RGB]byte) {
-	curMap := make(map[RGB]byte, 16)
+	m := make(map[RGB]byte, 16)
 	totalDistance := 0.0
 	for _, rgb := range img.colors {
-		if _, ok := curMap[rgb]; !ok {
+		if _, ok := m[rgb]; !ok {
 			d := 0.0
-			curMap[rgb], d = rgb.colorIndexAndDistance(palette)
+			m[rgb], d = rgb.colorIndexAndDistance(palette)
 			totalDistance += d
-			if len(curMap) == 16 {
-				return totalDistance, curMap
+			if len(m) == 16 {
+				return totalDistance, m
 			}
 		}
 	}
-	return totalDistance, curMap
+	return totalDistance, m
 }
 
 func (r RGB) colorIndexAndDistance(palette [16]colorInfo) (byte, float64) {
