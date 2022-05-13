@@ -23,7 +23,7 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("The resulting .prg includes the 2-byte start address and optional displayer.")
 	fmt.Println("The displayer for koala and hires includes fullscreen fade-in/out and")
-	fmt.Println("optionally a .sid tune. This effectively makes png2prg a pic&tune.")
+	fmt.Println("optionally a .sid tune.")
 	fmt.Println()
 	fmt.Println("This tool can be used in all buildchains on most platforms.")
 	fmt.Println()

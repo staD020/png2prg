@@ -9,7 +9,7 @@ Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
 The displayer for koala and hires includes fullscreen fade-in/out and
-optionally a .sid tune. This effectively makes png2prg a pic&tune.
+optionally a .sid tune.
 
 This tool can be used in all buildchains on most platforms.
 
