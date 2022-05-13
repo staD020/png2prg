@@ -1,13 +1,15 @@
 # PNG2PRG 1.0-rc2 by Burglar
 
 Png2prg converts a 320x200 image (png/gif/jpeg/apng) to a c64 hires or
-multicolor bitmap or charset. It will find the best matching palette and
-backgroundcolor automatically, no need to modify your source images or
+multicolor bitmap, charset or sprites. It will find the best matching palette
+and backgroundcolor automatically, no need to modify your source images or
 configure a palette.
 Vice screenshots with default borders (384x272) are automatically cropped.
 Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
+The displayer for koala and hires includes fullscreen fade-in/out and
+optionally a .sid tune.
 
 This tool can be used in all buildchains on most platforms.
 
@@ -123,12 +125,12 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
 The -d or -display flag will link displayer code infront of the picture.
 By default it will also crunch the resulting file with Antonio Savona's
-[TSCrunch](https://github.com/tonysavon/TSCrunch/).
+[TSCrunch](https://github.com/tonysavon/TSCrunch/) with a couple of changes in my own [fork](https://github.com/staD020/TSCrunch/).
 
 For koala and hires, the displayer also supports adding a .sid. Multispeed sids
 are supported, as long as the sid initializes the CIA timers correctly.
 You can use sids located from $0d00-$1fff or $9000+.
-If needed, you can relocate most sids with lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).
+If needed, you can relocate most sids using lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).
 
 ## Credits
 
