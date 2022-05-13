@@ -1,4 +1,4 @@
-# PNG2PRG 1.0-rc2 by Burglar
+# PNG2PRG 1.0 by Burglar
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset or sprites. It will find the best matching palette
