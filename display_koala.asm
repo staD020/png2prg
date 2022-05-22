@@ -115,18 +115,6 @@ smc_src_screen:
 		dec smc_src_screen+2
 		dey
 		bne !-
-/*
-		ldx #0
-	!:
-	.for (var i=0; i<4; i++) {
-		lda koala_source+$1f40+(i*$100),x
-		sta src_screenram+(i*$100),x
-		lda koala_source+$2328+(i*$100),x
-		sta src_colorram+(i*$100),x
-	}
-		inx
-		bne !-
-*/
 
 		jsr vblank
 		lda #toD018(screenram, bitmap)

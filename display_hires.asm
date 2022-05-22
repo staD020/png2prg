@@ -7,7 +7,7 @@
 .const bitmap     = $2000
 .const screenram  = $0400
 .const fade_pass_address = $4800
-.const src_screenram = $c000
+.const src_screenram = $4000
 
 .const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
 .const zp_screen_lo = zp_start + 0
@@ -67,19 +67,38 @@ start:
 		cli
 
 		jsr generate_fade_pass
-		ldx #0
+		lax #0
 	!:
-		lda #0
 	.for (var i=0; i<4; i++) {
 		sta screenram+(i*$100),x
 	}
+		inx
+		bne !-
+
+		ldy #4
+		ldx #$e8
+	!:
+smc_koalasrc_col:
+		lda koala_source+$1f40+(3*$100),x
+smc_src_col:
+		sta src_screenram+(3*$100),x
+		dex
+		cpx #$ff
+		bne !-
+		dec smc_koalasrc_col+2
+		dec smc_src_col+2
+		dey
+		bne !-
+/*
+		ldx #0
+	!:
 	.for (var i=0; i<4; i++) {
 		lda koala_source+$1f40+(i*$100),x
 		sta src_screenram+(i*$100),x
 	}
 		inx
 		bne !-
-
+*/
 		jsr vblank
 		lda #toD018(screenram, bitmap)
 		sta $d018
