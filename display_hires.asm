@@ -89,16 +89,7 @@ smc_src_col:
 		dec smc_src_col+2
 		dey
 		bne !-
-/*
-		ldx #0
-	!:
-	.for (var i=0; i<4; i++) {
-		lda koala_source+$1f40+(i*$100),x
-		sta src_screenram+(i*$100),x
-	}
-		inx
-		bne !-
-*/
+
 		jsr vblank
 		lda #toD018(screenram, bitmap)
 		sta $d018

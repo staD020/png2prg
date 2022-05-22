@@ -102,7 +102,7 @@ smc_src_col:
 		bne !-
 
 		ldy #4
-		ldx #$e7
+		ldx #$e8
 	!:
 smc_koalasrc_screen:
 		lda koala_source+$1f40+(3*$100),x
