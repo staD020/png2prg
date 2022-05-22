@@ -23,7 +23,10 @@
 		.text " PNG2PRG " + versionString()
 basicend:
 		.byte 0, 0, 0
-.pc = $0819 "music_init"
+.pc = $0819 "music_startsong"
+music_startsong:
+		.byte 0
+.pc = * "music_init"
 music_init:
 		jmp rrts
 .pc = * "music_play"
@@ -47,7 +50,7 @@ start:
 		lda #$4c
 		sta $dc05
 
-		lax #0
+		lax music_startsong
 		tay
 		jsr music_init
 		lda #<irq

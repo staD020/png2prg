@@ -19,7 +19,7 @@ import (
 	"github.com/staD020/sid"
 )
 
-const version = "1.0"
+const version = "1.1-dev"
 
 type RGB struct {
 	R, G, B byte
@@ -85,7 +85,7 @@ func (b bitpairColors) String() (s string) {
 	for i, v := range b {
 		s = s + strconv.Itoa(int(v))
 		if i < len(b)-1 {
-			s = s + ","
+			s += ","
 		}
 	}
 	return s
@@ -313,7 +313,7 @@ func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 		PRG:     true,
 		QUIET:   true,
 		INPLACE: false,
-		JumpTo:  "$081f",
+		JumpTo:  "$0820",
 	}
 	c, err := TSCrunch.New(opt, buf)
 	if err != nil {
@@ -342,27 +342,32 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 			if err != nil {
 				return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
 			}
+			startSong := s.StartSong().LowByte()
+			if startSong > 0 {
+				startSong--
+			}
+			header[0x819-0x7ff] = startSong
 			init := s.InitAddress()
-			header[0x81a-0x7ff] = init.LowByte()
-			header[0x81b-0x7ff] = init.HighByte()
+			header[0x81b-0x7ff] = init.LowByte()
+			header[0x81c-0x7ff] = init.HighByte()
 			play := s.PlayAddress()
-			header[0x81d-0x7ff] = play.LowByte()
-			header[0x81e-0x7ff] = play.HighByte()
+			header[0x81e-0x7ff] = play.LowByte()
+			header[0x81f-0x7ff] = play.HighByte()
 			load = s.LoadAddress()
 			switch {
 			case int(load) < len(header)+0x7ff:
-				return 0, fmt.Errorf("sid LoadAddress %s is too low", load)
+				return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
 			case load > 0xcff && load < 0x1fff:
 				header = zeroFill(header, int(load)-0x7ff-len(header))
 				header = append(header, s.RawBytes()...)
 				if len(header) > 0x2000-0x7ff {
-					return 0, fmt.Errorf("sid memory overflow 0x%04x", len(header)+0x7ff)
+					return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 				}
 				if verbose {
 					log.Printf("injected %q: %s", includeSID, s)
 				}
 			case load < 0x9000:
-				return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap", load)
+				return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 			}
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
@@ -394,27 +399,32 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 			if err != nil {
 				return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
 			}
+			startSong := s.StartSong().LowByte()
+			if startSong > 0 {
+				startSong--
+			}
+			header[0x819-0x7ff] = startSong
 			init := s.InitAddress()
-			header[0x81a-0x7ff] = init.LowByte()
-			header[0x81b-0x7ff] = init.HighByte()
+			header[0x81b-0x7ff] = init.LowByte()
+			header[0x81c-0x7ff] = init.HighByte()
 			play := s.PlayAddress()
-			header[0x81d-0x7ff] = play.LowByte()
-			header[0x81e-0x7ff] = play.HighByte()
+			header[0x81e-0x7ff] = play.LowByte()
+			header[0x81f-0x7ff] = play.HighByte()
 			load = s.LoadAddress()
 			switch {
 			case int(load) < len(header)+0x7ff:
-				return 0, fmt.Errorf("sid LoadAddress %s is too low", load)
+				return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
 			case load > 0xcff && load < 0x1fff:
 				header = zeroFill(header, int(load)-0x7ff-len(header))
 				header = append(header, s.RawBytes()...)
 				if len(header) > 0x2000-0x7ff {
-					return 0, fmt.Errorf("sid memory overflow 0x%04x", len(header)+0x7ff)
+					return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 				}
 				if verbose {
 					log.Printf("injected %q: %s", includeSID, s)
 				}
 			case load < 0x6c00:
-				return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap", load)
+				return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 			}
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))

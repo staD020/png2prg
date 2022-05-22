@@ -1,6 +1,7 @@
 
 .const DEBUG = false
 .const GENDEBUG = false
+.const MUSICDEBUG = false
 .const LOOP = false
 .const PERFRAME = false
 .const fade_speed = 2
@@ -9,8 +10,8 @@
 .const screenram  = $0400
 .const colorram   = $d800
 .const fade_pass_address = $4800
-.const src_screenram = $c000
-.const src_colorram = $c400
+.const src_screenram = $4000
+.const src_colorram = $4400
 
 .const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
 .const zp_screen_lo = zp_start + 0
@@ -30,7 +31,10 @@
 		.text " PNG2PRG " + versionString()
 basicend:
 		.byte 0, 0, 0
-.pc = $0819 "music_init"
+.pc = $0819 "music_startsong"
+music_startsong:
+		.byte 0
+.pc = * "music_init"
 music_init:
 		jmp rrts
 .pc = * "music_play"
@@ -55,7 +59,7 @@ start:
 		lda #$4c
 		sta $dc05
 
-		lax #0
+		lax music_startsong
 		tay
 		jsr music_init
 		lda #<irq
@@ -79,6 +83,41 @@ start:
 		sta screenram+(i*$100),x
 		sta colorram+(i*$100),x
 	}
+		inx
+		bne !-
+
+		ldy #4
+		ldx #$e8
+	!:
+smc_koalasrc_col:
+		lda koala_source+$2328+(3*$100),x
+smc_src_col:
+		sta src_colorram+(3*$100),x
+		dex
+		cpx #$ff
+		bne !-
+		dec smc_koalasrc_col+2
+		dec smc_src_col+2
+		dey
+		bne !-
+
+		ldy #4
+		ldx #$e7
+	!:
+smc_koalasrc_screen:
+		lda koala_source+$1f40+(3*$100),x
+smc_src_screen:
+		sta src_screenram+(3*$100),x
+		dex
+		cpx #$ff
+		bne !-
+		dec smc_koalasrc_screen+2
+		dec smc_src_screen+2
+		dey
+		bne !-
+/*
+		ldx #0
+	!:
 	.for (var i=0; i<4; i++) {
 		lda koala_source+$1f40+(i*$100),x
 		sta src_screenram+(i*$100),x
@@ -87,6 +126,7 @@ start:
 	}
 		inx
 		bne !-
+*/
 
 		jsr vblank
 		lda #toD018(screenram, bitmap)
@@ -184,9 +224,9 @@ irq:
 		pha
 		tya
 		pha
-		.if (DEBUG) dec $d020
+		.if (MUSICDEBUG) dec $d020
 		jsr music_play
-		.if (DEBUG) inc $d020
+		.if (MUSICDEBUG) inc $d020
 		lda $dc0d
 		pla
 		tay
