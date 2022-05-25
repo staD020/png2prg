@@ -1,6 +1,7 @@
 
 .const DEBUG = false
 .const GENDEBUG = false
+.const MUSICDEBUG = true
 .const LOOP = false
 .const fade_speed = 2
 .const steps = 16
@@ -61,6 +62,11 @@ start:
 		lda #$80
 	!:	cmp $d012
 		bne !-
+	.if (MUSICDEBUG) {
+		ldx #5
+	!:	dex
+		bne !-
+	}
 
 		lda #%00010001
 		sta $dc0e
@@ -166,9 +172,9 @@ irq:
 		pha
 		tya
 		pha
-		.if (DEBUG) dec $d020
+		.if (MUSICDEBUG) dec $d020
 		jsr music_play
-		.if (DEBUG) inc $d020
+		.if (MUSICDEBUG) inc $d020
 		lda $dc0d
 		pla
 		tay

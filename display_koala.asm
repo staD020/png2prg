@@ -1,7 +1,7 @@
 
 .const DEBUG = false
 .const GENDEBUG = false
-.const MUSICDEBUG = false
+.const MUSICDEBUG = true
 .const LOOP = false
 .const PERFRAME = false
 .const fade_speed = 2
@@ -88,6 +88,11 @@ start:
 		lda #$80
 	!:	cmp $d012
 		bne !-
+	.if (MUSICDEBUG) {
+		ldx #5
+	!:	dex
+		bne !-
+	}
 
 		lda #%00010001
 		sta $dc0e
