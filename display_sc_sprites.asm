@@ -116,12 +116,11 @@ init_sprites:
 		cpy #$10
 		bne !loop-
 !done:
+		jsr vblank
 		lda #toD018(screenram, $1000)
 		sta $d018
 		lda #$c8
 		sta $d016
-
-		jsr vblank
 		lda #$1b
 		sta $d011
 		lda spr_bgcol

@@ -53,11 +53,11 @@ smc_dest:
 		cpx #>(charset-1)
 		bne !loop-
 
+		jsr vblank
 		lda #toD018(screenram, charset)
 		sta $d018
 		lda #$c8
 		sta $d016
-		jsr vblank
 		lda #$1b
 		sta $d011
 		lda #$ef
