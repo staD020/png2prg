@@ -37,13 +37,32 @@ music_play:
 .pc = * "start"
 start:
 		sei
-		jsr vblank
+		jsr $e544
 		lda #$35
 		sta $01
+
+		ldy #7
+!loop:
+		ldx #fade_speed
+	!:	jsr vblank
+		dex
+		bne !-
+
+		lda $d020
+		and #$0f
+		tax
+		lda t_easyfade,x
+		sta $d020
+		lda $d021
+		and #$0f
+		tax
+		lda t_easyfade,x
+		sta $d021
+		dey
+		bne !loop-
+
 		lda #0
 		sta $d011
-		sta $d020
-		sta $d021
 
 		// default pal 50 hz: $4cc7
 		lda #$c7
@@ -300,6 +319,11 @@ reset_phase:
 .pc = * "t_col2index"
 t_col2index:
 		.fill $10, i*$10
+// ------------------------------
+.pc = * "t_easyfade"
+t_easyfade:
+		.byte $00,$0d,$09,$0c,$02,$08,$00,$0f
+		.byte $02,$00,$08,$09,$04,$03,$04,$05
 // ------------------------------
 .align $100
 .pc = * "t_fadepercol"
