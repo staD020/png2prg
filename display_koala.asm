@@ -112,9 +112,9 @@ start:
 		ldx #$e8
 	!:
 smc_koalasrc_col:
-		lda koala_source+$2328+(3*$100),x
+		lda koala_source+$2328+$300,x
 smc_src_col:
-		sta src_colorram+(3*$100),x
+		sta src_colorram+$300,x
 		dex
 		cpx #$ff
 		bne !-
@@ -127,9 +127,9 @@ smc_src_col:
 		ldx #$e8
 	!:
 smc_koalasrc_screen:
-		lda koala_source+$1f40+(3*$100),x
+		lda koala_source+$1f40+$300,x
 smc_src_screen:
-		sta src_screenram+(3*$100),x
+		sta src_screenram+$300,x
 		dex
 		cpx #$ff
 		bne !-
