@@ -99,9 +99,8 @@ start:
 		cli
 
 		jsr generate_fade_pass
-		ldx #0
+		lax #0
 	!:
-		lda #0
 	.for (var i=0; i<4; i++) {
 		sta screenram+(i*$100),x
 		sta colorram+(i*$100),x
