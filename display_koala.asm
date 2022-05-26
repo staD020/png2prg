@@ -1,7 +1,7 @@
 
 .const DEBUG = false
 .const GENDEBUG = false
-.const MUSICDEBUG = true
+.const MUSICDEBUG = false
 .const LOOP = false
 .const PERFRAME = false
 .const fade_speed = 2
