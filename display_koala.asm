@@ -93,7 +93,6 @@ start:
 	!:	dex
 		bne !-
 	}
-
 		lda #%00010001
 		sta $dc0e
 		cli

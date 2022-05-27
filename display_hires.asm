@@ -86,7 +86,6 @@ start:
 	!:	dex
 		bne !-
 	}
-
 		lda #%00010001
 		sta $dc0e
 		cli
@@ -104,9 +103,9 @@ start:
 		ldx #$e8
 	!:
 smc_koalasrc_col:
-		lda koala_source+$1f40+(3*$100),x
+		lda koala_source+$1f40+$300,x
 smc_src_col:
-		sta src_screenram+(3*$100),x
+		sta src_screenram+$300,x
 		dex
 		cpx #$ff
 		bne !-
