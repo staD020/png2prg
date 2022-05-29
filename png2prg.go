@@ -347,12 +347,11 @@ func injectSIDHeader(header []byte, s *sid.SID) []byte {
 }
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
-	header := defaultHeader()
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
 	if !display {
-		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
+		return writeData(w, [][]byte{defaultHeader(), k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
 	}
-	header = displayers[multiColorBitmap]
+	header := displayers[multiColorBitmap]
 	if includeSID == "" {
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
@@ -383,7 +382,6 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	}
 
 	header = zeroFill(header, 0x2000-0x7ff-len(header))
-
 	buf := make([]byte, load-0x4711)
 	n, err = writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}, buf, s.RawBytes()})
 	if err != nil {
@@ -396,12 +394,10 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
-	header := defaultHeader()
 	if !display {
-		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
+		return writeData(w, [][]byte{defaultHeader(), h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
 	}
-	header = displayers[singleColorBitmap]
-
+	header := displayers[singleColorBitmap]
 	if includeSID == "" {
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
@@ -432,10 +428,6 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	}
 
 	header = zeroFill(header, 0x2000-0x7ff-len(header))
-	if load < 0x6c00 {
-		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
-	}
-
 	buf := make([]byte, load-0x4329)
 	n, err = writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}, buf, s.RawBytes()})
 	if err != nil {
