@@ -331,51 +331,58 @@ func zeroFill(s []byte, n int) []byte {
 	return append(s, make([]byte, n)...)
 }
 
+func injectSIDHeader(header []byte, s *sid.SID) []byte {
+	startSong := s.StartSong().LowByte()
+	if startSong > 0 {
+		startSong--
+	}
+	header[0x819-0x7ff] = startSong
+	init := s.InitAddress()
+	header[0x81b-0x7ff] = init.LowByte()
+	header[0x81c-0x7ff] = init.HighByte()
+	play := s.PlayAddress()
+	header[0x81e-0x7ff] = play.LowByte()
+	header[0x81f-0x7ff] = play.HighByte()
+	return header
+}
+
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
-	s := &sid.SID{}
-	load := sid.Word(0)
-	if display {
-		header = displayers[multiColorBitmap]
-		if includeSID != "" {
-			s, err = sid.LoadSID(includeSID)
-			if err != nil {
-				return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
-			}
-			startSong := s.StartSong().LowByte()
-			if startSong > 0 {
-				startSong--
-			}
-			header[0x819-0x7ff] = startSong
-			init := s.InitAddress()
-			header[0x81b-0x7ff] = init.LowByte()
-			header[0x81c-0x7ff] = init.HighByte()
-			play := s.PlayAddress()
-			header[0x81e-0x7ff] = play.LowByte()
-			header[0x81f-0x7ff] = play.HighByte()
-			load = s.LoadAddress()
-			switch {
-			case int(load) < len(header)+0x7ff:
-				return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
-			case load > 0xcff && load < 0x1fff:
-				header = zeroFill(header, int(load)-0x7ff-len(header))
-				header = append(header, s.RawBytes()...)
-				if len(header) > 0x2000-0x7ff {
-					return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
-				}
-				if !quiet {
-					fmt.Printf("injected %q: %s\n", includeSID, s)
-				}
-			case load < 0x9000:
-				return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
-			}
-		}
-		header = zeroFill(header, 0x2000-0x7ff-len(header))
-	}
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
-	if load < 0x9000 {
+	if !display {
 		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
 	}
+	header = displayers[multiColorBitmap]
+	if includeSID == "" {
+		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
+	}
+
+	s, err := sid.LoadSID(includeSID)
+	if err != nil {
+		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+	}
+	header = injectSIDHeader(header, s)
+	load := s.LoadAddress()
+	switch {
+	case int(load) < len(header)+0x7ff:
+		return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
+	case load > 0xcff && load < 0x1fff:
+		header = zeroFill(header, int(load)-0x7ff-len(header))
+		header = append(header, s.RawBytes()...)
+		if len(header) > 0x2000-0x7ff {
+			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
+		}
+		if !quiet {
+			fmt.Printf("injected %q: %s\n", includeSID, s)
+		}
+		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
+	case load < 0x9000:
+		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
+	}
+
+	header = zeroFill(header, 0x2000-0x7ff-len(header))
 
 	buf := make([]byte, load-0x4711)
 	n, err = writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}, buf, s.RawBytes()})
@@ -390,45 +397,41 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
-	s := &sid.SID{}
-	load := sid.Word(0)
-	if display {
-		header = displayers[singleColorBitmap]
-		if includeSID != "" {
-			s, err = sid.LoadSID(includeSID)
-			if err != nil {
-				return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
-			}
-			startSong := s.StartSong().LowByte()
-			if startSong > 0 {
-				startSong--
-			}
-			header[0x819-0x7ff] = startSong
-			init := s.InitAddress()
-			header[0x81b-0x7ff] = init.LowByte()
-			header[0x81c-0x7ff] = init.HighByte()
-			play := s.PlayAddress()
-			header[0x81e-0x7ff] = play.LowByte()
-			header[0x81f-0x7ff] = play.HighByte()
-			load = s.LoadAddress()
-			switch {
-			case int(load) < len(header)+0x7ff:
-				return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
-			case load > 0xcff && load < 0x1fff:
-				header = zeroFill(header, int(load)-0x7ff-len(header))
-				header = append(header, s.RawBytes()...)
-				if len(header) > 0x2000-0x7ff {
-					return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
-				}
-				if !quiet {
-					fmt.Printf("injected %q: %s\n", includeSID, s)
-				}
-			case load < 0x6c00:
-				return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
-			}
+	if !display {
+		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
+	}
+	header = displayers[singleColorBitmap]
+
+	if includeSID == "" {
+		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
+	}
+
+	s, err := sid.LoadSID(includeSID)
+	if err != nil {
+		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+	}
+	header = injectSIDHeader(header, s)
+	load := s.LoadAddress()
+	switch {
+	case int(load) < len(header)+0x7ff:
+		return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
+	case load > 0xcff && load < 0x1fff:
+		header = zeroFill(header, int(load)-0x7ff-len(header))
+		header = append(header, s.RawBytes()...)
+		if len(header) > 0x2000-0x7ff {
+			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
+		}
+		if !quiet {
+			fmt.Printf("injected %q: %s\n", includeSID, s)
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
+	case load < 0x6c00:
+		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
+
+	header = zeroFill(header, 0x2000-0x7ff-len(header))
 	if load < 0x6c00 {
 		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
 	}
