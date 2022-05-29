@@ -201,7 +201,7 @@ func initDisplayers() {
 	displayers[singleColorSprites] = scSpritesDisplay
 }
 
-func processFiles(filenames ...string) (err error) {
+func processFiles(filenames []string) (err error) {
 	if len(filenames) < 1 {
 		log.Println("no files supplied, nothing to do.")
 		return nil

@@ -71,7 +71,7 @@ func main() {
 		initDisplayers()
 	}
 
-	if err := processFiles(ff...); err != nil {
+	if err := processFiles(ff); err != nil {
 		log.Fatalf("processFiles failed: %v", err)
 	}
 
