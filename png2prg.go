@@ -377,7 +377,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
-	case load < 0x9000:
+	case load < 0x8f00:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
