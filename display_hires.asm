@@ -60,8 +60,6 @@ start:
 		sta $d021
 		dey
 		bne !loop-
-
-		lda #0
 		sta $d011
 
 		// default pal 50 hz: $4cc7
