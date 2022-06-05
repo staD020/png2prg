@@ -365,7 +365,7 @@ smc_totpercol:
 		bcc !-
 
 		lda smc_fadepercol1 + 1
-		// clc not needed, carry is always set
+		// sec not needed, carry is always set
 		adc #$0f
 		sta smc_fadepercol1 + 1
 		bcc !loop-
@@ -387,7 +387,8 @@ t_easyfade:
 .align $100
 .pc = * "t_fadepercol"
 t_fadepercol:
-:colorfade_table()
+		:colorfade_table()
+// ------------------------------
 // ------------------------------
 .align $100
 .pc = * "t_color_fade" virtual
