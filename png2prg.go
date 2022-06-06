@@ -116,6 +116,12 @@ type MultiColorChar struct {
 	D800Color       byte
 }
 
+type SingleColorChar struct {
+	CharIndex   int
+	Bitmap      [8]byte
+	ScreenColor byte
+}
+
 type Koala struct {
 	SourceFilename  string
 	Bitmap          [8000]byte
