@@ -496,8 +496,8 @@ func (img *sourceImage) makeCharColors() error {
 		forceBgCol = int(img.preferredBitpairColors[0])
 	}
 	fatalError := false
-	for char := 0; char < 1000; char++ {
-		charColors := img.colorMapFromChar(char)
+	for i := 0; i < 1000; i++ {
+		charColors := img.colorMapFromChar(i)
 		if forceBgCol >= 0 && len(charColors) == 4 {
 			found := false
 			for _, val := range charColors {
@@ -507,8 +507,8 @@ func (img *sourceImage) makeCharColors() error {
 				}
 			}
 			if !found {
-				x, y := xyFromChar(char)
-				log.Printf("forced bgcol %d not possible in char %v (x=%d, y=%d)", forceBgCol, char, x, y)
+				x, y := xyFromChar(i)
+				log.Printf("forced bgcol %d not possible in char %v (x=%d, y=%d)", forceBgCol, i, x, y)
 				fatalError = true
 			}
 		}
@@ -518,13 +518,13 @@ func (img *sourceImage) makeCharColors() error {
 				count[indexcolor] = 1
 			}
 			if len(count) > 4 {
-				x, y := xyFromChar(char)
-				log.Printf("amount of colors in char %v (x=%d, y=%d) %d > 4 : %v", char, x, y, len(count), count)
+				x, y := xyFromChar(i)
+				log.Printf("amount of colors in char %v (x=%d, y=%d) %d > 4 : %v", i, x, y, len(count), count)
 				fatalError = true
 			}
 		}
 
-		img.charColors[char] = charColors
+		img.charColors[i] = charColors
 	}
 	if fatalError {
 		return fmt.Errorf("fatal error: unable to convert %q", img.sourceFilename)

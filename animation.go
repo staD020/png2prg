@@ -11,6 +11,7 @@ import (
 
 func handleAnimation(imgs []sourceImage) error {
 	var kk []Koala
+	var hh []Hires
 	var scSprites []SingleColorSprites
 	var mcSprites []MultiColorSprites
 	if len(imgs) < 1 {
@@ -22,25 +23,31 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 		err := img.analyze()
 		if err != nil {
-			return fmt.Errorf("analyze failed: %v", err)
+			return fmt.Errorf("analyze failed: %w", err)
 		}
 		switch img.graphicsType {
 		case multiColorBitmap:
 			k, err := img.convertToKoala()
 			if err != nil {
-				return fmt.Errorf("convertToKoala failed: %v", err)
+				return fmt.Errorf("convertToKoala failed: %w", err)
 			}
 			kk = append(kk, k)
+		case singleColorBitmap:
+			h, err := img.convertToHires()
+			if err != nil {
+				return fmt.Errorf("convertToHires failed: %w", err)
+			}
+			hh = append(hh, h)
 		case multiColorSprites:
 			s, err := img.convertToMultiColorSprites()
 			if err != nil {
-				return fmt.Errorf("convertToMultiColorSprites failed: %v", err)
+				return fmt.Errorf("convertToMultiColorSprites failed: %w", err)
 			}
 			mcSprites = append(mcSprites, s)
 		case singleColorSprites:
 			s, err := img.convertToSingleColorSprites()
 			if err != nil {
-				return fmt.Errorf("convertToSingleColorSprites failed: %v", err)
+				return fmt.Errorf("convertToSingleColorSprites failed: %w", err)
 			}
 			scSprites = append(scSprites, s)
 		default:
@@ -51,7 +58,7 @@ func handleAnimation(imgs []sourceImage) error {
 	destFilename := destinationFilename(imgs[0].sourceFilename)
 	f, err := os.Create(destFilename)
 	if err != nil {
-		return fmt.Errorf("os.Create %q failed: %v", destFilename, err)
+		return fmt.Errorf("os.Create %q failed: %w", destFilename, err)
 	}
 	defer f.Close()
 
@@ -59,7 +66,7 @@ func handleAnimation(imgs []sourceImage) error {
 	case len(kk) > 0:
 		_, err = kk[0].WriteTo(f)
 		if err != nil {
-			return fmt.Errorf("WriteTo %q failed: %v", destFilename, err)
+			return fmt.Errorf("WriteTo %q failed: %w", destFilename, err)
 		}
 		if !quiet {
 			fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
@@ -67,25 +74,27 @@ func handleAnimation(imgs []sourceImage) error {
 
 		prgs, err := processKoalaAnimation(kk)
 		if err != nil {
-			return fmt.Errorf("processKoalaAnimation failed: %v", err)
+			return fmt.Errorf("processKoalaAnimation failed: %w", err)
 		}
 
 		for i, prg := range prgs {
 			if err = writePrgFile(frameFilename(i, kk[0].SourceFilename), prg); err != nil {
-				return fmt.Errorf("writePrgFile failed: %v", err)
+				return fmt.Errorf("writePrgFile failed: %w", err)
 			}
 		}
 		return nil
+	case len(hh) > 0:
+		return fmt.Errorf("processKoalaAnimation not implemented yet")
 	case len(mcSprites) > 0:
 		header := defaultHeader()
 		_, err = writeData(f, [][]byte{header})
 		if err != nil {
-			return fmt.Errorf("writeData %q failed: %v", destFilename, err)
+			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 		}
 		for _, s := range mcSprites {
 			_, err = writeData(f, [][]byte{s.Bitmap})
 			if err != nil {
-				return fmt.Errorf("writeData %q failed: %v", destFilename, err)
+				return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 			}
 			if !quiet {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
@@ -96,12 +105,12 @@ func handleAnimation(imgs []sourceImage) error {
 		header := defaultHeader()
 		_, err = writeData(f, [][]byte{header})
 		if err != nil {
-			return fmt.Errorf("writeData %q failed: %v", destFilename, err)
+			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 		}
 		for _, s := range scSprites {
 			_, err = writeData(f, [][]byte{s.Bitmap})
 			if err != nil {
-				return fmt.Errorf("writeData %q failed: %v", destFilename, err)
+				return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 			}
 			if !quiet {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
@@ -123,13 +132,13 @@ func writePrgFile(filename string, prg []byte) error {
 	}
 	f, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("os.Create %q failed: %v", filename, err)
+		return fmt.Errorf("os.Create %q failed: %w", filename, err)
 	}
 	defer f.Close()
 
 	_, err = writeData(f, [][]byte{defaultHeader(), prg})
 	if err != nil {
-		return fmt.Errorf("writeData %q failed: %v", filename, err)
+		return fmt.Errorf("writeData %q failed: %w", filename, err)
 	}
 	if !quiet {
 		fmt.Printf("write %q\n", filename)
