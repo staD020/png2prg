@@ -11,7 +11,7 @@ LDFLAGS=-s -w
 CGO=0
 GOBUILDFLAGS=-v -trimpath
 TARGET=png2prg_linux_amd64
-ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe
+ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win32_386.exe
 
 FLAGS=-d -v
 FLAGSNG=-d -v -no-guess
@@ -59,6 +59,9 @@ png2prg_darwin_arm64: $(SRC) $(DISPLAYERS)
 
 png2prg_win_amd64.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@
+
+png2prg_win32_386.exe: $(SRC) $(DISPLAYERS)
+	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=386 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@
 
 test: $(TARGET) $(TESTPIC)
 	./$(TARGET) $(FLAGS) -sid $(TESTSID) -o z.prg $(TESTPIC)
