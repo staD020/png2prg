@@ -67,9 +67,6 @@ func main() {
 		os.Exit(0)
 	}
 	currentGraphicsType = stringToGraphicsType(graphicsMode)
-	if display {
-		initDisplayers()
-	}
 
 	if err := processFiles(ff); err != nil {
 		log.Fatalf("processFiles failed: %v", err)

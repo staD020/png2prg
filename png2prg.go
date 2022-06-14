@@ -198,7 +198,7 @@ var mcSpritesDisplay []byte
 //go:embed "display_sc_sprites.prg"
 var scSpritesDisplay []byte
 
-func initDisplayers() {
+func init() {
 	displayers[multiColorBitmap] = koalaDisplay
 	displayers[singleColorBitmap] = hiresDisplay
 	displayers[multiColorCharset] = mcCharsetDisplay
@@ -213,7 +213,7 @@ func processFiles(filenames []string) (err error) {
 		return nil
 	}
 
-	imgs, err := newSourceImages(filenames...)
+	imgs, err := newSourceImages(filenames)
 	switch {
 	case err != nil:
 		return fmt.Errorf("newSourceImages failed: %w", err)

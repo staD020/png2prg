@@ -35,7 +35,7 @@ func newSourceImage(filename string) (img sourceImage, err error) {
 	return img, nil
 }
 
-func newSourceImages(filenames ...string) (imgs []sourceImage, err error) {
+func newSourceImages(filenames []string) (imgs []sourceImage, err error) {
 	for _, filename := range filenames {
 		switch strings.ToLower(filepath.Ext(filename)) {
 		case ".gif":
