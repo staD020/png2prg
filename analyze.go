@@ -391,9 +391,6 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 	for _, charcolormap := range backgroundCharColors {
 		for rgb := range candidates {
 			if _, ok := charcolormap[rgb]; !ok {
-				if verbose {
-					log.Printf("not a bgcol candidate, delete: %v", rgb)
-				}
 				delete(candidates, rgb)
 			}
 		}
@@ -564,9 +561,9 @@ func (img *sourceImage) analyzePalette() {
 	img.setSourceColors()
 	for name, palette := range c64palettes {
 		distance, curMap := img.distanceAndMap(palette)
-		if verbose {
-			log.Printf("color distance: %v => %v\n", name, distance)
-		}
+		//if verbose {
+		//	log.Printf("color distance: %v => %v\n", name, distance)
+		//}
 		if distance < minDistance {
 			paletteMap, paletteName, minDistance = curMap, name, distance
 		}

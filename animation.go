@@ -23,7 +23,8 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 		err := img.analyze()
 		if err != nil {
-			return fmt.Errorf("analyze failed: %w", err)
+			log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)
+			continue
 		}
 		switch img.graphicsType {
 		case multiColorBitmap:
@@ -94,7 +95,7 @@ func handleAnimation(imgs []sourceImage) error {
 
 		prgs, err := processHiresAnimation(hh)
 		if err != nil {
-			return fmt.Errorf("processKoalaAnimation failed: %w", err)
+			return fmt.Errorf("processHiresAnimation failed: %w", err)
 		}
 		for i, prg := range prgs {
 			if err = writePrgFile(frameFilename(i, hh[0].SourceFilename), prg); err != nil {
