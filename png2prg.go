@@ -198,6 +198,9 @@ var mcSpritesDisplay []byte
 //go:embed "display_sc_sprites.prg"
 var scSpritesDisplay []byte
 
+//go:embed "display_koala_anim.prg"
+var koalaDisplayAnim []byte
+
 func init() {
 	displayers[multiColorBitmap] = koalaDisplay
 	displayers[singleColorBitmap] = hiresDisplay

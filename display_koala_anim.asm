@@ -9,19 +9,30 @@
 .const bitmap     = $2000
 .const screenram  = $0400
 .const colorram   = $d800
-.const fade_pass_address = $4800
 .const src_screenram = $4000
 .const src_colorram = $4400
+.const animations = $4800
+.const fade_pass_address = $5800
 
 .const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
 .const zp_screen_lo = zp_start + 0
 .const zp_screen_hi = zp_start + 1
-.const zp_d800_lo = zp_start + 2
-.const zp_d800_hi = zp_start + 3
+//.const zp_d800_lo = zp_start + 2
+//.const zp_d800_hi = zp_start + 3
 .const zp_src_screen_lo = zp_start + 4
 .const zp_src_screen_hi = zp_start + 5
 .const zp_src_d800_lo = zp_start + 6
 .const zp_src_d800_hi = zp_start + 7
+
+.const zp_anim_start  = $08
+.const zp_anim_lo     = zp_anim_start + 0
+.const zp_anim_hi     = zp_anim_start + 1
+.const zp_bitmap_lo   = zp_anim_start + 2
+.const zp_bitmap_hi   = zp_anim_start + 3
+.const zp_char_lo     = zp_anim_start + 4
+.const zp_char_hi     = zp_anim_start + 5
+.const zp_d800_lo     = zp_anim_start + 6
+.const zp_d800_hi     = zp_anim_start + 7
 
 .import source "lib.asm"
 
@@ -375,6 +386,103 @@ smc_totpercol:
 		inc smc_fadepercol2 + 1
 		rts
 // ------------------------------
+.pc = * "anim_play"
+anim_play:
+next_chunk:
+		ldy #0
+		lax (zp_anim_lo),y
+		bne plot_chunk          // #$00 = end of frame
+		inc zp_anim_lo
+		bne !+
+		inc zp_anim_hi
+	!:
+		lda (zp_anim_lo),y
+		cmp #$ff				// #$ff = end of all frames
+		bne !skip+
+
+.pc = * "anim_init"
+anim_init:
+		lda #<anim_frames
+		sta zp_anim_lo
+		lda #>anim_frames
+		sta zp_anim_hi
+!skip:	rts
+
+plot_chunk:
+		//tax                     // x = number of chars in chunk
+		iny
+		lda (zp_anim_lo),y
+		sta zp_bitmap_lo
+		iny
+		lda (zp_anim_lo),y
+		clc
+		adc #>bitmap
+		sta zp_bitmap_hi
+		iny
+		lda (zp_anim_lo),y
+		sta zp_char_lo
+		sta zp_d800_lo
+		iny
+		lda (zp_anim_lo),y
+		//clc
+		adc #>screenram
+		sta zp_char_hi
+		adc #>(colorram - screenram)
+		sta zp_d800_hi
+
+		lda zp_anim_lo
+		//clc
+		adc #5
+		sta zp_anim_lo
+		bcc !+
+		inc zp_anim_hi
+		clc
+	!:
+
+plot_next_char:
+		ldy #0
+	.for (var i = 0; i < 8; i++) {
+		lda (zp_anim_lo),y
+		sta (zp_bitmap_lo),y
+		iny
+	}
+		lda (zp_anim_lo),y
+		sta smc_keep_screencol+1
+		iny
+		lda (zp_anim_lo),y
+
+		ldy #0
+		sta (zp_d800_lo),y
+smc_keep_screencol:
+		lda #0
+		sta (zp_char_lo),y
+
+		lda zp_anim_lo
+		//clc
+		adc #10
+		sta zp_anim_lo
+		bcc !+
+		clc
+		inc zp_anim_hi
+	!:
+		lda zp_bitmap_lo
+		adc #8
+		sta zp_bitmap_lo
+		bcc !+
+		clc
+		inc zp_bitmap_hi
+	!:
+		inc zp_char_lo
+		inc zp_d800_lo
+		bne !+
+		inc zp_char_hi
+		inc zp_d800_hi
+	!:
+		dex
+		bne plot_next_char
+		jmp next_chunk
+
+// ------------------------------
 .pc = * "t_col2index"
 t_col2index:
 		.fill $10, i*$10
@@ -397,7 +505,11 @@ t_color_fade:
 // ------------------------------
 .pc = bitmap "koala_source" virtual
 koala_source:
-.fill $2711, 0
+		.fill $2711, 0
+// ------------------------------
+.pc = animations "anim_frames" virtual
+anim_frames:
+		.byte 0,$ff
 // ------------------------------
 .pc = fade_pass_address "fade_pass" virtual
 fade_pass:

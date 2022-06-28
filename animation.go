@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,8 +22,7 @@ func handleAnimation(imgs []sourceImage) error {
 		if verbose {
 			log.Printf("processing %q frame %d\n", img.sourceFilename, i)
 		}
-		err := img.analyze()
-		if err != nil {
+		if err := img.analyze(); err != nil {
 			log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)
 			continue
 		}
@@ -62,6 +62,15 @@ func handleAnimation(imgs []sourceImage) error {
 		return fmt.Errorf("os.Create %q failed: %w", destFilename, err)
 	}
 	defer f.Close()
+
+	if display && len(kk) > 0 {
+		// handle display koala animation
+		_, err := WriteKoalaDisplayAnimTo(f, kk)
+		if err != nil {
+			return fmt.Errorf("WriteKoalaDisplayAnimTo %q failed: %w", f.Name(), err)
+		}
+		return nil
+	}
 
 	switch {
 	case len(kk) > 0:
@@ -191,6 +200,35 @@ func processKoalaAnimation(kk []Koala) ([][]byte, error) {
 		}
 	}
 	return exportKoalaAnims(anims), nil
+}
+
+func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
+	bgBorder := kk[0].BackgroundColor | kk[0].BorderColor<<4
+	header := append([]byte{}, koalaDisplayAnim...)
+	if includeSID == "" {
+		buf := make([]byte, 0, 64*1024)
+
+		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		k := kk[0]
+		framePrgs, err := processKoalaAnimation(kk)
+		if err != nil {
+			return n, err
+		}
+		out := [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}}
+
+		for _, bin := range out {
+			buf = append(buf, bin...)
+		}
+		buf = zeroFill(buf, 0x4800-0x7ff-len(buf))
+		for _, bin := range framePrgs {
+			buf = append(buf, bin...)
+		}
+		buf = append(buf, 0xff)
+		m, err := w.Write(buf)
+		n += int64(m)
+		return n, err
+	}
+	return n, nil
 }
 
 // exportAnims format:
