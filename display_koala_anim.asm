@@ -51,6 +51,9 @@ music_init:
 .pc = * "music_play"
 music_play:
 		jmp rrts
+.pc = * "frame_delay"
+frame_delay:
+		.byte 0
 
 .pc = * "start"
 start:
@@ -146,6 +149,7 @@ smc_src_screen:
 		dey
 		bne !-
 
+		jsr anim_init
 		jsr vblank
 		lda #toD018(screenram, bitmap)
 		sta $d018
@@ -202,9 +206,17 @@ smc_yval:	ldy #steps-1
 		cmp #(steps/2)-1
 		bne fade_loop
 
-	!:	lda $dc01
-		cmp #$ef
+	loop_anim:
+		ldx frame_delay
+	!:	jsr vblank
+		dex
 		bne !-
+
+		jsr anim_play
+
+		lda $dc01
+		cmp #$ef
+		bne loop_anim
 		beq fade_loop
 !done:
 	.if (LOOP) {

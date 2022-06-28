@@ -14,7 +14,7 @@ TARGET=png2prg_linux_amd64
 ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_x86.exe
 
 FLAGS=-d -v
-FLAGSANIM=-d -v
+FLAGSANIM=-d -v -frame-delay 3
 FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15

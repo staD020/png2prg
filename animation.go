@@ -205,6 +205,8 @@ func processKoalaAnimation(kk []Koala) ([][]byte, error) {
 func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	bgBorder := kk[0].BackgroundColor | kk[0].BorderColor<<4
 	header := append([]byte{}, koalaDisplayAnim...)
+	header[0x820-0x7ff] = byte(frameDelay)
+
 	if includeSID == "" {
 		buf := make([]byte, 0, 64*1024)
 

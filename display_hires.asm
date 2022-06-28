@@ -33,6 +33,9 @@ music_init:
 .pc = * "music_play"
 music_play:
 		jmp rrts
+.pc = * "frame_delay"
+frame_delay:
+		.byte 0
 
 .pc = * "start"
 start:

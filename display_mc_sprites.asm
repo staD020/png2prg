@@ -19,7 +19,7 @@
 		.text " PNG2PRG " + versionString()
 basicend:
 		.byte 0, 0, 0
-.pc = $0820 "start"
+.pc = $0821 "start"
 start:
 		sei
 		lda #$37

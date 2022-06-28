@@ -22,6 +22,7 @@ var (
 	graphicsMode        string
 	forceBorderColor    int
 	includeSID          string
+	frameDelay          int
 	currentGraphicsType graphicsType
 )
 
@@ -51,6 +52,7 @@ func init() {
 	flag.StringVar(&bitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
 	flag.IntVar(&forceBorderColor, "force-border-color", -1, "force border color")
 	flag.StringVar(&includeSID, "sid", "", "include .sid (0x0d00-0x1fff or 0x9000+) in displayer")
+	flag.IntVar(&frameDelay, "frame-delay", 6, "frames to wait before displaying next frame")
 }
 
 func main() {

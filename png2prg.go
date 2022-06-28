@@ -326,7 +326,7 @@ func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 		PRG:     true,
 		QUIET:   true,
 		INPLACE: false,
-		JumpTo:  "$0820",
+		JumpTo:  "$0821",
 	}
 	c, err := TSCrunch.New(opt, buf)
 	if err != nil {
