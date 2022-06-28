@@ -310,6 +310,7 @@ func processFiles(filenames []string) (err error) {
 	return nil
 }
 
+// injectCrunch drains the input io.WriterTo and returns a new TSCrunch WriterTo.
 func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 	buf := &bytes.Buffer{}
 	if _, err := c.WriteTo(buf); err != nil {
@@ -328,7 +329,7 @@ func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 	return c, nil
 }
 
-// defaultHeader returns the startaddress of a file located at 0x2000
+// defaultHeader returns the startaddress of a file located at 0x2000.
 func defaultHeader() []byte {
 	return []byte{0x00, 0x20}
 }

@@ -474,6 +474,23 @@ func (img *sourceImage) findBackgroundColor() error {
 }
 
 func (img *sourceImage) findBorderColor() error {
+	if forceBorderColor >= 0 && forceBorderColor < 16 {
+		for rgb, ci := range img.palette {
+			if ci == byte(forceBorderColor) {
+				img.borderColor = colorInfo{RGB: rgb, ColorIndex: ci}
+				if verbose {
+					log.Printf("force BorderColor: %v", img.borderColor)
+				}
+				return nil
+			}
+		}
+		img.borderColor = colorInfo{RGB: RGB{0x12, 0x34, 0x56}, ColorIndex: byte(forceBorderColor)}
+		if verbose {
+			log.Printf("BorderColor %d not found in palette: %v", forceBorderColor, img.palette)
+			log.Printf("forcing BorderColor %d anyway: %v", forceBorderColor, img.borderColor)
+		}
+		return nil
+	}
 	if img.xOffset == 0 || img.yOffset == 0 {
 		return fmt.Errorf("border color not found")
 	}

@@ -20,6 +20,7 @@ var (
 	bitpairColorsString string
 	noGuess             bool
 	graphicsMode        string
+	forceBorderColor    int
 	includeSID          string
 	currentGraphicsType graphicsType
 )
@@ -48,6 +49,7 @@ func init() {
 	flag.BoolVar(&noCrunch, "no-crunch", false, "do not TSCrunch koala/hires displayer")
 	flag.StringVar(&bitpairColorsString, "bpc", "", "bitpair-colors")
 	flag.StringVar(&bitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
+	flag.IntVar(&forceBorderColor, "force-border-color", -1, "force border color")
 	flag.StringVar(&includeSID, "sid", "", "include .sid (0x0d00-0x1fff or 0x9000+) in displayer")
 }
 
@@ -67,6 +69,9 @@ func main() {
 		os.Exit(0)
 	}
 	currentGraphicsType = stringToGraphicsType(graphicsMode)
+	if forceBorderColor > 15 {
+		forceBorderColor = -1
+	}
 
 	if err := processFiles(ff); err != nil {
 		log.Fatalf("processFiles failed: %v", err)
