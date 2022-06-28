@@ -291,6 +291,9 @@ func processFiles(filenames []string) (err error) {
 		if err != nil {
 			return fmt.Errorf("injectCrunch failed: %w", err)
 		}
+		if !quiet {
+			fmt.Println("packing with TSCrunch...")
+		}
 	}
 
 	destFilename := destinationFilename(img.sourceFilename)
