@@ -12,7 +12,7 @@
 .const src_screenram = $4000
 .const src_colorram = $4400
 .const animations = $4800
-.const fade_pass_address = $5800
+.const fade_pass_address = $8900
 
 .const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
 .const zp_screen_lo = zp_start + 0

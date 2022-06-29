@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/staD020/TSCrunch"
 	"github.com/staD020/sid"
 )
 
@@ -67,9 +69,31 @@ func handleAnimation(imgs []sourceImage) error {
 
 	if display && len(kk) > 0 {
 		// handle display koala animation
-		_, err := WriteKoalaDisplayAnimTo(f, kk)
+		if noCrunch {
+			_, err := WriteKoalaDisplayAnimTo(f, kk)
+			if err != nil {
+				return fmt.Errorf("WriteKoalaDisplayAnimTo %q failed: %w", f.Name(), err)
+			}
+			return nil
+		}
+		buf := &bytes.Buffer{}
+		_, err := WriteKoalaDisplayAnimTo(buf, kk)
 		if err != nil {
-			return fmt.Errorf("WriteKoalaDisplayAnimTo %q failed: %w", f.Name(), err)
+			return fmt.Errorf("WriteKoalaDisplayAnimTo buf failed: %w", err)
+		}
+
+		opt := TSCrunch.Options{
+			PRG:     true,
+			QUIET:   true,
+			INPLACE: false,
+			JumpTo:  "$0821",
+		}
+		tsc, err := TSCrunch.New(opt, buf)
+		if err != nil {
+			return fmt.Errorf("tscrunch.New failed: %w", err)
+		}
+		if _, err = tsc.WriteTo(f); err != nil {
+			return fmt.Errorf("tsc.WriteTo failed: %w", err)
 		}
 		return nil
 	}
@@ -242,7 +266,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	switch {
 	case int(load) < len(header)+0x7ff:
 		return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
-	case load > 0xcff && load < 0x1fff:
+	case load > 0xdff && load < 0x1fff:
 		header = zeroFill(header, int(load)-0x7ff-len(header))
 		header = append(header, s.RawBytes()...)
 		if len(header) > 0x2000-0x7ff {
@@ -258,7 +282,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		}
 		buf = append(buf, 0xff)
 		return writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, buf})
-	case load < 0x8f00:
+	case load > 0x8900 && load < 0xe000:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
