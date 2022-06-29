@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/staD020/sid"
 )
 
 func handleAnimation(imgs []sourceImage) error {
@@ -207,15 +209,15 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	header := append([]byte{}, koalaDisplayAnim...)
 	header[0x820-0x7ff] = byte(frameDelay)
 
+	framePrgs, err := processKoalaAnimation(kk)
+	if err != nil {
+		return n, err
+	}
 	if includeSID == "" {
 		buf := make([]byte, 0, 64*1024)
 
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 		k := kk[0]
-		framePrgs, err := processKoalaAnimation(kk)
-		if err != nil {
-			return n, err
-		}
 		out := [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}}
 
 		for _, bin := range out {
@@ -229,6 +231,51 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		m, err := w.Write(buf)
 		n += int64(m)
 		return n, err
+	}
+
+	s, err := sid.LoadSID(includeSID)
+	if err != nil {
+		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+	}
+	header = injectSIDHeader(header, s)
+	load := s.LoadAddress()
+	switch {
+	case int(load) < len(header)+0x7ff:
+		return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
+	case load > 0xcff && load < 0x1fff:
+		header = zeroFill(header, int(load)-0x7ff-len(header))
+		header = append(header, s.RawBytes()...)
+		if len(header) > 0x2000-0x7ff {
+			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
+		}
+		if !quiet {
+			fmt.Printf("injected %q: %s\n", includeSID, s)
+		}
+		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		buf := make([]byte, 0x4800-0x4711)
+		for _, bin := range framePrgs {
+			buf = append(buf, bin...)
+		}
+		buf = append(buf, 0xff)
+		return writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, buf})
+	case load < 0x8f00:
+		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
+	}
+
+	header = zeroFill(header, 0x2000-0x7ff-len(header))
+	framebuf := make([]byte, 0x4800-0x4711)
+	for _, bin := range framePrgs {
+		framebuf = append(framebuf, bin...)
+	}
+	framebuf = append(framebuf, 0xff)
+
+	buf := make([]byte, int(load)-0x4711-len(framebuf))
+	n, err = writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, framebuf, buf, s.RawBytes()})
+	if err != nil {
+		return n, err
+	}
+	if !quiet {
+		fmt.Printf("injected %q: %s\n", includeSID, s)
 	}
 	return n, nil
 }

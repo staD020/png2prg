@@ -149,7 +149,6 @@ smc_src_screen:
 		dey
 		bne !-
 
-		jsr anim_init
 		jsr vblank
 		lda #toD018(screenram, bitmap)
 		sta $d018
@@ -206,13 +205,17 @@ smc_yval:	ldy #steps-1
 		cmp #(steps/2)-1
 		bne fade_loop
 
-	loop_anim:
+		jsr anim_init
+
+loop_anim:
 		ldx frame_delay
 	!:	jsr vblank
 		dex
 		bne !-
 
+		.if (DEBUG) inc $d020
 		jsr anim_play
+		.if (DEBUG) dec $d020
 
 		lda $dc01
 		cmp #$ef

@@ -14,7 +14,7 @@ TARGET=png2prg_linux_amd64
 ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_x86.exe
 
 FLAGS=-d -v
-FLAGSANIM=-d -v -frame-delay 3
+FLAGSANIM=-d -v -frame-delay 5
 FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
@@ -27,11 +27,12 @@ FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
 TESTPIC=testdata/mirage_parrot.png
 #TESTPIC=testdata/sander_ld.png
 #TESTPIC=testdata/sander_sander.png
-#TESTSID=testdata/Rivalry_tune_5.sid
+TESTSID=testdata/Rivalry_tune_5.sid
 #TESTSID=testdata/jasonpage_eighth_90.sid
-TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
+#TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
 #TESTSID=testdata/lman_hellyeah.sid
 #TESTSID=testdata/Lift_Off_V2.sid
+#TESTSID=testdata/Laserdance.sid
 TESTANIM=testdata/sander_tankframes.gif
 
 png2prg: $(TARGET)
@@ -70,7 +71,7 @@ test: $(TARGET) $(TESTPIC) $(TESTSID)
 	$(X64) z.prg >/dev/null
 
 testanim: $(TARGET) $(TESTANIM) $(TESTSID)
-	./$(TARGET) $(FLAGSANIM) -o z.prg $(TESTANIM)
+	./$(TARGET) $(FLAGSANIM) -sid $(TESTSID) -o z.prg $(TESTANIM)
 	$(X64) z.prg >/dev/null
 
 testpack: $(TARGET)
