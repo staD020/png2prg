@@ -282,7 +282,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		}
 		buf = append(buf, 0xff)
 		return writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, buf})
-	case load > 0x8900 && load < 0xe000:
+	case (load > 0x8900 && load < 0xe000) || load < 0x4900:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
