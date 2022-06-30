@@ -92,6 +92,9 @@ func handleAnimation(imgs []sourceImage) error {
 		if err != nil {
 			return fmt.Errorf("tscrunch.New failed: %w", err)
 		}
+		if !quiet {
+			fmt.Println("packing with TSCrunch...")
+		}
 		if _, err = tsc.WriteTo(f); err != nil {
 			return fmt.Errorf("tsc.WriteTo failed: %w", err)
 		}
@@ -330,7 +333,7 @@ func newChunk(charIndex int) chunk {
 		BitmapHi:  byte((charIndex * 8) >> 8),
 		CharLo:    byte(charIndex & 0xff),
 		CharHi:    byte((charIndex - charIndex&0xff) >> 8),
-		Chars:     make([]byte, 0),
+		Chars:     []byte{},
 	}
 }
 
