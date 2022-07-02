@@ -23,8 +23,8 @@ func handleAnimation(imgs []sourceImage) error {
 		return fmt.Errorf("no sourceImage given")
 	}
 	for i, img := range imgs {
-		if verbose {
-			log.Printf("processing %q frame %d\n", img.sourceFilename, i)
+		if !quiet {
+			fmt.Printf("processing %q frame %d\n", img.sourceFilename, i)
 		}
 		if err := img.analyze(); err != nil {
 			log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)
@@ -67,21 +67,26 @@ func handleAnimation(imgs []sourceImage) error {
 	}
 	defer f.Close()
 
-	if display && len(kk) > 0 {
-		// handle display koala animation
-		if noCrunch {
-			_, err := WriteKoalaDisplayAnimTo(f, kk)
-			if err != nil {
-				return fmt.Errorf("WriteKoalaDisplayAnimTo %q failed: %w", f.Name(), err)
-			}
-			return nil
-		}
+	if display {
 		buf := &bytes.Buffer{}
-		_, err := WriteKoalaDisplayAnimTo(buf, kk)
-		if err != nil {
-			return fmt.Errorf("WriteKoalaDisplayAnimTo buf failed: %w", err)
+		switch {
+		case len(kk) > 0:
+			// handle display koala animation
+			if noCrunch {
+				_, err := WriteKoalaDisplayAnimTo(f, kk)
+				if err != nil {
+					return fmt.Errorf("WriteKoalaDisplayAnimTo %q failed: %w", f.Name(), err)
+				}
+				return nil
+			}
+			_, err := WriteKoalaDisplayAnimTo(buf, kk)
+			if err != nil {
+				return fmt.Errorf("WriteKoalaDisplayAnimTo buf failed: %w", err)
+			}
+		case len(hh) > 0:
+			// handle display hires animation
+			return fmt.Errorf("display for hires animations is not supported yet.")
 		}
-
 		opt := TSCrunch.Options{
 			PRG:     true,
 			QUIET:   true,
@@ -359,9 +364,9 @@ func (c *chunk) String() string {
 
 func exportKoalaAnims(anims [][]MultiColorChar) [][]byte {
 	prgs := make([][]byte, 0)
-	for _, anim := range anims {
+	for i, anim := range anims {
 		if verbose {
-			log.Println("frame length in changed chars:", len(anim))
+			log.Printf("frame %d length in changed chars: %d", i, len(anim))
 		}
 
 		curChar := -10
@@ -388,7 +393,7 @@ func exportKoalaAnims(anims [][]MultiColorChar) [][]byte {
 		// add last chunk
 		if curChunk.CharCount > 0 {
 			if verbose {
-				log.Printf("curChunk: %s", curChunk.String())
+				log.Printf("last chunk: %s", curChunk.String())
 			}
 			prg = append(prg, curChunk.export()...)
 		}
