@@ -9,8 +9,8 @@
 .const bitmap     = $2000
 .const screenram  = $0400
 .const src_screenram = $4000
-.const animations = $4800
-.const fade_pass_address = $8900
+.const animations = $4400
+.const fade_pass_address = $ac00
 
 .const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
 .const zp_screen_lo = zp_start + 0
@@ -447,7 +447,7 @@ t_color_fade:
 // ------------------------------
 .pc = bitmap "koala_source" virtual
 koala_source:
-		.fill $2711, 0
+		.fill $2329, 0
 // ------------------------------
 .pc = animations "anim_frames" virtual
 anim_frames:
