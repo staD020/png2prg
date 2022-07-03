@@ -17,12 +17,10 @@
 .const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
 .const zp_screen_lo = zp_start + 0
 .const zp_screen_hi = zp_start + 1
-//.const zp_d800_lo = zp_start + 2
-//.const zp_d800_hi = zp_start + 3
-.const zp_src_screen_lo = zp_start + 4
-.const zp_src_screen_hi = zp_start + 5
-.const zp_src_d800_lo = zp_start + 6
-.const zp_src_d800_hi = zp_start + 7
+.const zp_src_screen_lo = zp_start + 2
+.const zp_src_screen_hi = zp_start + 3
+.const zp_src_d800_lo = zp_start + 4
+.const zp_src_d800_hi = zp_start + 5
 
 .const zp_anim_start  = $08
 .const zp_anim_lo     = zp_anim_start + 0
@@ -37,7 +35,7 @@
 .import source "lib.asm"
 
 .pc = $0801 "basic upstart"
-		.byte <basicend, >basicend, <2022, >2022, $9e
+		.byte <basicend, >basicend, <year(), >year(), $9e
 		.text toIntString(start)
 		.text " PNG2PRG " + versionString()
 basicend:
@@ -97,7 +95,7 @@ start:
 		lda #>irq
 		sta $ffff
 
-		lda #$80
+		lda #$ff
 	!:	cmp $d012
 		bne !-
 	.if (MUSICDEBUG) {

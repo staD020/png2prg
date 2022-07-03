@@ -19,7 +19,7 @@
 .import source "lib.asm"
 
 .pc = $0801 "basic upstart"
-		.byte <basicend, >basicend, <2022, >2022, $9e
+		.byte <basicend, >basicend, <year(), >year(), $9e
 		.text toIntString(start)
 		.text " PNG2PRG " + versionString()
 basicend:

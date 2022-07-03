@@ -4,6 +4,10 @@
 	.return "1.1"
 }
 
+.function year() {
+	.return 2022
+}
+
 .macro vblank() {
 	!:	bit $d011
 		bpl !-
