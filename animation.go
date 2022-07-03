@@ -85,7 +85,17 @@ func handleAnimation(imgs []sourceImage) error {
 			}
 		case len(hh) > 0:
 			// handle display hires animation
-			return fmt.Errorf("display for hires animations is not supported yet.")
+			if noCrunch {
+				_, err := WriteHiresDisplayAnimTo(f, hh)
+				if err != nil {
+					return fmt.Errorf("WriteHiresDisplayAnimTo %q failed: %w", f.Name(), err)
+				}
+				return nil
+			}
+			_, err := WriteHiresDisplayAnimTo(buf, hh)
+			if err != nil {
+				return fmt.Errorf("WriteHiresDisplayAnimTo buf failed: %w", err)
+			}
 		}
 		opt := TSCrunch.Options{
 			PRG:     true,
@@ -320,6 +330,81 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 //	    	screencol				1 byte
 //			d800col					1 byte
 // total bytes: 5 + 10 * charcount
+
+func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
+	header := append([]byte{}, hiresDisplayAnim...)
+	header[0x820-0x7ff] = byte(frameDelay)
+
+	framePrgs, err := processHiresAnimation(hh)
+	if err != nil {
+		return n, err
+	}
+	if includeSID == "" {
+		buf := make([]byte, 0, 64*1024)
+
+		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		h := hh[0]
+		out := [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}}
+
+		for _, bin := range out {
+			buf = append(buf, bin...)
+		}
+		buf = zeroFill(buf, 0x4800-0x7ff-len(buf))
+		for _, bin := range framePrgs {
+			buf = append(buf, bin...)
+		}
+		buf = append(buf, 0xff)
+		m, err := w.Write(buf)
+		n += int64(m)
+		return n, err
+	}
+
+	s, err := sid.LoadSID(includeSID)
+	if err != nil {
+		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+	}
+	header = injectSIDHeader(header, s)
+	load := s.LoadAddress()
+	switch {
+	case int(load) < len(header)+0x7ff:
+		return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
+	case load > 0xdff && load < 0x1fff:
+		header = zeroFill(header, int(load)-0x7ff-len(header))
+		header = append(header, s.RawBytes()...)
+		if len(header) > 0x2000-0x7ff {
+			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
+		}
+		if !quiet {
+			fmt.Printf("injected %q: %s\n", includeSID, s)
+		}
+		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		buf := make([]byte, 0x4800-0x4329)
+		for _, bin := range framePrgs {
+			buf = append(buf, bin...)
+		}
+		buf = append(buf, 0xff)
+		return writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, buf})
+	case (load > 0x8900 && load < 0xe000) || load < 0x4900:
+		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
+	}
+
+	header = zeroFill(header, 0x2000-0x7ff-len(header))
+	framebuf := make([]byte, 0x4800-0x4329)
+	for _, bin := range framePrgs {
+		framebuf = append(framebuf, bin...)
+	}
+	framebuf = append(framebuf, 0xff)
+
+	buf := make([]byte, int(load)-0x4329-len(framebuf))
+	n, err = writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, framebuf, buf, s.RawBytes()})
+	if err != nil {
+		return n, err
+	}
+	if !quiet {
+		fmt.Printf("injected %q: %s\n", includeSID, s)
+	}
+	return n, nil
+}
 
 type chunk struct {
 	CharIndex int
