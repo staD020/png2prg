@@ -154,14 +154,6 @@ smc_yval:	ldy #steps-1
 }
 		ldx src_screenram+1000
 		lda t_color_fade,x
-		sta $d021
-		lda src_screenram+1000
-		lsr
-		lsr
-		lsr
-		lsr
-		tax
-		lda t_color_fade,x
 		sta $d020
 
 	!:	lda $d012
