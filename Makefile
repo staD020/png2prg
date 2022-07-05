@@ -14,7 +14,7 @@ TARGET=png2prg_linux_amd64
 ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_x86.exe
 
 FLAGS=-d -v
-FLAGSANIM=-d -v -frame-delay 5
+FLAGSANIM=-d -v -frame-delay 8
 FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,11,12,15
@@ -29,13 +29,15 @@ TESTPIC=testdata/bizzmo_wool.gif
 #TESTPIC=testdata/sander_sander.png
 #TESTSID=testdata/Rivalry_tune_5.sid
 #TESTSID=testdata/jasonpage_eighth_90.sid
-#TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
+TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
 #TESTSID=testdata/Yie_Ar_Kung_Fu_60.sid
 #TESTSID=testdata/lman_hellyeah.sid
 #TESTSID=testdata/Lift_Off_V2.sid
 #TESTSID=testdata/Laserdance.sid
-TESTSID=testdata/Commando.sid
-TESTANIM=testdata/sander_tankframes.gif
+#TESTSID=testdata/Commando.sid
+#TESTANIM=testdata/sander_tankframes.gif
+#TESTANIM=testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband??.png
+TESTANIM=testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband*.png
 
 png2prg: $(TARGET)
 

@@ -261,15 +261,18 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 		k := kk[0]
 		out := [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}}
-
 		for _, bin := range out {
 			buf = append(buf, bin...)
 		}
 		buf = zeroFill(buf, 0x4800-0x7ff-len(buf))
+		t1 := len(buf)
 		for _, bin := range framePrgs {
 			buf = append(buf, bin...)
 		}
 		buf = append(buf, 0xff)
+		if !quiet {
+			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", t1+0x7ff, len(buf)+0x7ff)
+		}
 		m, err := w.Write(buf)
 		n += int64(m)
 		return n, err
@@ -299,6 +302,9 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 			buf = append(buf, bin...)
 		}
 		buf = append(buf, 0xff)
+		if !quiet {
+			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4800, len(buf)+0x4711)
+		}
 		return writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, buf})
 	case (load > 0x8900 && load < 0xe000) || load < 0x4900:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
@@ -310,6 +316,9 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		framebuf = append(framebuf, bin...)
 	}
 	framebuf = append(framebuf, 0xff)
+	if !quiet {
+		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4800, len(framebuf)+0x4711)
+	}
 
 	buf := make([]byte, int(load)-0x4711-len(framebuf))
 	n, err = writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, framebuf, buf, s.RawBytes()})

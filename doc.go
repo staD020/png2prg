@@ -98,7 +98,7 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("    ./png2prg -bitpair-colors 0,6,14,3 image.png")
 	fmt.Println()
-	fmt.Println("It's also possible to explicitly skip certain bitpairs preferences with -1:")
+	fmt.Println("It's also possible to explicitly skip certain bitpair preferences with -1:")
 	fmt.Println()
 	fmt.Println("    ./png2prg -bitpair-colors 0,-1,-1,3 image.png")
 	fmt.Println()
