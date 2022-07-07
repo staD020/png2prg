@@ -19,7 +19,7 @@ import (
 	"github.com/staD020/sid"
 )
 
-const version = "1.1-dev5"
+const version = "1.1-dev6"
 
 type RGB struct {
 	R, G, B byte
