@@ -90,6 +90,9 @@ func handleAnimation(imgs []sourceImage) error {
 				if err != nil {
 					return fmt.Errorf("WriteHiresDisplayAnimTo %q failed: %w", f.Name(), err)
 				}
+				if !quiet {
+					fmt.Printf("write %q\n", f.Name())
+				}
 				return nil
 			}
 			_, err := WriteHiresDisplayAnimTo(buf, hh)
@@ -112,6 +115,9 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 		if _, err = tsc.WriteTo(f); err != nil {
 			return fmt.Errorf("tsc.WriteTo failed: %w", err)
+		}
+		if !quiet {
+			fmt.Printf("write %q\n", f.Name())
 		}
 		return nil
 	}
