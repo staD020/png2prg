@@ -36,6 +36,9 @@ music_play:
 .pc = * "frame_delay"
 frame_delay:
 		.byte 0
+.pc = * "wait_seconds"
+wait_seconds:
+		.byte 0
 
 .pc = * "start"
 start:

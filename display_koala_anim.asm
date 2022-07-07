@@ -52,6 +52,9 @@ music_play:
 .pc = * "frame_delay"
 frame_delay:
 		.byte 0
+.pc = * "wait_seconds"
+wait_seconds:
+		.byte 0
 
 .pc = * "start"
 start:
@@ -204,6 +207,17 @@ smc_yval:	ldy #steps-1
 		bne fade_loop
 
 		jsr anim_init
+
+		// optional wait before anim start
+		ldy wait_seconds
+		beq loop_anim
+!waitloop:
+		ldx #50
+	!:	jsr vblank
+		dex
+		bne !-
+		dey
+		bne !waitloop-
 
 loop_anim:
 		ldx frame_delay

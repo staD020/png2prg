@@ -23,6 +23,7 @@ var (
 	forceBorderColor    int
 	includeSID          string
 	frameDelay          int
+	waitSeconds         int
 	currentGraphicsType graphicsType
 )
 
@@ -53,6 +54,7 @@ func init() {
 	flag.IntVar(&forceBorderColor, "force-border-color", -1, "force border color")
 	flag.StringVar(&includeSID, "sid", "", "include .sid (0x0d00-0x1fff or 0x9000+) in displayer")
 	flag.IntVar(&frameDelay, "frame-delay", 6, "frames to wait before displaying next animation frame")
+	flag.IntVar(&waitSeconds, "wait-seconds", 0, "seconds to wait before animation starts")
 }
 
 func main() {
