@@ -162,6 +162,7 @@ func printHelp() {
 	fmt.Println(" - Added -frame-delay flag for animation displayers.")
 	fmt.Println(" - Added -wait-seconds flag for animation displayers.")
 	fmt.Println(" - Fixed bug in koala/hires displayers not allowing sids to overlap $c000-$c7ff.")
+	fmt.Println(" - Expanding wildcards, using pic??.png or pic*.png now also works on Windows.")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.0")
 	fmt.Println()

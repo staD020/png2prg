@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -60,7 +62,7 @@ func init() {
 func main() {
 	t0 := time.Now()
 	flag.Parse()
-	ff := flag.Args()
+	filenames := flag.Args()
 	if !quiet {
 		fmt.Printf("png2prg %v by burglar\n", version)
 	}
@@ -68,7 +70,7 @@ func main() {
 	if help {
 		printHelp()
 	}
-	if len(ff) == 0 {
+	if len(filenames) == 0 {
 		printUsage()
 		os.Exit(0)
 	}
@@ -77,11 +79,44 @@ func main() {
 		forceBorderColor = -1
 	}
 
-	if err := processFiles(ff); err != nil {
+	filenames, err := expandWildcards(filenames)
+	if err != nil {
+		log.Fatalf("expandWildcards failed: %v", err)
+	}
+
+	if err := processFiles(filenames); err != nil {
 		log.Fatalf("processFiles failed: %v", err)
 	}
 
 	if !quiet {
 		fmt.Printf("elapsed: %v\n", time.Since(t0))
 	}
+}
+
+func expandWildcards(filenames []string) (result []string, err error) {
+	for _, filename := range filenames {
+		if !strings.ContainsAny(filename, "?*") {
+			result = append(result, filename)
+			continue
+		}
+		dir := filepath.Dir(filename)
+		ff, err := os.ReadDir(dir)
+		if err != nil {
+			return nil, fmt.Errorf("os.ReadDir %q failed: %w", dir, err)
+		}
+		filename = filepath.Base(filename)
+		for _, f := range ff {
+			if f.IsDir() {
+				continue
+			}
+			ok, err := filepath.Match(filename, f.Name())
+			if err != nil {
+				return nil, fmt.Errorf("filepath.Match %q failed: %w", filename, err)
+			}
+			if ok {
+				result = append(result, filepath.Join(dir, f.Name()))
+			}
+		}
+	}
+	return result, nil
 }
