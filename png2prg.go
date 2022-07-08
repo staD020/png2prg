@@ -19,7 +19,10 @@ import (
 	"github.com/staD020/sid"
 )
 
-const version = "1.1-dev6"
+const (
+	version         = "1.1-dev6"
+	displayerJumpTo = "$0822"
+)
 
 type RGB struct {
 	R, G, B byte
@@ -329,7 +332,7 @@ func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 		PRG:     true,
 		QUIET:   true,
 		INPLACE: false,
-		JumpTo:  "$0822",
+		JumpTo:  displayerJumpTo,
 	}
 	c, err := TSCrunch.New(opt, buf)
 	if err != nil {

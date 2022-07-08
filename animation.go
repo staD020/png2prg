@@ -105,7 +105,7 @@ func handleAnimation(imgs []sourceImage) error {
 			PRG:     true,
 			QUIET:   true,
 			INPLACE: false,
-			JumpTo:  "$0822",
+			JumpTo:  displayerJumpTo,
 		}
 		tsc, err := TSCrunch.New(opt, buf)
 		if err != nil {

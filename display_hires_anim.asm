@@ -449,7 +449,7 @@ t_fadepercol:
 // ------------------------------
 // ------------------------------
 .align $100
-.pc = * "t_color_fade" virtual
+.pc = * "t_color_fade" // virtual
 t_color_fade:
 		.fill $100, 0
 // ------------------------------
