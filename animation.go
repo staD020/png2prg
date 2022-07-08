@@ -100,6 +100,7 @@ func handleAnimation(imgs []sourceImage) error {
 				return fmt.Errorf("WriteHiresDisplayAnimTo buf failed: %w", err)
 			}
 		}
+
 		opt := TSCrunch.Options{
 			PRG:     true,
 			QUIET:   true,
@@ -400,6 +401,9 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 			buf = append(buf, bin...)
 		}
 		buf = append(buf, 0xff)
+		if !quiet {
+			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4400, len(buf)+0x4328)
+		}
 		return writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, buf})
 	case (load > 0xac00 && load < 0xe000) || load < 0x4500:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
@@ -411,6 +415,9 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		framebuf = append(framebuf, bin...)
 	}
 	framebuf = append(framebuf, 0xff)
+	if !quiet {
+		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4400, len(framebuf)+0x4328)
+	}
 
 	buf := make([]byte, int(load)-0x4329-len(framebuf))
 	n, err = writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, framebuf, buf, s.RawBytes()})
