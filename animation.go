@@ -396,15 +396,15 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 			fmt.Printf("injected %q: %s\n", includeSID, s)
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
-		buf := make([]byte, 0x4400-0x4329)
+		framebuf := make([]byte, 0x4400-0x4329)
 		for _, bin := range framePrgs {
-			buf = append(buf, bin...)
+			framebuf = append(framebuf, bin...)
 		}
-		buf = append(buf, 0xff)
+		framebuf = append(framebuf, 0xff)
 		if !quiet {
-			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4400, len(buf)+0x4328)
+			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4400, len(framebuf)+0x4328)
 		}
-		return writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, buf})
+		return writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, framebuf})
 	case (load > 0xac00 && load < 0xe000) || load < 0x4500:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
