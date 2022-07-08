@@ -263,6 +263,10 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	if err != nil {
 		return n, err
 	}
+	if !quiet {
+		fmt.Printf("memory usage for displayer code: 0x%04x - 0x%04x\n", 0x0801, len(header)+0x7ff)
+	}
+
 	if includeSID == "" {
 		buf := make([]byte, 0, 64*1024)
 
@@ -271,6 +275,9 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		out := [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}}
 		for _, bin := range out {
 			buf = append(buf, bin...)
+		}
+		if !quiet {
+			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, len(buf)+0x7ff)
 		}
 		buf = zeroFill(buf, 0x4800-0x7ff-len(buf))
 		t1 := len(buf)
@@ -305,6 +312,9 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 			fmt.Printf("injected %q: %s\n", includeSID, s)
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		if !quiet {
+			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4711)
+		}
 		buf := make([]byte, 0x4800-0x4711)
 		for _, bin := range framePrgs {
 			buf = append(buf, bin...)
@@ -319,6 +329,10 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	}
 
 	header = zeroFill(header, 0x2000-0x7ff-len(header))
+	if !quiet {
+		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4711)
+	}
+
 	framebuf := make([]byte, 0x4800-0x4711)
 	for _, bin := range framePrgs {
 		framebuf = append(framebuf, bin...)
@@ -357,6 +371,10 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	if err != nil {
 		return n, err
 	}
+	if !quiet {
+		fmt.Printf("memory usage for displayer code: 0x%04x - 0x%04x\n", 0x0801, len(header)+0x7ff)
+	}
+
 	if includeSID == "" {
 		buf := make([]byte, 0, 64*1024)
 
@@ -367,11 +385,20 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		for _, bin := range out {
 			buf = append(buf, bin...)
 		}
+		if !quiet {
+			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4329)
+		}
+
 		buf = zeroFill(buf, 0x4400-0x7ff-len(buf))
 		for _, bin := range framePrgs {
 			buf = append(buf, bin...)
 		}
 		buf = append(buf, 0xff)
+
+		if !quiet {
+			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4400, len(buf)+0x7ff)
+		}
+
 		m, err := w.Write(buf)
 		n += int64(m)
 		return n, err
@@ -396,6 +423,9 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 			fmt.Printf("injected %q: %s\n", includeSID, s)
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		if !quiet {
+			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4329)
+		}
 		framebuf := make([]byte, 0x4400-0x4329)
 		for _, bin := range framePrgs {
 			framebuf = append(framebuf, bin...)
@@ -410,6 +440,9 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	}
 
 	header = zeroFill(header, 0x2000-0x7ff-len(header))
+	if !quiet {
+		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4329)
+	}
 	framebuf := make([]byte, 0x4400-0x4329)
 	for _, bin := range framePrgs {
 		framebuf = append(framebuf, bin...)
