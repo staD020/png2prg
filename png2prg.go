@@ -334,6 +334,9 @@ func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
 		INPLACE: false,
 		JumpTo:  displayerJumpTo,
 	}
+	if verbose {
+		opt.QUIET = false
+	}
 	c, err := TSCrunch.New(opt, buf)
 	if err != nil {
 		return nil, fmt.Errorf("tscrunch.New failed: %w", err)

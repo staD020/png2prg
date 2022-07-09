@@ -107,6 +107,9 @@ func handleAnimation(imgs []sourceImage) error {
 			INPLACE: false,
 			JumpTo:  displayerJumpTo,
 		}
+		if verbose {
+			opt.QUIET = false
+		}
 		tsc, err := TSCrunch.New(opt, buf)
 		if err != nil {
 			return fmt.Errorf("tscrunch.New failed: %w", err)
