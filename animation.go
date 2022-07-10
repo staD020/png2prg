@@ -14,6 +14,16 @@ import (
 	"github.com/staD020/sid"
 )
 
+const (
+	bitmapStart = 0x2000
+
+	koalaFadePassStart  = 0x8900
+	koalaAnimationStart = 0x4800
+
+	hiresFadePassStart  = 0xac00
+	hiresAnimationStart = 0x4400
+)
+
 func handleAnimation(imgs []sourceImage) error {
 	var kk []Koala
 	var hh []Hires
@@ -22,9 +32,13 @@ func handleAnimation(imgs []sourceImage) error {
 	if len(imgs) < 1 {
 		return fmt.Errorf("no sourceImage given")
 	}
+	currentGraphicsType := imgs[0].graphicsType
 	for i, img := range imgs {
 		if !quiet {
 			fmt.Printf("processing %q frame %d\n", img.sourceFilename, i)
+		}
+		if img.graphicsType != currentGraphicsType {
+			return fmt.Errorf("mixed graphicsmodes detected %q != %q", img.graphicsType, currentGraphicsType)
 		}
 		if err := img.analyze(); err != nil {
 			log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)
@@ -80,8 +94,7 @@ func handleAnimation(imgs []sourceImage) error {
 	// export separate frame data (non displayer)
 	switch {
 	case len(kk) > 0:
-		_, err = kk[0].WriteTo(f)
-		if err != nil {
+		if _, err = kk[0].WriteTo(f); err != nil {
 			return fmt.Errorf("WriteTo %q failed: %w", destFilename, err)
 		}
 		if !quiet {
@@ -100,8 +113,7 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 		return nil
 	case len(hh) > 0:
-		_, err = hh[0].WriteTo(f)
-		if err != nil {
+		if _, err = hh[0].WriteTo(f); err != nil {
 			return fmt.Errorf("WriteTo %q failed: %w", destFilename, err)
 		}
 		if !quiet {
@@ -120,13 +132,11 @@ func handleAnimation(imgs []sourceImage) error {
 		return nil
 	case len(mcSprites) > 0:
 		header := defaultHeader()
-		_, err = writeData(f, [][]byte{header})
-		if err != nil {
+		if _, err = writeData(f, [][]byte{header}); err != nil {
 			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 		}
 		for _, s := range mcSprites {
-			_, err = writeData(f, [][]byte{s.Bitmap})
-			if err != nil {
+			if _, err = writeData(f, [][]byte{s.Bitmap}); err != nil {
 				return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 			}
 			if !quiet {
@@ -136,13 +146,11 @@ func handleAnimation(imgs []sourceImage) error {
 		return nil
 	case len(scSprites) > 0:
 		header := defaultHeader()
-		_, err = writeData(f, [][]byte{header})
-		if err != nil {
+		if _, err = writeData(f, [][]byte{header}); err != nil {
 			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 		}
 		for _, s := range scSprites {
-			_, err = writeData(f, [][]byte{s.Bitmap})
-			if err != nil {
+			if _, err = writeData(f, [][]byte{s.Bitmap}); err != nil {
 				return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 			}
 			if !quiet {
@@ -154,37 +162,33 @@ func handleAnimation(imgs []sourceImage) error {
 	return fmt.Errorf("handleAnimation %q failed: no frames written", imgs[0].sourceFilename)
 }
 
-func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) error {
+func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) (err error) {
 	buf := &bytes.Buffer{}
 	switch {
 	case len(kk) > 0:
 		// handle display koala animation
 		if noCrunch {
-			_, err := WriteKoalaDisplayAnimTo(w, kk)
-			if err != nil {
+			if _, err = WriteKoalaDisplayAnimTo(w, kk); err != nil {
 				return fmt.Errorf("WriteKoalaDisplayAnimTo failed: %w", err)
 			}
 			return nil
 		}
-		_, err := WriteKoalaDisplayAnimTo(buf, kk)
-		if err != nil {
+		if _, err = WriteKoalaDisplayAnimTo(buf, kk); err != nil {
 			return fmt.Errorf("WriteKoalaDisplayAnimTo buf failed: %w", err)
 		}
 	case len(hh) > 0:
 		// handle display hires animation
 		if noCrunch {
-			_, err := WriteHiresDisplayAnimTo(w, hh)
-			if err != nil {
+			if _, err = WriteHiresDisplayAnimTo(w, hh); err != nil {
 				return fmt.Errorf("WriteHiresDisplayAnimTo failed: %w", err)
 			}
 			return nil
 		}
-		_, err := WriteHiresDisplayAnimTo(buf, hh)
-		if err != nil {
+		if _, err = WriteHiresDisplayAnimTo(buf, hh); err != nil {
 			return fmt.Errorf("WriteHiresDisplayAnimTo buf failed: %w", err)
 		}
 	default:
-		return fmt.Errorf("animation displayer not supported for %q", imgs[0].graphicsType)
+		return fmt.Errorf("animation displayers do not support %q yet", imgs[0].graphicsType)
 	}
 
 	opt := TSCrunch.Options{
@@ -280,16 +284,16 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	if includeSID == "" {
 		buf := make([]byte, 0, 64*1024)
 
-		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		header = zeroFill(header, bitmapStart-0x7ff-len(header))
 		k := kk[0]
 		out := [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}}
 		for _, bin := range out {
 			buf = append(buf, bin...)
 		}
 		if !quiet {
-			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, len(buf)+0x7ff)
+			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, len(buf)+0x7ff)
 		}
-		buf = zeroFill(buf, 0x4800-0x7ff-len(buf))
+		buf = zeroFill(buf, koalaAnimationStart-0x7ff-len(buf))
 		t1 := len(buf)
 		for _, bin := range framePrgs {
 			buf = append(buf, bin...)
@@ -315,41 +319,41 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	case load > 0xdff && load < 0x1fff:
 		header = zeroFill(header, int(load)-0x7ff-len(header))
 		header = append(header, s.RawBytes()...)
-		if len(header) > 0x2000-0x7ff {
+		if len(header) > bitmapStart-0x7ff {
 			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
 		if !quiet {
 			fmt.Printf("injected %q: %s\n", includeSID, s)
 		}
-		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		header = zeroFill(header, bitmapStart-0x7ff-len(header))
 		if !quiet {
-			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4711)
+			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4711)
 		}
-		buf := make([]byte, 0x4800-0x4711)
+		buf := make([]byte, koalaAnimationStart-0x4711)
 		for _, bin := range framePrgs {
 			buf = append(buf, bin...)
 		}
 		buf = append(buf, 0xff)
 		if !quiet {
-			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4800, len(buf)+0x4711)
+			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", koalaAnimationStart, len(buf)+0x4711)
 		}
 		return writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, buf})
-	case (load > 0x8900 && load < 0xe000) || load < 0x4900:
+	case (load > koalaFadePassStart && load < 0xe000) || load < koalaAnimationStart+0x100:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
-	header = zeroFill(header, 0x2000-0x7ff-len(header))
+	header = zeroFill(header, bitmapStart-0x7ff-len(header))
 	if !quiet {
-		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4711)
+		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4711)
 	}
 
-	framebuf := make([]byte, 0x4800-0x4711)
+	framebuf := make([]byte, koalaAnimationStart-0x4711)
 	for _, bin := range framePrgs {
 		framebuf = append(framebuf, bin...)
 	}
 	framebuf = append(framebuf, 0xff)
 	if !quiet {
-		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4800, len(framebuf)+0x4711)
+		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", koalaAnimationStart, len(framebuf)+0x4711)
 	}
 
 	buf := make([]byte, int(load)-0x4711-len(framebuf))
@@ -388,7 +392,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	if includeSID == "" {
 		buf := make([]byte, 0, 64*1024)
 
-		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		header = zeroFill(header, bitmapStart-0x7ff-len(header))
 		h := hh[0]
 		out := [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}}
 
@@ -396,17 +400,17 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 			buf = append(buf, bin...)
 		}
 		if !quiet {
-			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4329)
+			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4329)
 		}
 
-		buf = zeroFill(buf, 0x4400-0x7ff-len(buf))
+		buf = zeroFill(buf, hiresAnimationStart-0x7ff-len(buf))
 		for _, bin := range framePrgs {
 			buf = append(buf, bin...)
 		}
 		buf = append(buf, 0xff)
 
 		if !quiet {
-			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4400, len(buf)+0x7ff)
+			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(buf)+0x7ff)
 		}
 
 		m, err := w.Write(buf)
@@ -426,40 +430,40 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	case load > 0xdff && load < 0x1fff:
 		header = zeroFill(header, int(load)-0x7ff-len(header))
 		header = append(header, s.RawBytes()...)
-		if len(header) > 0x2000-0x7ff {
+		if len(header) > bitmapStart-0x7ff {
 			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
 		if !quiet {
 			fmt.Printf("injected %q: %s\n", includeSID, s)
 		}
-		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		header = zeroFill(header, bitmapStart-0x7ff-len(header))
 		if !quiet {
-			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4329)
+			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4329)
 		}
-		framebuf := make([]byte, 0x4400-0x4329)
+		framebuf := make([]byte, hiresAnimationStart-0x4329)
 		for _, bin := range framePrgs {
 			framebuf = append(framebuf, bin...)
 		}
 		framebuf = append(framebuf, 0xff)
 		if !quiet {
-			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4400, len(framebuf)+0x4328)
+			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(framebuf)+0x4328)
 		}
 		return writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, framebuf})
-	case (load > 0xac00 && load < 0xe000) || load < 0x4500:
+	case (load > hiresFadePassStart && load < 0xe000) || load < hiresAnimationStart+0x100:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
-	header = zeroFill(header, 0x2000-0x7ff-len(header))
+	header = zeroFill(header, bitmapStart-0x7ff-len(header))
 	if !quiet {
-		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", 0x2000, 0x4329)
+		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4329)
 	}
-	framebuf := make([]byte, 0x4400-0x4329)
+	framebuf := make([]byte, hiresAnimationStart-0x4329)
 	for _, bin := range framePrgs {
 		framebuf = append(framebuf, bin...)
 	}
 	framebuf = append(framebuf, 0xff)
 	if !quiet {
-		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", 0x4400, len(framebuf)+0x4328)
+		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(framebuf)+0x4328)
 	}
 
 	buf := make([]byte, int(load)-0x4329-len(framebuf))
