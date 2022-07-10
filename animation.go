@@ -68,57 +68,8 @@ func handleAnimation(imgs []sourceImage) error {
 	defer f.Close()
 
 	if display {
-		buf := &bytes.Buffer{}
-		switch {
-		case len(kk) > 0:
-			// handle display koala animation
-			if noCrunch {
-				_, err := WriteKoalaDisplayAnimTo(f, kk)
-				if err != nil {
-					return fmt.Errorf("WriteKoalaDisplayAnimTo %q failed: %w", f.Name(), err)
-				}
-				return nil
-			}
-			_, err := WriteKoalaDisplayAnimTo(buf, kk)
-			if err != nil {
-				return fmt.Errorf("WriteKoalaDisplayAnimTo buf failed: %w", err)
-			}
-		case len(hh) > 0:
-			// handle display hires animation
-			if noCrunch {
-				_, err := WriteHiresDisplayAnimTo(f, hh)
-				if err != nil {
-					return fmt.Errorf("WriteHiresDisplayAnimTo %q failed: %w", f.Name(), err)
-				}
-				if !quiet {
-					fmt.Printf("write %q\n", f.Name())
-				}
-				return nil
-			}
-			_, err := WriteHiresDisplayAnimTo(buf, hh)
-			if err != nil {
-				return fmt.Errorf("WriteHiresDisplayAnimTo buf failed: %w", err)
-			}
-		}
-
-		opt := TSCrunch.Options{
-			PRG:     true,
-			QUIET:   true,
-			INPLACE: false,
-			JumpTo:  displayerJumpTo,
-		}
-		if verbose {
-			opt.QUIET = false
-		}
-		tsc, err := TSCrunch.New(opt, buf)
-		if err != nil {
-			return fmt.Errorf("tscrunch.New failed: %w", err)
-		}
-		if !quiet {
-			fmt.Println("packing with TSCrunch...")
-		}
-		if _, err = tsc.WriteTo(f); err != nil {
-			return fmt.Errorf("tsc.WriteTo failed: %w", err)
+		if err = writeAnimationDisplayerTo(f, imgs, kk, hh, scSprites, mcSprites); err != nil {
+			return fmt.Errorf("writeAnimationDisplayerTo %q failed: %w", f.Name(), err)
 		}
 		if !quiet {
 			fmt.Printf("write %q\n", f.Name())
@@ -126,6 +77,7 @@ func handleAnimation(imgs []sourceImage) error {
 		return nil
 	}
 
+	// export separate frame data (non displayer)
 	switch {
 	case len(kk) > 0:
 		_, err = kk[0].WriteTo(f)
@@ -200,6 +152,61 @@ func handleAnimation(imgs []sourceImage) error {
 		return nil
 	}
 	return fmt.Errorf("handleAnimation %q failed: no frames written", imgs[0].sourceFilename)
+}
+
+func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) error {
+	buf := &bytes.Buffer{}
+	switch {
+	case len(kk) > 0:
+		// handle display koala animation
+		if noCrunch {
+			_, err := WriteKoalaDisplayAnimTo(w, kk)
+			if err != nil {
+				return fmt.Errorf("WriteKoalaDisplayAnimTo failed: %w", err)
+			}
+			return nil
+		}
+		_, err := WriteKoalaDisplayAnimTo(buf, kk)
+		if err != nil {
+			return fmt.Errorf("WriteKoalaDisplayAnimTo buf failed: %w", err)
+		}
+	case len(hh) > 0:
+		// handle display hires animation
+		if noCrunch {
+			_, err := WriteHiresDisplayAnimTo(w, hh)
+			if err != nil {
+				return fmt.Errorf("WriteHiresDisplayAnimTo failed: %w", err)
+			}
+			return nil
+		}
+		_, err := WriteHiresDisplayAnimTo(buf, hh)
+		if err != nil {
+			return fmt.Errorf("WriteHiresDisplayAnimTo buf failed: %w", err)
+		}
+	default:
+		return fmt.Errorf("animation displayer not supported for %q", imgs[0].graphicsType)
+	}
+
+	opt := TSCrunch.Options{
+		PRG:     true,
+		QUIET:   true,
+		INPLACE: false,
+		JumpTo:  displayerJumpTo,
+	}
+	if verbose {
+		opt.QUIET = false
+	}
+	tsc, err := TSCrunch.New(opt, buf)
+	if err != nil {
+		return fmt.Errorf("tscrunch.New failed: %w", err)
+	}
+	if !quiet {
+		fmt.Println("packing with TSCrunch...")
+	}
+	if _, err = tsc.WriteTo(w); err != nil {
+		return fmt.Errorf("tsc.WriteTo failed: %w", err)
+	}
+	return nil
 }
 
 func frameFilename(i int, filename string) string {
