@@ -101,7 +101,11 @@ func handleAnimation(imgs []sourceImage) error {
 			fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
 		}
 
-		prgs, err := processKoalaAnimation(kk)
+		chars := make([]Charer, len(kk))
+		for i := range kk {
+			chars[i] = kk[i]
+		}
+		prgs, err := processAnimation(chars)
 		if err != nil {
 			return fmt.Errorf("processKoalaAnimation failed: %w", err)
 		}
@@ -120,7 +124,11 @@ func handleAnimation(imgs []sourceImage) error {
 			fmt.Printf("converted %q to %q\n", hh[0].SourceFilename, destFilename)
 		}
 
-		prgs, err := processHiresAnimation(hh)
+		chars := make([]Charer, len(hh))
+		for i := range hh {
+			chars[i] = hh[i]
+		}
+		prgs, err := processAnimation(chars)
 		if err != nil {
 			return fmt.Errorf("processHiresAnimation failed: %w", err)
 		}
@@ -238,33 +246,107 @@ func writePrgFile(filename string, prg []byte) error {
 	return nil
 }
 
-func processKoalaAnimation(kk []Koala) ([][]byte, error) {
-	if len(kk) < 2 {
-		return nil, fmt.Errorf("insufficient number of images %d < 2", len(kk))
-	}
-	if verbose {
-		log.Printf("total number of frames: %d", len(kk))
+type Char interface {
+	Index() int
+	Bytes() []byte
+}
+
+type Charer interface {
+	Char(charIndex int) Char
+}
+
+func (c MultiColorChar) Index() int {
+	return c.CharIndex
+}
+
+func (c MultiColorChar) Bytes() (buf []byte) {
+	buf = append(buf, c.Bitmap[:]...)
+	return append(buf, c.ScreenColor, c.D800Color)
+}
+
+func (c SingleColorChar) Index() int {
+	return c.CharIndex
+}
+
+func (c SingleColorChar) Bytes() (buf []byte) {
+	buf = append(buf, c.Bitmap[:]...)
+	return append(buf, c.ScreenColor)
+}
+
+func processFramesOfChars(frames [][]Char) ([][]byte, error) {
+	if len(frames) < 2 {
+		return nil, fmt.Errorf("insufficient number of images %d < 2", len(frames))
 	}
 
-	anims := make([][]MultiColorChar, len(kk))
-	for i := 0; i < len(kk)-1; i++ {
-		anims[i] = make([]MultiColorChar, 0)
+	prgs := make([][]byte, 0)
+	for i, frame := range frames {
+		if verbose {
+			log.Printf("frame %d length in changed chars: %d", i, len(frame))
+		}
+
+		curChar := -10
+		curChunk := chunk{}
+		prg := []byte{}
+		for _, char := range frame {
+			switch {
+			case curChar == char.Index()-1:
+				// next char of current chunk
+				curChunk.appendChar(char)
+			default:
+				// new chunk
+				if curChunk.CharCount > 0 {
+					if verbose {
+						log.Println(curChunk.String())
+					}
+					prg = append(prg, curChunk.export()...)
+				}
+				curChunk = newChunk(char.Index())
+				curChunk.appendChar(char)
+			}
+			curChar = char.Index()
+		}
+		// add last chunk
+		if curChunk.CharCount > 0 {
+			if verbose {
+				log.Printf("last chunk: %s", curChunk.String())
+			}
+			prg = append(prg, curChunk.export()...)
+		}
+
+		// end of chunk marker
+		prg = append(prg, 0x00)
+		prgs = append(prgs, prg)
+	}
+	return prgs, nil
+}
+
+func processAnimation(imgs []Charer) ([][]byte, error) {
+	if len(imgs) < 2 {
+		return nil, fmt.Errorf("insufficient number of images %d < 2", len(imgs))
+	}
+	if verbose {
+		log.Printf("total number of frames: %d", len(imgs))
+	}
+
+	frames := make([][]Char, len(imgs))
+	for i := 0; i < len(imgs)-1; i++ {
+		frames[i] = make([]Char, 0)
 	}
 
 	for i := 0; i < 1000; i++ {
-		for j := 0; j < len(kk); j++ {
-			k := len(kk) - 1
+		for j := 0; j < len(imgs); j++ {
+			k := len(imgs) - 1
 			if j > 0 {
 				k = j - 1
 			}
-			prevChar := kk[k].MultiColorChar(i)
-			frameChar := kk[j].MultiColorChar(i)
+			prevChar := imgs[k].Char(i)
+			frameChar := imgs[j].Char(i)
 			if prevChar != frameChar {
-				anims[j] = append(anims[j], frameChar)
+				frames[j] = append(frames[j], frameChar)
 			}
 		}
 	}
-	return exportKoalaAnims(anims), nil
+	return processFramesOfChars(frames)
 }
 
 func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
@@ -273,7 +355,11 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	header[0x820-0x7ff] = byte(frameDelay)
 	header[0x821-0x7ff] = byte(waitSeconds)
 
-	framePrgs, err := processKoalaAnimation(kk)
+	frames := make([]Charer, len(kk))
+	for i := range kk {
+		frames[i] = kk[i]
+	}
+	framePrgs, err := processAnimation(frames)
 	if err != nil {
 		return n, err
 	}
@@ -381,7 +467,11 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	header[0x820-0x7ff] = byte(frameDelay)
 	header[0x821-0x7ff] = byte(waitSeconds)
 
-	framePrgs, err := processHiresAnimation(hh)
+	frames := make([]Charer, len(hh))
+	for i := range hh {
+		frames[i] = hh[i]
+	}
+	framePrgs, err := processAnimation(frames)
 	if err != nil {
 		return n, err
 	}
@@ -498,15 +588,8 @@ func newChunk(charIndex int) chunk {
 	}
 }
 
-func (c *chunk) appendChar(char MultiColorChar) {
-	c.Chars = append(c.Chars, char.Bitmap[:]...)
-	c.Chars = append(c.Chars, char.ScreenColor, char.D800Color)
-	c.CharCount++
-}
-
-func (c *chunk) appendHiresChar(char SingleColorChar) {
-	c.Chars = append(c.Chars, char.Bitmap[:]...)
-	c.Chars = append(c.Chars, char.ScreenColor)
+func (c *chunk) appendChar(char Char) {
+	c.Chars = append(c.Chars, char.Bytes()...)
 	c.CharCount++
 }
 
@@ -518,50 +601,7 @@ func (c *chunk) String() string {
 	return fmt.Sprintf("chunk charindex: %d charcount %d bitmap: $%x char: $%x", c.CharIndex, c.CharCount, int(c.BitmapHi)*256+int(c.BitmapLo), int(c.CharHi)*256+int(c.CharLo))
 }
 
-func exportKoalaAnims(anims [][]MultiColorChar) [][]byte {
-	prgs := make([][]byte, 0)
-	for i, anim := range anims {
-		if verbose {
-			log.Printf("frame %d length in changed chars: %d", i, len(anim))
-		}
-
-		curChar := -10
-		curChunk := chunk{}
-		prg := []byte{}
-		for _, char := range anim {
-			switch {
-			case curChar == char.CharIndex-1:
-				// next char of current chunk
-				curChunk.appendChar(char)
-			default:
-				// new chunk
-				if curChunk.CharCount > 0 {
-					if verbose {
-						log.Println(curChunk.String())
-					}
-					prg = append(prg, curChunk.export()...)
-				}
-				curChunk = newChunk(char.CharIndex)
-				curChunk.appendChar(char)
-			}
-			curChar = char.CharIndex
-		}
-		// add last chunk
-		if curChunk.CharCount > 0 {
-			if verbose {
-				log.Printf("last chunk: %s", curChunk.String())
-			}
-			prg = append(prg, curChunk.export()...)
-		}
-
-		// end of chunk marker
-		prg = append(prg, 0x00)
-		prgs = append(prgs, prg)
-	}
-	return prgs
-}
-
-func (k *Koala) MultiColorChar(charIndex int) MultiColorChar {
+func (k Koala) MultiColorChar(charIndex int) MultiColorChar {
 	mc := MultiColorChar{
 		CharIndex:       charIndex,
 		Bitmap:          [8]byte{},
@@ -575,7 +615,11 @@ func (k *Koala) MultiColorChar(charIndex int) MultiColorChar {
 	return mc
 }
 
-func (h *Hires) SingleColorChar(charIndex int) SingleColorChar {
+func (k Koala) Char(charIndex int) Char {
+	return k.MultiColorChar(charIndex)
+}
+
+func (h Hires) SingleColorChar(charIndex int) SingleColorChar {
 	sc := SingleColorChar{
 		CharIndex:   charIndex,
 		Bitmap:      [8]byte{},
@@ -587,74 +631,6 @@ func (h *Hires) SingleColorChar(charIndex int) SingleColorChar {
 	return sc
 }
 
-func processHiresAnimation(hh []Hires) ([][]byte, error) {
-	if len(hh) < 2 {
-		return nil, fmt.Errorf("insufficient number of images %d < 2", len(hh))
-	}
-	if verbose {
-		log.Printf("total number of frames: %d", len(hh))
-	}
-
-	anims := make([][]SingleColorChar, len(hh))
-	for i := 0; i < len(hh)-1; i++ {
-		anims[i] = make([]SingleColorChar, 0)
-	}
-
-	for i := 0; i < 1000; i++ {
-		for j := 0; j < len(hh); j++ {
-			k := len(hh) - 1
-			if j > 0 {
-				k = j - 1
-			}
-			prevChar := hh[k].SingleColorChar(i)
-			frameChar := hh[j].SingleColorChar(i)
-			if prevChar != frameChar {
-				anims[j] = append(anims[j], frameChar)
-			}
-		}
-	}
-	return exportHiresAnims(anims), nil
-}
-
-func exportHiresAnims(anims [][]SingleColorChar) [][]byte {
-	prgs := make([][]byte, 0)
-	for _, anim := range anims {
-		if verbose {
-			log.Println("frame length in changed chars:", len(anim))
-		}
-
-		curChar := -10
-		curChunk := chunk{}
-		prg := []byte{}
-		for _, char := range anim {
-			switch {
-			case curChar == char.CharIndex-1:
-				// next char of current chunk
-				curChunk.appendHiresChar(char)
-			default:
-				// new chunk
-				if curChunk.CharCount > 0 {
-					if verbose {
-						log.Println(curChunk.String())
-					}
-					prg = append(prg, curChunk.export()...)
-				}
-				curChunk = newChunk(char.CharIndex)
-				curChunk.appendHiresChar(char)
-			}
-			curChar = char.CharIndex
-		}
-		// add last chunk
-		if curChunk.CharCount > 0 {
-			if verbose {
-				log.Printf("curChunk: %s", curChunk.String())
-			}
-			prg = append(prg, curChunk.export()...)
-		}
-
-		// end of chunk marker
-		prg = append(prg, 0x00)
-		prgs = append(prgs, prg)
-	}
-	return prgs
+func (h Hires) Char(charIndex int) Char {
+	return h.SingleColorChar(charIndex)
 }
