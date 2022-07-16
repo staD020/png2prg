@@ -104,12 +104,12 @@ func expandWildcards(filenames []string) (result []string, err error) {
 		if err != nil {
 			return nil, fmt.Errorf("os.ReadDir %q failed: %w", dir, err)
 		}
-		filename = filepath.Base(filename)
+		name := filepath.Base(filename)
 		for _, f := range ff {
 			if f.IsDir() {
 				continue
 			}
-			ok, err := filepath.Match(filename, f.Name())
+			ok, err := filepath.Match(name, f.Name())
 			if err != nil {
 				return nil, fmt.Errorf("filepath.Match %q failed: %w", filename, err)
 			}
