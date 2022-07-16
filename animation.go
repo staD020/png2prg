@@ -101,11 +101,11 @@ func handleAnimation(imgs []sourceImage) error {
 			fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
 		}
 
-		chars := make([]Charer, len(kk))
+		cc := make([]Charer, len(kk))
 		for i := range kk {
-			chars[i] = kk[i]
+			cc[i] = kk[i]
 		}
-		prgs, err := processAnimation(chars)
+		prgs, err := processAnimation(cc)
 		if err != nil {
 			return fmt.Errorf("processKoalaAnimation failed: %w", err)
 		}
@@ -124,11 +124,11 @@ func handleAnimation(imgs []sourceImage) error {
 			fmt.Printf("converted %q to %q\n", hh[0].SourceFilename, destFilename)
 		}
 
-		chars := make([]Charer, len(hh))
+		cc := make([]Charer, len(hh))
 		for i := range hh {
-			chars[i] = hh[i]
+			cc[i] = hh[i]
 		}
-		prgs, err := processAnimation(chars)
+		prgs, err := processAnimation(cc)
 		if err != nil {
 			return fmt.Errorf("processHiresAnimation failed: %w", err)
 		}
@@ -139,31 +139,27 @@ func handleAnimation(imgs []sourceImage) error {
 		}
 		return nil
 	case len(mcSprites) > 0:
-		header := defaultHeader()
-		if _, err = writeData(f, [][]byte{header}); err != nil {
-			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
-		}
+		data := [][]byte{defaultHeader()}
 		for _, s := range mcSprites {
-			if _, err = writeData(f, [][]byte{s.Bitmap}); err != nil {
-				return fmt.Errorf("writeData %q failed: %w", destFilename, err)
-			}
+			data = append(data, s.Bitmap)
 			if !quiet {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
 			}
+		}
+		if _, err = writeData(f, data); err != nil {
+			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 		}
 		return nil
 	case len(scSprites) > 0:
-		header := defaultHeader()
-		if _, err = writeData(f, [][]byte{header}); err != nil {
-			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
-		}
+		data := [][]byte{defaultHeader()}
 		for _, s := range scSprites {
-			if _, err = writeData(f, [][]byte{s.Bitmap}); err != nil {
-				return fmt.Errorf("writeData %q failed: %w", destFilename, err)
-			}
+			data = append(data, s.Bitmap)
 			if !quiet {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
 			}
+		}
+		if _, err = writeData(f, data); err != nil {
+			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
 		}
 		return nil
 	}
@@ -196,7 +192,7 @@ func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh [
 			return fmt.Errorf("WriteHiresDisplayAnimTo buf failed: %w", err)
 		}
 	default:
-		return fmt.Errorf("animation displayers do not support %q yet", imgs[0].graphicsType)
+		return fmt.Errorf("animation displayers do not support %q", imgs[0].graphicsType)
 	}
 
 	opt := TSCrunch.Options{
@@ -236,8 +232,7 @@ func writePrgFile(filename string, prg []byte) error {
 	}
 	defer f.Close()
 
-	_, err = writeData(f, [][]byte{defaultHeader(), prg})
-	if err != nil {
+	if _, err = writeData(f, [][]byte{defaultHeader(), prg}); err != nil {
 		return fmt.Errorf("writeData %q failed: %w", filename, err)
 	}
 	if !quiet {
