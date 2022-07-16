@@ -569,7 +569,7 @@ type chunk struct {
 	BitmapHi  byte
 	CharLo    byte
 	CharHi    byte
-	Chars     []byte
+	CharBytes []byte
 }
 
 func newChunk(charIndex int) chunk {
@@ -579,17 +579,17 @@ func newChunk(charIndex int) chunk {
 		BitmapHi:  byte((charIndex * 8) >> 8),
 		CharLo:    byte(charIndex & 0xff),
 		CharHi:    byte((charIndex - charIndex&0xff) >> 8),
-		Chars:     []byte{},
+		CharBytes: []byte{},
 	}
 }
 
 func (c *chunk) appendChar(char Char) {
-	c.Chars = append(c.Chars, char.Bytes()...)
+	c.CharBytes = append(c.CharBytes, char.Bytes()...)
 	c.CharCount++
 }
 
 func (c *chunk) export() []byte {
-	return append([]byte{c.CharCount, c.BitmapLo, c.BitmapHi, c.CharLo, c.CharHi}, c.Chars...)
+	return append([]byte{c.CharCount, c.BitmapLo, c.BitmapHi, c.CharLo, c.CharHi}, c.CharBytes...)
 }
 
 func (c *chunk) String() string {
@@ -599,7 +599,6 @@ func (c *chunk) String() string {
 func (k Koala) MultiColorChar(charIndex int) MultiColorChar {
 	mc := MultiColorChar{
 		CharIndex:       charIndex,
-		Bitmap:          [8]byte{},
 		BackgroundColor: k.BackgroundColor,
 		ScreenColor:     k.ScreenColor[charIndex],
 		D800Color:       k.D800Color[charIndex],
@@ -617,7 +616,6 @@ func (k Koala) Char(charIndex int) Char {
 func (h Hires) SingleColorChar(charIndex int) SingleColorChar {
 	sc := SingleColorChar{
 		CharIndex:   charIndex,
-		Bitmap:      [8]byte{},
 		ScreenColor: h.ScreenColor[charIndex],
 	}
 	for i := range sc.Bitmap {
