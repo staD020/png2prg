@@ -602,34 +602,26 @@ func (c *chunk) String() string {
 	return fmt.Sprintf("chunk charindex: %d charcount %d bitmap: $%x char: $%x", c.CharIndex, c.CharCount, int(c.BitmapHi)*256+int(c.BitmapLo), int(c.CharHi)*256+int(c.CharLo))
 }
 
-func (k Koala) MultiColorChar(charIndex int) MultiColorChar {
-	mc := MultiColorChar{
+func (k Koala) Char(charIndex int) Char {
+	c := MultiColorChar{
 		CharIndex:       charIndex,
 		BackgroundColor: k.BackgroundColor,
 		ScreenColor:     k.ScreenColor[charIndex],
 		D800Color:       k.D800Color[charIndex],
 	}
-	for i := range mc.Bitmap {
-		mc.Bitmap[i] = k.Bitmap[charIndex*8+i]
+	for i := range c.Bitmap {
+		c.Bitmap[i] = k.Bitmap[charIndex*8+i]
 	}
-	return mc
-}
-
-func (k Koala) Char(charIndex int) Char {
-	return k.MultiColorChar(charIndex)
-}
-
-func (h Hires) SingleColorChar(charIndex int) SingleColorChar {
-	sc := SingleColorChar{
-		CharIndex:   charIndex,
-		ScreenColor: h.ScreenColor[charIndex],
-	}
-	for i := range sc.Bitmap {
-		sc.Bitmap[i] = h.Bitmap[charIndex*8+i]
-	}
-	return sc
+	return c
 }
 
 func (h Hires) Char(charIndex int) Char {
-	return h.SingleColorChar(charIndex)
+	c := SingleColorChar{
+		CharIndex:   charIndex,
+		ScreenColor: h.ScreenColor[charIndex],
+	}
+	for i := range c.Bitmap {
+		c.Bitmap[i] = h.Bitmap[charIndex*8+i]
+	}
+	return c
 }
