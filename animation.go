@@ -405,7 +405,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
 		if !quiet {
-			fmt.Printf("injected %q: %s\n", includeSID, s)
+			fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
 		}
 		header = zeroFill(header, bitmapStart-0x7ff-len(header))
 		if !quiet {
@@ -437,6 +437,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	framebuf = append(framebuf, 0xff)
 	if !quiet {
 		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", koalaAnimationStart, len(framebuf)+0x4711)
+		fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
 		fmt.Printf("memory usage for fadecode: 0x%04x - 0x%04x\n", koalaFadePassStart, 0xcfff)
 	}
 
@@ -444,9 +445,6 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	n, err = writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, framebuf, buf, s.RawBytes()})
 	if err != nil {
 		return n, err
-	}
-	if !quiet {
-		fmt.Printf("injected %q: %s\n", includeSID, s)
 	}
 	return n, nil
 }
@@ -523,7 +521,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
 		if !quiet {
-			fmt.Printf("injected %q: %s\n", includeSID, s)
+			fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
 		}
 		header = zeroFill(header, bitmapStart-0x7ff-len(header))
 		if !quiet {
@@ -554,6 +552,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	framebuf = append(framebuf, 0xff)
 	if !quiet {
 		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(framebuf)+0x4328)
+		fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
 		fmt.Printf("memory usage for fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)
 	}
 
@@ -561,9 +560,6 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	n, err = writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, framebuf, buf, s.RawBytes()})
 	if err != nil {
 		return n, err
-	}
-	if !quiet {
-		fmt.Printf("injected %q: %s\n", includeSID, s)
 	}
 	return n, nil
 }
