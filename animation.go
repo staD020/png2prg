@@ -289,7 +289,7 @@ func processFramesOfChars(frames [][]Char) ([][]byte, error) {
 				curChunk.appendChar(char)
 			default:
 				// new chunk
-				if curChunk.CharCount > 0 {
+				if curChunk.charCount > 0 {
 					if verbose {
 						log.Println(curChunk.String())
 					}
@@ -301,7 +301,7 @@ func processFramesOfChars(frames [][]Char) ([][]byte, error) {
 			curChar = char.Index()
 		}
 		// add last chunk
-		if curChunk.CharCount > 0 {
+		if curChunk.charCount > 0 {
 			if verbose {
 				log.Printf("last chunk: %s", curChunk.String())
 			}
@@ -565,37 +565,37 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 }
 
 type chunk struct {
-	CharIndex int
-	CharCount byte
-	BitmapLo  byte
-	BitmapHi  byte
-	CharLo    byte
-	CharHi    byte
-	CharBytes []byte
+	charIndex int
+	charCount byte
+	bitmapLo  byte
+	bitmapHi  byte
+	charLo    byte
+	charHi    byte
+	charBytes []byte
 }
 
 func newChunk(charIndex int) chunk {
 	return chunk{
-		CharIndex: charIndex,
-		BitmapLo:  byte((charIndex * 8) & 0xff),
-		BitmapHi:  byte((charIndex * 8) >> 8),
-		CharLo:    byte(charIndex & 0xff),
-		CharHi:    byte((charIndex - charIndex&0xff) >> 8),
-		CharBytes: []byte{},
+		charIndex: charIndex,
+		bitmapLo:  byte((charIndex * 8) & 0xff),
+		bitmapHi:  byte((charIndex * 8) >> 8),
+		charLo:    byte(charIndex & 0xff),
+		charHi:    byte((charIndex - charIndex&0xff) >> 8),
+		charBytes: []byte{},
 	}
 }
 
 func (c *chunk) appendChar(char Char) {
-	c.CharBytes = append(c.CharBytes, char.Bytes()...)
-	c.CharCount++
+	c.charBytes = append(c.charBytes, char.Bytes()...)
+	c.charCount++
 }
 
 func (c *chunk) export() []byte {
-	return append([]byte{c.CharCount, c.BitmapLo, c.BitmapHi, c.CharLo, c.CharHi}, c.CharBytes...)
+	return append([]byte{c.charCount, c.bitmapLo, c.bitmapHi, c.charLo, c.charHi}, c.charBytes...)
 }
 
 func (c *chunk) String() string {
-	return fmt.Sprintf("chunk charindex: %d charcount %d bitmap: $%x char: $%x", c.CharIndex, c.CharCount, int(c.BitmapHi)*256+int(c.BitmapLo), int(c.CharHi)*256+int(c.CharLo))
+	return fmt.Sprintf("chunk charindex: %d charcount %d bitmap: $%x char: $%x", c.charIndex, c.charCount, int(c.bitmapHi)*256+int(c.bitmapLo), int(c.charHi)*256+int(c.charLo))
 }
 
 func (k Koala) Char(charIndex int) Char {
