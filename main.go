@@ -79,6 +79,10 @@ func main() {
 		forceBorderColor = -1
 	}
 
+	if includeSID != "" && !display {
+		log.Printf("ignoring sid %q, it makes no sense without the -display flag set.\n", includeSID)
+	}
+
 	filenames, err := expandWildcards(filenames)
 	if err != nil {
 		log.Fatalf("expandWildcards failed: %v", err)
