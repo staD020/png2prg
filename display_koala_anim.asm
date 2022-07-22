@@ -1,7 +1,7 @@
 
-.const DEBUG = false
+.const DEBUG = true
 .const GENDEBUG = false
-.const MUSICDEBUG = false
+.const MUSICDEBUG = true
 .const LOOP = false
 .const PERFRAME = false
 .const fade_speed = 2
@@ -98,7 +98,7 @@ start:
 		lda #>irq
 		sta $ffff
 
-		lda #$ff
+		lda #$c0
 	!:	cmp $d012
 		bne !-
 	.if (MUSICDEBUG) {
@@ -221,9 +221,14 @@ smc_yval:	ldy #steps-1
 
 loop_anim:
 		ldx frame_delay
-	!:	jsr vblank
-		dex
+!loop:	//jsr vblank
+		lda #$f0
+	!:	cmp $d012
 		bne !-
+	!:	cmp $d012
+		beq !-
+		dex
+		bne !loop-
 
 		.if (DEBUG) inc $d020
 		jsr anim_play
@@ -232,7 +237,7 @@ loop_anim:
 		lda $dc01
 		cmp #$ef
 		bne loop_anim
-		beq fade_loop
+		jmp fade_loop
 !done:
 	.if (LOOP) {
 		lda #$ef
