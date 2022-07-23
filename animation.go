@@ -347,6 +347,9 @@ func processAnimation(imgs []Charer) ([][]byte, error) {
 func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	bgBorder := kk[0].BackgroundColor | kk[0].BorderColor<<4
 	header := append([]byte{}, koalaDisplayAnim...)
+	if alternativeFade {
+		header = append([]byte{}, koalaDisplayAnimAlternative...)
+	}
 	header[0x820-0x7ff] = byte(frameDelay)
 	header[0x821-0x7ff] = byte(waitSeconds)
 

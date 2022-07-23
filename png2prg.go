@@ -182,6 +182,7 @@ type MultiColorSprites struct {
 }
 
 var displayers = make(map[graphicsType][]byte, 0)
+var displayersAlternative = make(map[graphicsType][]byte, 0)
 
 //go:embed "display_koala.prg"
 var koalaDisplay []byte
@@ -203,6 +204,9 @@ var scSpritesDisplay []byte
 
 //go:embed "display_koala_anim.prg"
 var koalaDisplayAnim []byte
+
+//go:embed "display_koala_anim_alternative.prg"
+var koalaDisplayAnimAlternative []byte
 
 //go:embed "display_hires_anim.prg"
 var hiresDisplayAnim []byte
