@@ -141,6 +141,8 @@ smc_src_screen:
 		bne !-
 
 		jsr vblank
+
+		:setBank(bitmap)
 		lda #toD018(screenram, bitmap)
 		sta $d018
 		lda #$d8

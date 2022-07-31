@@ -52,7 +52,7 @@ func init() {
 	flag.BoolVar(&noPackChars, "no-pack", false, "do not pack chars (only for sc/mc charset)")
 	flag.BoolVar(&noCrunch, "nc", false, "no-crunch")
 	flag.BoolVar(&noCrunch, "no-crunch", false, "do not TSCrunch koala/hires displayer")
-	flag.BoolVar(&alternativeFade, "alt-fade", false, "use alternative (less memory hungry) fade for animation displayers.")
+	// flag.BoolVar(&alternativeFade, "alt-fade", false, "use alternative (less memory hungry) fade for animation displayers.")
 	flag.StringVar(&bitpairColorsString, "bpc", "", "bitpair-colors")
 	flag.StringVar(&bitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
 	flag.IntVar(&forceBorderColor, "force-border-color", -1, "force border color")

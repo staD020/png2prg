@@ -122,6 +122,7 @@ init_sprites:
 		bne !loop-
 !done:
 		jsr vblank
+		:setBank(screenram)
 		lda #toD018(screenram, $1000)
 		sta $d018
 		lda #$c8

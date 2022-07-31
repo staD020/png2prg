@@ -114,8 +114,8 @@ func (img *sourceImage) checkBounds() error {
 		return nil
 	case (img.width == 384) && (img.height == 272):
 		// default screenshot size in vice with default borders
-		img.xOffset += (384 - 320) / 2
-		img.yOffset += ((272 - 200) / 2) - 1
+		img.xOffset += (384 - 320) / 2       // 32
+		img.yOffset += ((272 - 200) / 2) - 1 // 35
 		// some people
 		// img.xOffset, img.yOffset = 32, 36
 		img.width, img.height = 320, 200

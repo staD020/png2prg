@@ -54,6 +54,7 @@ smc_dest:
 		bne !loop-
 
 		jsr vblank
+		:setBank(charset)
 		lda #toD018(screenram, charset)
 		sta $d018
 		lda #$c8

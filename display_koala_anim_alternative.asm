@@ -1,5 +1,5 @@
 
-.const DEBUG = false
+.const DEBUG = true
 .const GENDEBUG = false
 .const MUSICDEBUG = false
 .const LOOP = false
@@ -21,6 +21,7 @@
 .const zp_src_screen_hi = zp_start + 3
 .const zp_src_d800_lo = zp_start + 4
 .const zp_src_d800_hi = zp_start + 5
+.const zp_step = zp_start + 6
 
 .const zp_anim_start  = $08
 .const zp_anim_lo     = zp_anim_start + 0
@@ -151,6 +152,7 @@ smc_src_screen:
 		bne !-
 
 		jsr vblank
+		:setBank(bitmap)
 		lda #toD018(screenram, bitmap)
 		sta $d018
 		lda #$d8
@@ -162,7 +164,7 @@ smc_src_screen:
 fade_loop:
 smc_yval:	ldy #steps-1
 		.if (DEBUG) inc $d020
-		jsr generate_phase_col_tables
+		// jsr generate_phase_col_tables
 		.if (DEBUG) dec $d020
 
 		ldx #fade_speed
@@ -196,7 +198,7 @@ smc_yval:	ldy #steps-1
 		bcs !-
 
 		.if (DEBUG) dec $d020
-		jsr fade_pass
+		// jsr fade_pass
 		.if (DEBUG) inc $d020
 
 		dec smc_yval+1
@@ -284,6 +286,51 @@ irq:
 		tax
 		pla
 		rti
+// --------------------------------
+.pc = * "generate_phase_col_tables"
+generate_phase_col_tables:
+		lda #steps
+		sta zp_step
+
+!next_step:
+		lda #<t_total_colfade
+		sta smc_totpercol + 1
+!loop:
+		// start with color 0
+		ldx #0
+!:
+		// y points to hi-nibble of color x
+		ldy t_col2index,x // y = 0, $10, $20, .., $f0
+smc_fadepercol1:
+		lda t_fadepercol
+		asl
+		asl
+		asl
+		asl
+smc_fadepercol2:
+		ora t_fadepercol,y
+smc_totpercol:
+		sta t_total_colfade
+		.if (GENDEBUG) sta $d020
+		inc smc_totpercol + 1
+		inx
+		cpx #$10
+		bne !-
+
+		lda smc_fadepercol1 + 1
+		clc
+		adc #$10
+		sta smc_fadepercol1 + 1
+		bcc !loop-
+
+		inc smc_fadepercol1 + 1
+		inc smc_fadepercol2 + 1
+
+		inc smc_totpercol + 2
+		dec zp_step
+		lda zp_step
+		bne !next_step-
+		rts
 // --------------------------------
 .pc = * "generate_fade_pass"
 generate_fade_pass:
@@ -380,43 +427,6 @@ store_byte:
 		bne !+
 		inc store_byte+2
 	!:	rts
-// --------------------------------
-.pc = * "generate_phase_col_tables"
-generate_phase_col_tables:
-		//lda #<t_color_fade
-		//sta smc_totpercol + 1
-!loop:
-		// start with color 0
-		ldx #0
-	!:
-		// y points to hi-nibble of color x
-		ldy t_col2index,x // y = 0, $10, $20, .., $f0
-smc_fadepercol1:
-		lda t_fadepercol
-		asl
-		asl
-		asl
-		asl
-smc_fadepercol2:
-		ora t_fadepercol,y
-smc_totpercol:
-		sta t_color_fade
-		.if (GENDEBUG) sta $d020
-		inc smc_totpercol + 1
-		inx
-		cpx #$10
-		bcc !-
-
-		lda smc_fadepercol1 + 1
-		// sec not needed, carry is always set
-		adc #$0f
-		sta smc_fadepercol1 + 1
-		bcc !loop-
-
-		// prepare code for next phase
-		inc smc_fadepercol1 + 1
-		inc smc_fadepercol2 + 1
-		rts
 // ------------------------------
 .pc = * "anim_play"
 anim_play:
@@ -545,6 +555,11 @@ anim_frames:
 // ------------------------------
 .pc = fade_pass_address "fade_pass" virtual
 fade_pass:
+.pc = fade_pass_address "t_total_colfade" virtual
+t_total_colfade:
+		.fill $1000, 0
+
+
 /*
 .C:4800  AE 00 04    LDX $0400
 .C:4803  BD 00 09    LDA $0900,X

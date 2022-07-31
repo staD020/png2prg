@@ -220,6 +220,17 @@ func init() {
 	displayers[singleColorSprites] = scSpritesDisplay
 }
 
+// TODO: make png2prg a lib
+type converter struct {
+	inFilenames []string
+	images      []sourceImage
+}
+
+func New(filenames []string) (*converter, error) {
+	c := &converter{inFilenames: filenames}
+	return c, nil
+}
+
 func processFiles(filenames []string) (err error) {
 	if len(filenames) < 1 {
 		log.Println("no files supplied, nothing to do.")
