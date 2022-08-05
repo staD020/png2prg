@@ -56,7 +56,7 @@ func init() {
 	flag.StringVar(&bitpairColorsString, "bpc", "", "bitpair-colors")
 	flag.StringVar(&bitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
 	flag.IntVar(&forceBorderColor, "force-border-color", -1, "force border color")
-	flag.StringVar(&includeSID, "sid", "", "include .sid (0x0d00-0x1fff or 0x9000+) in displayer")
+	flag.StringVar(&includeSID, "sid", "", "include .sid in displayer (see -help for free memory locations)")
 	flag.IntVar(&frameDelay, "frame-delay", 6, "frames to wait before displaying next animation frame")
 	flag.IntVar(&waitSeconds, "wait-seconds", 0, "seconds to wait before animation starts")
 }
@@ -66,7 +66,7 @@ func main() {
 	flag.Parse()
 	filenames := flag.Args()
 	if !quiet {
-		fmt.Printf("png2prg %v by burglar\n", version)
+		fmt.Printf("png2prg %v by burg\n", version)
 	}
 
 	if help {

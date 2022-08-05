@@ -37,7 +37,8 @@ TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
 #TESTSID=testdata/Commando.sid
 #TESTANIM=testdata/sander_tankframes.gif
 #TESTANIM=testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband??.png
-TESTANIM=testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband*.png
+#TESTANIM=testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband*.png
+TESTANIM=testdata/jamesband*.png
 
 png2prg: $(TARGET)
 

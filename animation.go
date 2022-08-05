@@ -33,6 +33,7 @@ func handleAnimation(imgs []sourceImage) error {
 		return fmt.Errorf("no sourceImage given")
 	}
 	currentGraphicsType := imgs[0].graphicsType
+	currentBitpairColors := bitpairColors{}
 	for i, img := range imgs {
 		if !quiet {
 			fmt.Printf("processing %q frame %d\n", img.sourceFilename, i)
@@ -43,6 +44,14 @@ func handleAnimation(imgs []sourceImage) error {
 		if err := img.analyze(); err != nil {
 			log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)
 			continue
+		}
+		if len(currentBitpairColors) == 0 {
+			currentBitpairColors = img.preferredBitpairColors
+		}
+		if currentBitpairColors.String() != img.preferredBitpairColors.String() {
+			log.Printf("warning: bitpairColors %q of the previous frame do not equal current frame %q", currentBitpairColors, img.preferredBitpairColors)
+			log.Println("this will cause huge animation frame sizes and probably crash the displayer")
+			return fmt.Errorf("bitpairColors differ between frames")
 		}
 		switch img.graphicsType {
 		case multiColorBitmap:

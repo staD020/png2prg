@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	version         = "1.1-dev7"
+	version         = "1.2"
 	displayerJumpTo = "$0822"
 )
 

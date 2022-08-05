@@ -1,7 +1,7 @@
 .importonce
 
 .function versionString() {
-	.return "1.1"
+	.return "1.2"
 }
 
 .function year() {
@@ -16,8 +16,7 @@
 }
 
 .macro setBank(addr) {
-	.var dd00 = toDD00(addr)
-	lda #dd00
+	lda #toDD00(addr)
 	sta $dd00
 }
 
