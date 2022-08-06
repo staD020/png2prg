@@ -49,9 +49,9 @@ func handleAnimation(imgs []sourceImage) error {
 			currentBitpairColors = img.preferredBitpairColors
 		}
 		if currentBitpairColors.String() != img.preferredBitpairColors.String() {
-			log.Printf("warning: bitpairColors %q of the previous frame do not equal current frame %q", currentBitpairColors, img.preferredBitpairColors)
-			log.Println("this will cause huge animation frame sizes and probably crash the displayer")
-			return fmt.Errorf("bitpairColors differ between frames")
+			log.Printf("bitpairColors %q of the previous frame do not equal current frame %q", currentBitpairColors, img.preferredBitpairColors)
+			log.Println("this would cause huge animation frame sizes and probably crash the displayer")
+			return fmt.Errorf("bitpairColors differ between frames, maybe use -bitpair-colors %s", currentBitpairColors)
 		}
 		switch img.graphicsType {
 		case multiColorBitmap:
