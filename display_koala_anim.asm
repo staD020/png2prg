@@ -98,7 +98,7 @@ start:
 		lda #>irq
 		sta $ffff
 
-		lda #$c0
+		lda #$ff
 	!:	cmp $d012
 		bne !-
 	.if (MUSICDEBUG) {
@@ -223,7 +223,7 @@ smc_yval:	ldy #steps-1
 loop_anim:
 		ldx frame_delay
 !loop:	//jsr vblank
-		lda #$f0
+		lda #$d0
 	!:	cmp $d012
 		bne !-
 	!:	cmp $d012

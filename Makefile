@@ -79,6 +79,10 @@ testanim: $(TARGET) $(TESTANIM) $(TESTSID)
 	./$(TARGET) $(FLAGSANIM) -sid $(TESTSID) -o z.prg $(TESTANIM)
 	$(X64) z.prg >/dev/null
 
+evoluer: $(TARGET)
+	./$(TARGET) -d -frame-delay 3 -o z.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
+	$(X64) z.prg >/dev/null
+
 testpack: $(TARGET)
 	./$(TARGET) $(FLAGS) -np -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_guess.sfx.exo z.prg
