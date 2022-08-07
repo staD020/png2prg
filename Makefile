@@ -80,7 +80,7 @@ testanim: $(TARGET) $(TESTANIM) $(TESTSID)
 	$(X64) z.prg >/dev/null
 
 evoluer: $(TARGET)
-	./$(TARGET) -d -frame-delay 3 -o z.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
+	./$(TARGET) -d -frame-delay 2 -o z.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
 	$(X64) z.prg >/dev/null
 
 testpack: $(TARGET)
