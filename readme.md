@@ -1,10 +1,11 @@
-# PNG2PRG 1.0 by Burglar
+# PNG2PRG 1.2 by Burglar
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset or sprites. It will find the best matching palette
 and backgroundcolor automatically, no need to modify your source images or
 configure a palette.
 Vice screenshots with default borders (384x272) are automatically cropped.
+The main screen's offset is at x=32, y=35.
 Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
@@ -84,7 +85,7 @@ prefer colors 6,14,3 for bitpairs 01,10,11:
 
     ./png2prg -bitpair-colors 0,6,14,3 image.png
 
-It's also possible to explicitly skip certain bitpairs preferences with -1:
+It's also possible to explicitly skip certain bitpair preferences with -1:
 
     ./png2prg -bitpair-colors 0,-1,-1,3 image.png
 
@@ -93,7 +94,7 @@ It's also possible to explicitly skip certain bitpairs preferences with -1:
 Each frame will be concatenated in the output .prg.
 You can supply an animated .gif or multiple image files.
 
-## Bitmap Animation (only koala)
+## Bitmap Animation (only koala and hires)
 
 If multiple files are added, they are treated as animation frames.
 You can also supply an animated .gif.
@@ -113,7 +114,7 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
       .byte 0,31,15,7,8,34,0,128 // pixels
       .byte $64                  // screenram colors
-      .byte $01                  // colorram color
+      .byte $01                  // colorram color (koala only)
       ...                        // next char(s)
 
     ...          // next chunks
@@ -127,10 +128,31 @@ The -d or -display flag will link displayer code infront of the picture.
 By default it will also crunch the resulting file with Antonio Savona's
 [TSCrunch](https://github.com/tonysavon/TSCrunch/) with a couple of changes in my own [fork](https://github.com/staD020/TSCrunch/).
 
-For koala and hires, the displayer also supports adding a .sid. Multispeed sids
-are supported, as long as the sid initializes the CIA timers correctly.
-You can use sids located from $0d00-$1fff or $9000+.
+For hires, koala and koala-anim the displayer also supports adding a .sid.
+Multispeed sids are supported as long as the sid initializes the CIA timers
+correctly.
+
+You can use sids located from $0d00-$1fff or $9000+ in hires/koala displayers.
+For animation displayers use $0e00-$1fff, $4900-$88ff and >$e000-$fff9.
+Note that animation frames will be loaded to $4800 and up and could overload
+the sid.
+
+NB: For hires anims, $4500-$abff is free and anim is loaded to $4400.
 If needed, you can relocate most sids using lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).
+In general $0e00-$1fff and $6000-$88ff are pretty safe.
+
+Zeropages $08-$0f are used in the animation displayers, while none are used
+in hires/koala displayers, increasing sid compatibility.
+
+## Changes for version 1.2
+
+ - Added displayer for koala animations.
+ - Added displayer for hires animations.
+ - Added -frame-delay flag for animation displayers.
+ - Added -wait-seconds flag for animation displayers.
+ - Fixed bug in koala/hires displayers not allowing sids to overlap $c000-$c7ff.
+ - Expanding wildcards: using pic??.png or pic*.png now also works on Windows.
+ - Set bank via $dd00 in displayers.
 
 ## Changes for version 1.0
 
@@ -160,6 +182,10 @@ tables used in the koala and hires displayers.
   -d  display
   -display
       include displayer
+  -force-border-color int
+      force border color (default -1)
+  -frame-delay int
+      frames to wait before displaying next animation frame (default 6)
   -h  help
   -help
       help
@@ -187,7 +213,7 @@ tables used in the koala and hires displayers.
   -quiet
       quiet, only display errors
   -sid string
-      include .sid (0x0d00-0x1fff or 0x9000+) in displayer
+      include .sid in displayer (see -help for free memory locations)
   -targetdir string
       specify targetdir
   -td string
@@ -195,4 +221,6 @@ tables used in the koala and hires displayers.
   -v  verbose
   -verbose
       verbose output
+  -wait-seconds int
+      seconds to wait before animation starts
 ```
