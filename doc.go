@@ -191,7 +191,7 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("[Kick Assembler](http://www.theweb.dk/KickAssembler/) by Slammer to compile the displayers.")
 	fmt.Println()
-	fmt.Println("[Go](https://go.dev/).")
+	fmt.Println("[Go](https://go.dev/) by The Go Authors is the programming language used to create png2prg.")
 	fmt.Println()
 	fmt.Println("## Options")
 	fmt.Println()

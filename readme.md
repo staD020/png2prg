@@ -5,11 +5,11 @@ multicolor bitmap, charset or sprites. It will find the best matching palette
 and backgroundcolor automatically, no need to modify your source images or
 configure a palette.
 Vice screenshots with default borders (384x272) are automatically cropped.
-The main screen's offset is at x=32, y=35.
+Vice's main screen's offset is at x=32, y=35.
 Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
-The displayer for koala and hires includes fullscreen fade-in/out and
+The displayers for koala and hires include fullscreen fade-in/out and
 optionally a .sid tune.
 
 This tool can be used in all buildchains on most platforms.
@@ -129,7 +129,7 @@ By default it will also crunch the resulting file with Antonio Savona's
 [TSCrunch](https://github.com/tonysavon/TSCrunch/) with a couple of changes in my own [fork](https://github.com/staD020/TSCrunch/).
 
 For hires, koala and koala-anim the displayer also supports adding a .sid.
-Multispeed sids are supported as long as the sid initializes the CIA timers
+Multispeed sids are supported as long as the .sid initializes the CIA timers
 correctly.
 
 You can use sids located from $0d00-$1fff or $9000+ in hires/koala displayers.
@@ -143,6 +143,11 @@ In general $0e00-$1fff and $6000-$88ff are pretty safe.
 
 Zeropages $08-$0f are used in the animation displayers, while none are used
 in hires/koala displayers, increasing sid compatibility.
+
+## Examples
+
+This release contains examples with all assets included for you to test with.
+Also included is [Évoluer](https://csdb.dk/release/?id=220170) from The Sarge and Flotsam.
 
 ## Changes for version 1.2
 
@@ -162,7 +167,7 @@ in hires/koala displayers, increasing sid compatibility.
 
 ## Credits
 
-Png2prg was written by Burglar, using the following third-party libraries:
+Png2prg was created by Burglar, using the following third-party libraries:
 
 [TSCrunch 1.3](https://github.com/tonysavon/TSCrunch/) by Antonio Savona for optional crunching when exporting
 an image with a displayer.
@@ -171,6 +176,8 @@ an image with a displayer.
 tables used in the koala and hires displayers.
 
 [Kick Assembler](http://www.theweb.dk/KickAssembler/) by Slammer to compile the displayers.
+
+[Go](https://go.dev/) by The Go Authors is the programming language used to create png2prg.
 
 ## Options
 
