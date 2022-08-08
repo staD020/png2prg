@@ -63,7 +63,7 @@ func printHelp() {
 	fmt.Println("Support for individual d800 colors and mixed single/multicolor chars may be")
 	fmt.Println("added in a future release, if the need arises.")
 	fmt.Println()
-	fmt.Println("By default charsets are packed, they only contain unique characaters.")
+	fmt.Println("By default charsets are packed, they only contain unique characters.")
 	fmt.Println("If you do not want charpacking, eg for a 1x1 charset, please use -no-pack")
 	fmt.Println()
 	fmt.Println("    Charset:   $2000-$27ff")
