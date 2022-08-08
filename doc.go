@@ -161,7 +161,7 @@ func printHelp() {
 	fmt.Println("## Examples")
 	fmt.Println()
 	fmt.Println("This release contains examples with all assets included for you to test with.")
-	fmt.Println("Also included is [Évoluer](https://csdb.dk/release/?id=220170) from The Sarge and Flotsam.")
+	fmt.Println("Also included is [Évoluer](https://csdb.dk/release/?id=220170) by The Sarge and Flotsam.")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.2")
 	fmt.Println()

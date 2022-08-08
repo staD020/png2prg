@@ -147,7 +147,7 @@ in hires/koala displayers, increasing sid compatibility.
 ## Examples
 
 This release contains examples with all assets included for you to test with.
-Also included is [Évoluer](https://csdb.dk/release/?id=220170) from The Sarge and Flotsam.
+Also included is [Évoluer](https://csdb.dk/release/?id=220170) by The Sarge and Flotsam.
 
 ## Changes for version 1.2
 
