@@ -497,11 +497,12 @@ func (img *sourceImage) findBorderColor() error {
 	rgb := img.colorAtXY(-10, -10)
 	if ci, ok := img.palette[rgb]; ok {
 		img.borderColor = colorInfo{RGB: rgb, ColorIndex: ci}
+		if verbose {
+			log.Printf("findBorderColor found: %v", img.borderColor)
+		}
+		return nil
 	}
-	if verbose {
-		log.Printf("findBorderColor found: %v", img.borderColor)
-	}
-	return nil
+	return fmt.Errorf("border color not found")
 }
 
 func (img *sourceImage) makeCharColors() error {
@@ -537,7 +538,6 @@ func (img *sourceImage) makeCharColors() error {
 				fatalError = true
 			}
 		}
-
 		img.charColors[i] = charColors
 	}
 	if fatalError {
@@ -578,9 +578,6 @@ func (img *sourceImage) analyzePalette() {
 	img.setSourceColors()
 	for name, palette := range c64palettes {
 		distance, curMap := img.distanceAndMap(palette)
-		//if verbose {
-		//	log.Printf("color distance: %v => %v\n", name, distance)
-		//}
 		if distance < minDistance {
 			paletteMap, paletteName, minDistance = curMap, name, distance
 		}
