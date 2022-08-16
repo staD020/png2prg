@@ -97,6 +97,14 @@ func main() {
 	if !quiet {
 		fmt.Printf("elapsed: %v\n", time.Since(t0))
 	}
+
+	/*
+		p := "perplex 2"
+		fmt.Println("palette:", p)
+		for _, ci := range c64palettes[p] {
+			fmt.Printf("%s\n", ci)
+		}
+	*/
 }
 
 func expandWildcards(filenames []string) (result []string, err error) {

@@ -38,7 +38,8 @@ type colorInfo struct {
 }
 
 func (c colorInfo) String() string {
-	return fmt.Sprintf("{%d, #%02x%02x%02x}", c.ColorIndex, int(c.RGB.R), int(c.RGB.G), int(c.RGB.B))
+	//return fmt.Sprintf("{%d, #%02x%02x%02x}", c.ColorIndex, int(c.RGB.R), int(c.RGB.G), int(c.RGB.B))
+	return fmt.Sprintf("{%d, %s},", c.ColorIndex, c.RGB)
 }
 
 type graphicsType byte
