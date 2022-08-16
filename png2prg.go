@@ -28,9 +28,17 @@ type RGB struct {
 	R, G, B byte
 }
 
+func (r RGB) String() string {
+	return fmt.Sprintf("RGB{0x%02x, 0x%02x, 0x%02x}", r.R, r.G, r.B)
+}
+
 type colorInfo struct {
 	ColorIndex byte
 	RGB        RGB
+}
+
+func (c colorInfo) String() string {
+	return fmt.Sprintf("{%d, #%02x%02x%02x}", c.ColorIndex, int(c.RGB.R), int(c.RGB.G), int(c.RGB.B))
 }
 
 type graphicsType byte
@@ -94,6 +102,40 @@ func (b bitpairColors) String() (s string) {
 	return s
 }
 
+type PaletteMap map[RGB]byte
+
+func (m PaletteMap) devString() string {
+	reverse := [16]*RGB{}
+	for r, c := range m {
+		r := r
+		reverse[c] = &r
+	}
+	s := ""
+	for c, r := range reverse {
+		if r == nil {
+			continue
+		}
+		s += fmt.Sprintf("{%d, %s}, ", c, *r)
+	}
+	return strings.TrimSuffix(s, ", ")
+}
+
+func (m PaletteMap) String() string {
+	reverse := [16]*RGB{}
+	for r, c := range m {
+		r := r
+		reverse[c] = &r
+	}
+	s := ""
+	for c, r := range reverse {
+		if r == nil {
+			continue
+		}
+		s += fmt.Sprintf("{%d, #%02x%02x%02x}, ", c, int(r.R), int(r.G), int(r.B))
+	}
+	return strings.TrimSuffix(s, ", ")
+}
+
 type sourceImage struct {
 	sourceFilename         string
 	image                  image.Image
@@ -101,10 +143,10 @@ type sourceImage struct {
 	yOffset                int
 	width                  int
 	height                 int
-	palette                map[RGB]byte
+	palette                PaletteMap
 	colors                 []RGB
-	charColors             [1000]map[RGB]byte
-	backgroundCandidates   map[RGB]byte
+	charColors             [1000]PaletteMap
+	backgroundCandidates   PaletteMap
 	backgroundColor        colorInfo
 	borderColor            colorInfo
 	preferredBitpairColors bitpairColors

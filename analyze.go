@@ -335,7 +335,7 @@ func (img *sourceImage) countSpriteColors() (int, []byte, [16]int) {
 }
 
 func (img *sourceImage) countColors() (int, []byte, [16]int) {
-	m := make(map[RGB]byte, 16)
+	m := make(PaletteMap, 16)
 	var sum [16]int
 	for i := range img.charColors {
 		for rgb, colorIndex := range img.charColors[i] {
@@ -353,7 +353,7 @@ func (img *sourceImage) countColors() (int, []byte, [16]int) {
 	return len(m), ci, sum
 }
 
-func (img *sourceImage) maxColorsPerChar() (max int, m map[RGB]byte) {
+func (img *sourceImage) maxColorsPerChar() (max int, m PaletteMap) {
 	for i := range img.charColors {
 		if len(img.charColors[i]) > max {
 			max = len(img.charColors[i])
@@ -364,7 +364,7 @@ func (img *sourceImage) maxColorsPerChar() (max int, m map[RGB]byte) {
 }
 
 func (img *sourceImage) findBackgroundColorCandidates() {
-	backgroundCharColors := []map[RGB]byte{}
+	backgroundCharColors := []PaletteMap{}
 	for _, v := range img.charColors {
 		if len(v) == 4 {
 			backgroundCharColors = append(backgroundCharColors, v)
@@ -372,7 +372,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 	}
 
 	// need to copy the map, as we delete false candidates
-	candidates := make(map[RGB]byte, 16)
+	candidates := make(PaletteMap, 16)
 	switch {
 	case len(backgroundCharColors) > 0:
 		for k, v := range backgroundCharColors[0] {
@@ -383,9 +383,8 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 			candidates[k] = v
 		}
 	}
-
 	if verbose {
-		log.Printf("all bgcol candidates: %v", candidates)
+		log.Printf("all BackgroundColor candidates: %v", candidates)
 	}
 
 	for _, charcolormap := range backgroundCharColors {
@@ -397,7 +396,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 	}
 	img.backgroundCandidates = candidates
 	if verbose {
-		log.Printf("final bgcol candidates = %v", img.backgroundCandidates)
+		log.Printf("final BackgroundColor candidates = %v", img.backgroundCandidates)
 	}
 	return
 }
@@ -464,8 +463,8 @@ func (img *sourceImage) findBackgroundColor() error {
 	}
 
 	for rgb, colorIndex = range img.backgroundCandidates {
-		if !quiet {
-			fmt.Printf("findBackgroundColor: we tried looking for color %d, but we have to settle for color %d\n", forceBgCol, colorIndex)
+		if verbose {
+			log.Printf("findBackgroundColor: we tried looking for color %d, but we have to settle for color %d\n", forceBgCol, colorIndex)
 		}
 		img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
 		return nil
@@ -486,7 +485,7 @@ func (img *sourceImage) findBorderColor() error {
 		}
 		img.borderColor = colorInfo{RGB: RGB{0x12, 0x34, 0x56}, ColorIndex: byte(forceBorderColor)}
 		if verbose {
-			log.Printf("BorderColor %d not found in palette: %v", forceBorderColor, img.palette)
+			log.Printf("BorderColor %d not found in palette: %s", forceBorderColor, img.palette)
 			log.Printf("forcing BorderColor %d anyway: %v", forceBorderColor, img.borderColor)
 		}
 		return nil
@@ -498,7 +497,7 @@ func (img *sourceImage) findBorderColor() error {
 	if ci, ok := img.palette[rgb]; ok {
 		img.borderColor = colorInfo{RGB: rgb, ColorIndex: ci}
 		if verbose {
-			log.Printf("findBorderColor found: %v", img.borderColor)
+			log.Printf("findBorderColor found: %s", img.borderColor)
 		}
 		return nil
 	}
@@ -523,7 +522,7 @@ func (img *sourceImage) makeCharColors() error {
 			}
 			if !found {
 				x, y := xyFromChar(i)
-				log.Printf("forced bgcol %d not possible in char %v (x=%d, y=%d)", forceBgCol, i, x, y)
+				log.Printf("forced BackgroundColor %d not possible in char %v (x=%d, y=%d)", forceBgCol, i, x, y)
 				fatalError = true
 			}
 		}
@@ -546,8 +545,8 @@ func (img *sourceImage) makeCharColors() error {
 	return nil
 }
 
-func (img *sourceImage) colorMapFromChar(char int) map[RGB]byte {
-	charColors := make(map[RGB]byte, 16)
+func (img *sourceImage) colorMapFromChar(char int) PaletteMap {
+	charColors := make(PaletteMap, 16)
 	x, y := xyFromChar(char)
 	for pixely := y; pixely < y+8; pixely++ {
 		for pixelx := x; pixelx < x+8; pixelx++ {
@@ -572,12 +571,15 @@ func xyFromChar(i int) (int, int) {
 
 // analyzePalette finds the closest paletteMap and sets img.palette
 func (img *sourceImage) analyzePalette() {
-	minDistance := 9e9
+	minDistance := int(9e9)
 	paletteName := ""
-	paletteMap := make(map[RGB]byte)
+	paletteMap := make(PaletteMap)
 	img.setSourceColors()
 	for name, palette := range c64palettes {
 		distance, curMap := img.distanceAndMap(palette)
+		if verbose {
+			log.Printf("%q distance: %v\n", name, distance)
+		}
 		if distance < minDistance {
 			paletteMap, paletteName, minDistance = curMap, name, distance
 		}
@@ -586,8 +588,8 @@ func (img *sourceImage) analyzePalette() {
 		}
 	}
 	if verbose {
-		log.Printf("%v palette found: %v distance: %v\n", img.sourceFilename, paletteName, minDistance)
-		log.Printf("palette: %v\n", paletteMap)
+		log.Printf("%v palette found: %v distance: %v", img.sourceFilename, paletteName, minDistance)
+		log.Printf("palette: %s", paletteMap)
 	}
 	img.palette = paletteMap
 	return
@@ -610,12 +612,12 @@ func (img *sourceImage) setSourceColors() {
 	img.colors = cc
 }
 
-func (img *sourceImage) distanceAndMap(palette [16]colorInfo) (float64, map[RGB]byte) {
-	m := make(map[RGB]byte, 16)
-	totalDistance := 0.0
+func (img *sourceImage) distanceAndMap(palette [16]colorInfo) (int, PaletteMap) {
+	m := make(PaletteMap, 16)
+	totalDistance := 0
 	for _, rgb := range img.colors {
 		if _, ok := m[rgb]; !ok {
-			d := 0.0
+			d := 0
 			m[rgb], d = rgb.colorIndexAndDistance(palette)
 			totalDistance += d
 			if len(m) == 16 {
@@ -626,7 +628,7 @@ func (img *sourceImage) distanceAndMap(palette [16]colorInfo) (float64, map[RGB]
 	return totalDistance, m
 }
 
-func (r RGB) colorIndexAndDistance(palette [16]colorInfo) (byte, float64) {
+func (r RGB) colorIndexAndDistance(palette [16]colorInfo) (byte, int) {
 	distance := r.distanceTo(palette[0].RGB)
 	closestColorIndex := 0
 	for i := 0; i < len(palette); i++ {
@@ -639,9 +641,9 @@ func (r RGB) colorIndexAndDistance(palette [16]colorInfo) (byte, float64) {
 	return byte(closestColorIndex), distance
 }
 
-func (r RGB) distanceTo(r2 RGB) float64 {
-	dr := math.Abs(float64(r.R) - float64(r2.R))
-	dg := math.Abs(float64(r.G) - float64(r2.G))
-	db := math.Abs(float64(r.B) - float64(r2.B))
+func (r RGB) distanceTo(r2 RGB) int {
+	dr := int(math.Abs(float64(r.R) - float64(r2.R)))
+	dg := int(math.Abs(float64(r.G) - float64(r2.G)))
+	db := int(math.Abs(float64(r.B) - float64(r2.B)))
 	return dr + dg + db
 }

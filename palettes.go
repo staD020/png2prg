@@ -56,8 +56,8 @@ var c64palettes = map[string][16]colorInfo{
 		{15, RGB{0x95, 0x95, 0x95}},
 	},
 	"pantaloon": {
-		{0, RGB{0, 0, 0}},
-		{1, RGB{255, 255, 255}},
+		{0, RGB{0x00, 0x00, 0x00}},
+		{1, RGB{0xff, 0xff, 0xff}},
 		{2, RGB{104, 55, 43}},
 		{3, RGB{131, 240, 220}},
 		{4, RGB{111, 61, 134}},

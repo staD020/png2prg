@@ -6,7 +6,7 @@ import (
 	"sort"
 )
 
-func sortColors(charColors map[RGB]byte) (cc []colorInfo) {
+func sortColors(charColors PaletteMap) (cc []colorInfo) {
 	i := 0
 	for rgb, colorIndex := range charColors {
 		cc = append(cc, colorInfo{RGB: rgb, ColorIndex: colorIndex})
@@ -18,9 +18,9 @@ func sortColors(charColors map[RGB]byte) (cc []colorInfo) {
 	return cc
 }
 
-func (img *sourceImage) multiColorIndexes(cc []colorInfo) (map[RGB]byte, map[byte]byte, error) {
+func (img *sourceImage) multiColorIndexes(cc []colorInfo) (PaletteMap, map[byte]byte, error) {
 	// rgb to bitpair
-	colorIndex1 := make(map[RGB]byte)
+	colorIndex1 := make(PaletteMap)
 	// bitpair to colorindex
 	colorIndex2 := make(map[byte]byte)
 
@@ -206,7 +206,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 		}
 	}
 
-	colorIndex1 := map[RGB]byte{}
+	colorIndex1 := PaletteMap{}
 	colorIndex2 := map[byte]byte{}
 	bit := byte(0)
 	for _, ci := range cc {
@@ -458,7 +458,7 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 	s.BackgroundColor = cc[0].ColorIndex
 	s.SpriteColor = cc[1].ColorIndex
 
-	colorIndex1 := map[RGB]byte{}
+	colorIndex1 := PaletteMap{}
 	colorIndex2 := map[byte]byte{}
 	bit := byte(0)
 	for _, ci := range cc {
