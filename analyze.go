@@ -148,13 +148,15 @@ func (img *sourceImage) hasSpriteDimensions() bool {
 	return (img.width%24 == 0) && (img.height%21 == 0)
 }
 
-func (img *sourceImage) analyze() error {
-	img.analyzePalette()
+func (img *sourceImage) analyze() (err error) {
+	if err = img.analyzePalette(); err != nil {
+		return fmt.Errorf("analyzePalette failed: %w", err)
+	}
 	if img.hasSpriteDimensions() {
 		return img.analyzeSprites()
 	}
 
-	if err := img.makeCharColors(); err != nil {
+	if err = img.makeCharColors(); err != nil {
 		return fmt.Errorf("img.makeCharColors failed: %w", err)
 	}
 
@@ -193,13 +195,13 @@ func (img *sourceImage) analyze() error {
 			}
 		}
 	}
-	if err := img.findBorderColor(); err != nil {
+	if err = img.findBorderColor(); err != nil {
 		if verbose {
 			log.Printf("skipping: findBorderColor failed: %v", err)
 		}
 	}
 	if img.graphicsType == multiColorBitmap {
-		if err := img.findBackgroundColor(); err != nil {
+		if err = img.findBackgroundColor(); err != nil {
 			return fmt.Errorf("findBackgroundColor failed: %w", err)
 		}
 	}
@@ -570,7 +572,7 @@ func xyFromChar(i int) (int, int) {
 }
 
 // analyzePalette finds the closest paletteMap and sets img.palette
-func (img *sourceImage) analyzePalette() {
+func (img *sourceImage) analyzePalette() error {
 	minDistance := int(9e9)
 	paletteName := ""
 	paletteMap := make(PaletteMap)
@@ -587,12 +589,23 @@ func (img *sourceImage) analyzePalette() {
 			break
 		}
 	}
+
+	m := [16]bool{}
+	for _, ci := range paletteMap {
+		if m[ci] {
+			log.Printf("source colors: %#v", img.colors)
+			log.Printf("palette: %#v", paletteMap)
+			return fmt.Errorf("unable to properly detect palette.")
+		}
+		m[ci] = true
+	}
+
 	if verbose {
 		log.Printf("%v palette found: %v distance: %v", img.sourceFilename, paletteName, minDistance)
 		log.Printf("palette: %s", paletteMap)
 	}
 	img.palette = paletteMap
-	return
+	return nil
 }
 
 func (img *sourceImage) setSourceColors() {
@@ -620,9 +633,6 @@ func (img *sourceImage) distanceAndMap(palette [16]colorInfo) (int, PaletteMap) 
 			d := 0
 			m[rgb], d = rgb.colorIndexAndDistance(palette)
 			totalDistance += d
-			if len(m) == 16 {
-				return totalDistance, m
-			}
 		}
 	}
 	return totalDistance, m
