@@ -1,4 +1,4 @@
-package main
+package png2prg
 
 var c64palettes = map[string][16]colorInfo{
 	"vice": {

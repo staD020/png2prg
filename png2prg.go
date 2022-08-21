@@ -1,4 +1,4 @@
-package main
+package png2prg
 
 import (
 	"bytes"
@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	version         = "1.3.5-dev"
+	Version         = "1.3.5-dev"
 	displayerJumpTo = "$0822"
 )
 
@@ -55,7 +55,7 @@ const (
 	multiColorSprites
 )
 
-func stringToGraphicsType(s string) GraphicsType {
+func StringToGraphicsType(s string) GraphicsType {
 	switch s {
 	case "koala":
 		return multiColorBitmap
@@ -140,6 +140,7 @@ func (m PaletteMap) String() string {
 
 type sourceImage struct {
 	sourceFilename         string
+	opt                    Options
 	image                  image.Image
 	xOffset                int
 	yOffset                int
@@ -176,6 +177,7 @@ type Koala struct {
 	D800Color       [1000]byte
 	BackgroundColor byte
 	BorderColor     byte
+	opt             Options
 }
 
 type Hires struct {
@@ -183,6 +185,7 @@ type Hires struct {
 	Bitmap         [8000]byte
 	ScreenColor    [1000]byte
 	BorderColor    byte
+	opt            Options
 }
 
 type MultiColorCharset struct {
@@ -194,6 +197,7 @@ type MultiColorCharset struct {
 	D022Color       byte
 	D023Color       byte
 	BorderColor     byte
+	opt             Options
 }
 
 type SingleColorCharset struct {
@@ -203,6 +207,7 @@ type SingleColorCharset struct {
 	CharColor       byte
 	BackgroundColor byte
 	BorderColor     byte
+	opt             Options
 }
 
 type SingleColorSprites struct {
@@ -212,6 +217,7 @@ type SingleColorSprites struct {
 	BackgroundColor byte
 	Columns         byte
 	Rows            byte
+	opt             Options
 }
 
 type MultiColorSprites struct {
@@ -223,6 +229,7 @@ type MultiColorSprites struct {
 	D026Color       byte
 	Columns         byte
 	Rows            byte
+	opt             Options
 }
 
 var displayers = make(map[GraphicsType][]byte, 0)
@@ -271,9 +278,10 @@ type converter struct {
 }
 
 type Options struct {
-	OutPath             string
+	OutFile             string
 	TargetDir           string
 	Verbose             bool
+	Quiet               bool
 	Display             bool
 	NoPackChars         bool
 	NoCrunch            bool
@@ -298,16 +306,17 @@ func New(in map[string]io.Reader, opt Options) (*converter, error) {
 			if err != nil {
 				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", path, err)
 			}
-			if verbose {
+			if opt.Verbose {
 				log.Printf("file %q has %d frames", path, len(g.Image))
 			}
 			for i, rawImage := range g.Image {
 				img := sourceImage{
 					sourceFilename: path,
+					opt:            opt,
 					image:          rawImage,
 				}
-				if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
-					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)
+				if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
+					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 				}
 				if err = img.checkBounds(); err != nil {
 					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", path, i, err)
@@ -315,9 +324,12 @@ func New(in map[string]io.Reader, opt Options) (*converter, error) {
 				imgs = append(imgs, img)
 			}
 		default:
-			img := sourceImage{sourceFilename: path}
-			if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
-				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)
+			img := sourceImage{
+				sourceFilename: path,
+				opt:            opt,
+			}
+			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
+				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 			}
 			if img.image, _, err = image.Decode(r); err != nil {
 				return nil, fmt.Errorf("image.Decode failed: %w", err)
@@ -331,7 +343,7 @@ func New(in map[string]io.Reader, opt Options) (*converter, error) {
 	return &converter{images: imgs, opt: opt}, nil
 }
 
-func NewFromPath(filenames []string, opt Options) (*converter, error) {
+func NewFromPath(opt Options, filenames ...string) (*converter, error) {
 	m := make(map[string]io.Reader, len(filenames))
 	for _, path := range filenames {
 		f, err := os.Open(path)
@@ -349,11 +361,11 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		return 0, fmt.Errorf("no images found")
 	}
 	if len(c.images) > 1 {
-		return 0, fmt.Errorf("%d images found", len(c.images))
+		return c.WriteAnimationTo(w)
 	}
 
 	img := c.images[0]
-	if verbose {
+	if c.opt.Verbose {
 		log.Printf("processing file %q", img.sourceFilename)
 	}
 	if err = img.analyze(); err != nil {
@@ -372,10 +384,10 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		}
 	case singleColorCharset:
 		if wt, err = img.convertToSingleColorCharset(); err != nil {
-			if graphicsMode != "" {
+			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("convertToSingleColorCharset %q failed: %w", img.sourceFilename, err)
 			}
-			if !quiet {
+			if !c.opt.Quiet {
 				fmt.Printf("falling back to %s because convertToSingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
 			}
 			img.graphicsType = singleColorBitmap
@@ -385,10 +397,10 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		}
 	case multiColorCharset:
 		if wt, err = img.convertToMultiColorCharset(); err != nil {
-			if graphicsMode != "" {
+			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("convertToMultiColorCharset %q failed: %w", img.sourceFilename, err)
 			}
-			if !quiet {
+			if !c.opt.Quiet {
 				fmt.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
 			}
 			img.graphicsType = multiColorBitmap
@@ -412,126 +424,27 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		return 0, fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
 	}
 
-	if display && !noCrunch {
-		wt, err = injectCrunch(wt)
+	if c.opt.Display && !c.opt.NoCrunch {
+		wt, err = injectCrunch(wt, c.opt.Verbose)
 		if err != nil {
 			return 0, fmt.Errorf("injectCrunch failed: %w", err)
 		}
-		if !quiet {
+		if !c.opt.Quiet {
 			fmt.Println("packing with TSCrunch...")
 		}
 	}
-	return wt.WriteTo(w)
-}
-
-func processFiles(filenames []string) (err error) {
-	if len(filenames) < 1 {
-		log.Println("no files supplied, nothing to do.")
-		return nil
-	}
-
-	imgs, err := newSourceImages(filenames)
-	switch {
-	case err != nil:
-		return fmt.Errorf("newSourceImages failed: %w", err)
-	case len(imgs) == 0:
-		return fmt.Errorf("no images found")
-	case len(imgs) > 1:
-		if err = handleAnimation(imgs); err != nil {
-			return fmt.Errorf("handleAnimation failed: %w", err)
-		}
-		return nil
-	}
-
-	img := imgs[0]
-	if verbose {
-		log.Printf("processing file %q", img.sourceFilename)
-	}
-	if err = img.analyze(); err != nil {
-		return fmt.Errorf("analyze %q failed: %w", img.sourceFilename, err)
-	}
-
-	var c io.WriterTo
-	switch img.graphicsType {
-	case multiColorBitmap:
-		if c, err = img.convertToKoala(); err != nil {
-			return fmt.Errorf("convertToKoala %q failed: %w", img.sourceFilename, err)
-		}
-	case singleColorBitmap:
-		if c, err = img.convertToHires(); err != nil {
-			return fmt.Errorf("convertToHires %q failed: %w", img.sourceFilename, err)
-		}
-	case singleColorCharset:
-		if c, err = img.convertToSingleColorCharset(); err != nil {
-			if graphicsMode != "" {
-				return fmt.Errorf("convertToSingleColorCharset %q failed: %w", img.sourceFilename, err)
-			}
-			if !quiet {
-				fmt.Printf("falling back to %s because convertToSingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
-			}
-			img.graphicsType = singleColorBitmap
-			if c, err = img.convertToHires(); err != nil {
-				return fmt.Errorf("convertToHires %q failed: %w", img.sourceFilename, err)
-			}
-		}
-	case multiColorCharset:
-		if c, err = img.convertToMultiColorCharset(); err != nil {
-			if graphicsMode != "" {
-				return fmt.Errorf("convertToMultiColorCharset %q failed: %w", img.sourceFilename, err)
-			}
-			if !quiet {
-				fmt.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
-			}
-			img.graphicsType = multiColorBitmap
-			err = img.findBackgroundColor()
-			if err != nil {
-				return fmt.Errorf("findBackgroundColor %q failed: %w", img.sourceFilename, err)
-			}
-			if c, err = img.convertToKoala(); err != nil {
-				return fmt.Errorf("convertToKoala %q failed: %w", img.sourceFilename, err)
-			}
-		}
-	case singleColorSprites:
-		if c, err = img.convertToSingleColorSprites(); err != nil {
-			return fmt.Errorf("convertToSingleColorSprites %q failed: %w", img.sourceFilename, err)
-		}
-	case multiColorSprites:
-		if c, err = img.convertToMultiColorSprites(); err != nil {
-			return fmt.Errorf("convertToMultiColorSprites %q failed: %w", img.sourceFilename, err)
-		}
-	default:
-		return fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
-	}
-
-	if display && !noCrunch {
-		c, err = injectCrunch(c)
-		if err != nil {
-			return fmt.Errorf("injectCrunch failed: %w", err)
-		}
-		if !quiet {
-			fmt.Println("packing with TSCrunch...")
-		}
-	}
-
-	destFilename := destinationFilename(img.sourceFilename)
-	f, err := os.Create(destFilename)
+	n, err = wt.WriteTo(w)
 	if err != nil {
-		return fmt.Errorf("os.Create %q failed: %w", destFilename, err)
+		return n, fmt.Errorf("WriteTo failed: %w", err)
 	}
-	defer f.Close()
-
-	if _, err = c.WriteTo(f); err != nil {
-		return fmt.Errorf("WriteTo %q failed: %w", destFilename, err)
+	if !c.opt.Quiet {
+		fmt.Printf("write %q\n", c.opt.OutFile)
 	}
-	if !quiet {
-		fmt.Printf("converted %q to %q in %q format\n", img.sourceFilename, destFilename, img.graphicsType)
-	}
-
-	return nil
+	return n, nil
 }
 
 // injectCrunch drains the input io.WriterTo and returns a new TSCrunch WriterTo.
-func injectCrunch(c io.WriterTo) (io.WriterTo, error) {
+func injectCrunch(c io.WriterTo, verbose bool) (io.WriterTo, error) {
 	buf := &bytes.Buffer{}
 	if _, err := c.WriteTo(buf); err != nil {
 		return nil, fmt.Errorf("WriteTo buffer failed: %w", err)
@@ -584,16 +497,16 @@ func injectSIDHeader(header []byte, s *sid.SID) []byte {
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
-	if !display {
+	if !k.opt.Display {
 		return writeData(w, [][]byte{defaultHeader(), k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
 	}
 	header := newHeader(multiColorBitmap)
-	if includeSID == "" {
+	if k.opt.IncludeSID == "" {
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
 	}
 
-	s, err := sid.LoadSID(includeSID)
+	s, err := sid.LoadSID(k.opt.IncludeSID)
 	if err != nil {
 		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
 	}
@@ -608,8 +521,8 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 		if len(header) > 0x2000-0x7ff {
 			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
-		if !quiet {
-			fmt.Printf("injected %q: %s\n", includeSID, s)
+		if !k.opt.Quiet {
+			fmt.Printf("injected %q: %s\n", k.opt.IncludeSID, s)
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
@@ -623,23 +536,23 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	if err != nil {
 		return n, err
 	}
-	if !quiet {
-		fmt.Printf("injected %q: %s\n", includeSID, s)
+	if !k.opt.Quiet {
+		fmt.Printf("injected %q: %s\n", k.opt.IncludeSID, s)
 	}
 	return n, nil
 }
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
-	if !display {
+	if !h.opt.Display {
 		return writeData(w, [][]byte{defaultHeader(), h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
 	}
 	header := newHeader(singleColorBitmap)
-	if includeSID == "" {
+	if h.opt.IncludeSID == "" {
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
 	}
 
-	s, err := sid.LoadSID(includeSID)
+	s, err := sid.LoadSID(h.opt.IncludeSID)
 	if err != nil {
 		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
 	}
@@ -654,8 +567,8 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 		if len(header) > 0x2000-0x7ff {
 			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
-		if !quiet {
-			fmt.Printf("injected %q: %s\n", includeSID, s)
+		if !h.opt.Quiet {
+			fmt.Printf("injected %q: %s\n", h.opt.IncludeSID, s)
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
 		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
@@ -669,15 +582,15 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	if err != nil {
 		return n, err
 	}
-	if !quiet {
-		fmt.Printf("injected %q: %s\n", includeSID, s)
+	if !h.opt.Quiet {
+		fmt.Printf("injected %q: %s\n", h.opt.IncludeSID, s)
 	}
 	return n, nil
 }
 
 func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
-	if display {
+	if c.opt.Display {
 		header = newHeader(multiColorCharset)
 	}
 	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], {c.CharColor, c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor}})
@@ -685,7 +598,7 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
-	if display {
+	if c.opt.Display {
 		header = newHeader(singleColorCharset)
 	}
 	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], {c.CharColor, c.BackgroundColor}})
@@ -693,7 +606,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
-	if display {
+	if s.opt.Display {
 		header = newHeader(singleColorSprites)
 		header = append(header, s.Columns, s.Rows, s.BackgroundColor, s.SpriteColor)
 	}
@@ -702,7 +615,7 @@ func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 
 func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
-	if display {
+	if s.opt.Display {
 		header = newHeader(multiColorSprites)
 		header = append(header, s.Columns, s.Rows, s.BackgroundColor, s.D025Color, s.SpriteColor, s.D026Color)
 	}
@@ -721,12 +634,12 @@ func writeData(w io.Writer, data [][]byte) (n int64, err error) {
 	return n, nil
 }
 
-func destinationFilename(filename string) (destfilename string) {
-	if len(targetdir) > 0 {
-		destfilename = filepath.Dir(targetdir+string(os.PathSeparator)) + string(os.PathSeparator)
+func DestinationFilename(filename string, opt Options) (destfilename string) {
+	if len(opt.TargetDir) > 0 {
+		destfilename = filepath.Dir(opt.TargetDir+string(os.PathSeparator)) + string(os.PathSeparator)
 	}
-	if len(outfile) > 0 {
-		return destfilename + outfile
+	if len(opt.OutFile) > 0 {
+		return destfilename + opt.OutFile
 	}
 	return destfilename + filepath.Base(strings.TrimSuffix(filename, filepath.Ext(filename))+".prg")
 }

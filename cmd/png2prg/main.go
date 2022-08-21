@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/staD020/png2prg"
 )
 
 var (
@@ -27,7 +29,7 @@ var (
 	includeSID          string
 	frameDelay          int
 	waitSeconds         int
-	currentGraphicsType GraphicsType
+	currentGraphicsType png2prg.GraphicsType
 )
 
 func init() {
@@ -66,17 +68,18 @@ func main() {
 	flag.Parse()
 	filenames := flag.Args()
 	if !quiet {
-		fmt.Printf("png2prg %v by burg\n", version)
+		fmt.Printf("png2prg %v by burg\n", png2prg.Version)
 	}
 
 	if help {
 		printHelp()
+		return
 	}
 	if len(filenames) == 0 {
 		printUsage()
 		os.Exit(0)
 	}
-	currentGraphicsType = stringToGraphicsType(graphicsMode)
+	currentGraphicsType = png2prg.StringToGraphicsType(graphicsMode)
 	if forceBorderColor > 15 {
 		forceBorderColor = -1
 	}
@@ -90,8 +93,41 @@ func main() {
 		log.Fatalf("expandWildcards failed: %v", err)
 	}
 
-	if err := processFiles(filenames); err != nil {
-		log.Fatalf("processFiles failed: %v", err)
+	opt := png2prg.Options{
+		OutFile:             outfile,
+		TargetDir:           targetdir,
+		Display:             display,
+		Verbose:             verbose,
+		Quiet:               quiet,
+		NoPackChars:         noPackChars,
+		NoCrunch:            noCrunch,
+		AlternativeFade:     alternativeFade,
+		BitpairColorsString: bitpairColorsString,
+		NoGuess:             noGuess,
+		GraphicsMode:        graphicsMode,
+		FrameDelay:          frameDelay,
+		WaitSeconds:         waitSeconds,
+		ForceBorderColor:    forceBorderColor,
+		IncludeSID:          includeSID,
+	}
+	opt.OutFile = png2prg.DestinationFilename(filenames[0], opt)
+
+	//	if err := png2prg.ProcessFiles(opt, filenames...); err != nil {
+	//		log.Fatalf("ProcessFiles failed: %v", err)
+	//	}
+
+	w, err := os.Create(opt.OutFile)
+	if err != nil {
+		log.Fatalf("os.Create failed: %v", err)
+	}
+	defer w.Close()
+	p, err := png2prg.NewFromPath(opt, filenames...)
+	if err != nil {
+		log.Fatalf("NewFromPath failed: %v", err)
+	}
+	_, err = p.WriteTo(w)
+	if err != nil {
+		log.Fatalf("WriteTo failed: %v", err)
 	}
 
 	if !quiet {

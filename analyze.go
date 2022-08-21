@@ -1,4 +1,4 @@
-package main
+package png2prg
 
 import (
 	"fmt"
@@ -13,9 +13,10 @@ import (
 	"strings"
 )
 
-func newSourceImage(filename string) (img sourceImage, err error) {
+func newSourceImage(filename string, opt Options) (img sourceImage, err error) {
 	img.sourceFilename = filename
-	if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
+	img.opt = opt
+	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 		return img, fmt.Errorf("setPreferredBitpairColors failed: %w", err)
 	}
 	f, err := os.Open(filename)
@@ -29,13 +30,13 @@ func newSourceImage(filename string) (img sourceImage, err error) {
 	if err = img.checkBounds(); err != nil {
 		return img, fmt.Errorf("img.checkBounds failed %q: %w", filename, err)
 	}
-	if verbose && (img.xOffset != 0 || img.yOffset != 0) {
+	if opt.Verbose && (img.xOffset != 0 || img.yOffset != 0) {
 		log.Printf("img.xOffset, yOffset = %d, %d\n", img.xOffset, img.yOffset)
 	}
 	return img, nil
 }
 
-func newSourceImages(filenames []string) (imgs []sourceImage, err error) {
+func newSourceImages(filenames []string, opt Options) (imgs []sourceImage, err error) {
 	for _, filename := range filenames {
 		switch strings.ToLower(filepath.Ext(filename)) {
 		case ".gif":
@@ -49,17 +50,18 @@ func newSourceImages(filenames []string) (imgs []sourceImage, err error) {
 			if err != nil {
 				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", filename, err)
 			}
-			if verbose {
+			if opt.Verbose {
 				log.Printf("file %q has %d frames", filename, len(g.Image))
 			}
 
 			for i, rawImage := range g.Image {
 				img := sourceImage{
+					opt:            opt,
 					sourceFilename: filename,
 					image:          rawImage,
 				}
-				if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
-					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)
+				if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
+					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 				}
 				if err = img.checkBounds(); err != nil {
 					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", filename, i, err)
@@ -67,7 +69,7 @@ func newSourceImages(filenames []string) (imgs []sourceImage, err error) {
 				imgs = append(imgs, img)
 			}
 		default:
-			img, err := newSourceImage(filename)
+			img, err := newSourceImage(filename, opt)
 			if err != nil {
 				return nil, fmt.Errorf("newSourceImage %q failed: %w", filename, err)
 			}
@@ -84,7 +86,7 @@ func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 	if img.preferredBitpairColors, err = parseBitPairColors(v); err != nil {
 		return fmt.Errorf("parseBitPairColors %q failed: %w", v, err)
 	}
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("will prefer bitpair colors: %v", img.preferredBitpairColors)
 	}
 	return nil
@@ -122,8 +124,8 @@ func (img *sourceImage) checkBounds() error {
 		return nil
 	case img.hasSpriteDimensions():
 		return nil
-	case currentGraphicsType == singleColorSprites || currentGraphicsType == multiColorSprites:
-		if verbose {
+	case img.opt.CurrentGraphicsType == singleColorSprites || img.opt.CurrentGraphicsType == multiColorSprites:
+		if img.opt.Verbose {
 			log.Printf("sprites forced, allowing non-sprite dimension %d * %d", img.width, img.height)
 		}
 		if img.width%24 == 0 {
@@ -136,7 +138,7 @@ func (img *sourceImage) checkBounds() error {
 		} else {
 			img.height = int(math.Floor(float64(img.height)/21)+1) * 21
 		}
-		if verbose {
+		if img.opt.Verbose {
 			log.Printf("forcing dimension %d * %d", img.width, img.height)
 		}
 		return nil
@@ -161,11 +163,11 @@ func (img *sourceImage) analyze() (err error) {
 	}
 
 	max, _ := img.maxColorsPerChar()
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("max colors per char: %d\n", max)
 	}
 	numColors, colorIndexes, sumColors := img.countColors()
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("total colors: %d (%v)\n", numColors, colorIndexes)
 	}
 
@@ -181,13 +183,13 @@ func (img *sourceImage) analyze() (err error) {
 	case max > 2:
 		img.graphicsType = multiColorBitmap
 	}
-	if !quiet {
+	if !img.opt.Quiet {
 		fmt.Printf("file %q has graphics mode: %s\n", img.sourceFilename, img.graphicsType)
 	}
-	if graphicsMode != "" {
-		if img.graphicsType != currentGraphicsType {
-			img.graphicsType = currentGraphicsType
-			if !quiet {
+	if img.opt.GraphicsMode != "" {
+		if img.graphicsType != img.opt.CurrentGraphicsType {
+			img.graphicsType = img.opt.CurrentGraphicsType
+			if !img.opt.Quiet {
 				fmt.Printf("graphics mode forced: %s\n", img.graphicsType)
 			}
 			if img.graphicsType == singleColorCharset && numColors > 2 {
@@ -196,7 +198,7 @@ func (img *sourceImage) analyze() (err error) {
 		}
 	}
 	if err = img.findBorderColor(); err != nil {
-		if verbose {
+		if img.opt.Verbose {
 			log.Printf("skipping: findBorderColor failed: %v", err)
 		}
 	}
@@ -205,7 +207,7 @@ func (img *sourceImage) analyze() (err error) {
 			return fmt.Errorf("findBackgroundColor failed: %w", err)
 		}
 	}
-	if !noGuess {
+	if !img.opt.NoGuess {
 		if img.graphicsType == multiColorBitmap && max < 4 {
 			max = 4
 		}
@@ -228,13 +230,13 @@ func (img *sourceImage) analyzeSprites() error {
 		return fmt.Errorf("too many colors %d > 4", len(img.palette))
 	}
 
-	if !quiet {
+	if !img.opt.Quiet {
 		fmt.Printf("graphics mode found: %s\n", img.graphicsType)
 	}
-	if graphicsMode != "" {
-		if img.graphicsType != currentGraphicsType {
-			img.graphicsType = currentGraphicsType
-			if !quiet {
+	if img.opt.GraphicsMode != "" {
+		if img.graphicsType != img.opt.CurrentGraphicsType {
+			img.graphicsType = img.opt.CurrentGraphicsType
+			if !img.opt.Quiet {
 				fmt.Printf("graphics mode forced: %s\n", img.graphicsType)
 			}
 		}
@@ -243,7 +245,7 @@ func (img *sourceImage) analyzeSprites() error {
 	if err := img.findBackgroundColor(); err != nil {
 		return fmt.Errorf("findBackgroundColor failed: %w", err)
 	}
-	if noGuess {
+	if img.opt.NoGuess {
 		return nil
 	}
 	max, _, sumColors := img.countSpriteColors()
@@ -255,7 +257,7 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 	if len(img.preferredBitpairColors) >= maxColors {
 		return
 	}
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("sumColors: %v", sumColors)
 	}
 	if img.graphicsType == multiColorBitmap && len(img.preferredBitpairColors) == 0 {
@@ -282,7 +284,7 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 		img.preferredBitpairColors = append(img.preferredBitpairColors, colorIndex)
 		sumColors[colorIndex] = 0
 	}
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("guessed some -bitpair-colors %v", img.preferredBitpairColors)
 	}
 
@@ -291,11 +293,11 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 			if v != 0 {
 				continue
 			}
-			if verbose {
+			if img.opt.Verbose {
 				log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %v", maxColors, img.preferredBitpairColors)
 			}
 			img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
-			if verbose {
+			if img.opt.Verbose {
 				log.Printf("now using -bitpair-colors %v", img.preferredBitpairColors)
 			}
 			break
@@ -385,7 +387,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 			candidates[k] = v
 		}
 	}
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("all BackgroundColor candidates: %v", candidates)
 	}
 
@@ -397,7 +399,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 		}
 	}
 	img.backgroundCandidates = candidates
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("final BackgroundColor candidates = %v", img.backgroundCandidates)
 	}
 	return
@@ -433,7 +435,7 @@ func (img *sourceImage) findBackgroundColor() error {
 	if isSprites {
 		for rgb, colorIndex = range img.palette {
 			if colorIndex == byte(forceBgCol) {
-				if verbose {
+				if img.opt.Verbose {
 					log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 				}
 				img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
@@ -450,13 +452,13 @@ func (img *sourceImage) findBackgroundColor() error {
 	for rgb, colorIndex = range img.backgroundCandidates {
 		switch {
 		case forceBgCol < 0:
-			if verbose {
+			if img.opt.Verbose {
 				log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 			}
 			img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
 			return nil
 		case colorIndex == byte(forceBgCol):
-			if verbose {
+			if img.opt.Verbose {
 				log.Printf("findBackgroundColor: found preferred background color %d\n", forceBgCol)
 			}
 			img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
@@ -465,7 +467,7 @@ func (img *sourceImage) findBackgroundColor() error {
 	}
 
 	for rgb, colorIndex = range img.backgroundCandidates {
-		if verbose {
+		if img.opt.Verbose {
 			log.Printf("findBackgroundColor: we tried looking for color %d, but we have to settle for color %d\n", forceBgCol, colorIndex)
 		}
 		img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
@@ -475,20 +477,20 @@ func (img *sourceImage) findBackgroundColor() error {
 }
 
 func (img *sourceImage) findBorderColor() error {
-	if forceBorderColor >= 0 && forceBorderColor < 16 {
+	if img.opt.ForceBorderColor >= 0 && img.opt.ForceBorderColor < 16 {
 		for rgb, ci := range img.palette {
-			if ci == byte(forceBorderColor) {
+			if ci == byte(img.opt.ForceBorderColor) {
 				img.borderColor = colorInfo{RGB: rgb, ColorIndex: ci}
-				if verbose {
+				if img.opt.Verbose {
 					log.Printf("force BorderColor: %v", img.borderColor)
 				}
 				return nil
 			}
 		}
-		img.borderColor = colorInfo{RGB: RGB{0x12, 0x34, 0x56}, ColorIndex: byte(forceBorderColor)}
-		if verbose {
-			log.Printf("BorderColor %d not found in palette: %s", forceBorderColor, img.palette)
-			log.Printf("forcing BorderColor %d anyway: %v", forceBorderColor, img.borderColor)
+		img.borderColor = colorInfo{RGB: RGB{0x12, 0x34, 0x56}, ColorIndex: byte(img.opt.ForceBorderColor)}
+		if img.opt.Verbose {
+			log.Printf("BorderColor %d not found in palette: %s", img.opt.ForceBorderColor, img.palette)
+			log.Printf("forcing BorderColor %d anyway: %v", img.opt.ForceBorderColor, img.borderColor)
 		}
 		return nil
 	}
@@ -498,7 +500,7 @@ func (img *sourceImage) findBorderColor() error {
 	rgb := img.colorAtXY(-10, -10)
 	if ci, ok := img.palette[rgb]; ok {
 		img.borderColor = colorInfo{RGB: rgb, ColorIndex: ci}
-		if verbose {
+		if img.opt.Verbose {
 			log.Printf("findBorderColor found: %s", img.borderColor)
 		}
 		return nil
@@ -579,7 +581,7 @@ func (img *sourceImage) analyzePalette() error {
 	img.setSourceColors()
 	for name, palette := range c64palettes {
 		distance, curMap := img.distanceAndMap(palette)
-		if verbose {
+		if img.opt.Verbose {
 			log.Printf("%q distance: %v\n", name, distance)
 		}
 		if distance < minDistance {
@@ -600,7 +602,7 @@ func (img *sourceImage) analyzePalette() error {
 		m[ci] = true
 	}
 
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("%v palette found: %v distance: %v", img.sourceFilename, paletteName, minDistance)
 		log.Printf("palette: %s", paletteMap)
 	}

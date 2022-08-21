@@ -1,14 +1,10 @@
-package main
+package png2prg
 
 import (
 	"bytes"
 	"fmt"
 	"io"
 	"log"
-	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/staD020/TSCrunch"
 	"github.com/staD020/sid"
@@ -24,22 +20,24 @@ const (
 	hiresAnimationStart = 0x4400
 )
 
-func handleAnimation(imgs []sourceImage) error {
+func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	var kk []Koala
 	var hh []Hires
 	var scSprites []SingleColorSprites
 	var mcSprites []MultiColorSprites
+	imgs := c.images
 	if len(imgs) < 1 {
-		return fmt.Errorf("no sourceImage given")
+		return n, fmt.Errorf("no sourceImage given")
 	}
+	opt := imgs[0].opt
 	currentGraphicsType := imgs[0].graphicsType
 	currentBitpairColors := bitpairColors{}
 	for i, img := range imgs {
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("processing %q frame %d\n", img.sourceFilename, i)
 		}
 		if img.graphicsType != currentGraphicsType {
-			return fmt.Errorf("mixed graphicsmodes detected %q != %q", img.graphicsType, currentGraphicsType)
+			return n, fmt.Errorf("mixed graphicsmodes detected %q != %q", img.graphicsType, currentGraphicsType)
 		}
 		if err := img.analyze(); err != nil {
 			log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)
@@ -51,203 +49,189 @@ func handleAnimation(imgs []sourceImage) error {
 		if currentBitpairColors.String() != img.preferredBitpairColors.String() {
 			log.Printf("bitpairColors %q of the previous frame do not equal current frame %q", currentBitpairColors, img.preferredBitpairColors)
 			log.Println("this would cause huge animation frame sizes and probably crash the displayer")
-			return fmt.Errorf("bitpairColors differ between frames, maybe use -bitpair-colors %s", currentBitpairColors)
+			return n, fmt.Errorf("bitpairColors differ between frames, maybe use -bitpair-colors %s", currentBitpairColors)
 		}
 		switch img.graphicsType {
 		case multiColorBitmap:
 			k, err := img.convertToKoala()
 			if err != nil {
-				return fmt.Errorf("convertToKoala failed: %w", err)
+				return n, fmt.Errorf("convertToKoala failed: %w", err)
 			}
 			kk = append(kk, k)
 		case singleColorBitmap:
 			h, err := img.convertToHires()
 			if err != nil {
-				return fmt.Errorf("convertToHires failed: %w", err)
+				return n, fmt.Errorf("convertToHires failed: %w", err)
 			}
 			hh = append(hh, h)
 		case multiColorSprites:
 			s, err := img.convertToMultiColorSprites()
 			if err != nil {
-				return fmt.Errorf("convertToMultiColorSprites failed: %w", err)
+				return n, fmt.Errorf("convertToMultiColorSprites failed: %w", err)
 			}
 			mcSprites = append(mcSprites, s)
 		case singleColorSprites:
 			s, err := img.convertToSingleColorSprites()
 			if err != nil {
-				return fmt.Errorf("convertToSingleColorSprites failed: %w", err)
+				return n, fmt.Errorf("convertToSingleColorSprites failed: %w", err)
 			}
 			scSprites = append(scSprites, s)
 		default:
-			return fmt.Errorf("animations do not support %q yet", img.graphicsType)
+			return n, fmt.Errorf("animations do not support %q yet", img.graphicsType)
 		}
 	}
 
-	destFilename := destinationFilename(imgs[0].sourceFilename)
-	f, err := os.Create(destFilename)
-	if err != nil {
-		return fmt.Errorf("os.Create %q failed: %w", destFilename, err)
-	}
-	defer f.Close()
-
-	if display {
-		if err = writeAnimationDisplayerTo(f, imgs, kk, hh, scSprites, mcSprites); err != nil {
-			return fmt.Errorf("writeAnimationDisplayerTo %q failed: %w", f.Name(), err)
+	if opt.Display {
+		m, err := writeAnimationDisplayerTo(w, imgs, kk, hh, scSprites, mcSprites)
+		n += m
+		if err != nil {
+			return n, fmt.Errorf("writeAnimationDisplayerTo failed: %w", err)
 		}
-		if !quiet {
-			fmt.Printf("write %q\n", f.Name())
+		if !opt.Quiet {
+			fmt.Printf("write %q\n", opt.OutFile)
 		}
-		return nil
+		return n, nil
 	}
 
 	// export separate frame data (non displayer)
 	switch {
 	case len(kk) > 0:
-		if _, err = kk[0].WriteTo(f); err != nil {
-			return fmt.Errorf("WriteTo %q failed: %w", destFilename, err)
+		m, err := kk[0].WriteTo(w)
+		n += m
+		if err != nil {
+			return n, fmt.Errorf("WriteTo %q failed: %w", opt.OutFile, err)
 		}
-		if !quiet {
-			fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, destFilename)
+		if !opt.Quiet {
+			fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, opt.OutFile)
 		}
 
 		cc := make([]Charer, len(kk))
 		for i := range kk {
 			cc[i] = kk[i]
 		}
-		prgs, err := processAnimation(cc)
+		prgs, err := processAnimation(cc, opt)
 		if err != nil {
-			return fmt.Errorf("processKoalaAnimation failed: %w", err)
+			return n, fmt.Errorf("processAnimation failed: %w", err)
 		}
 
-		for i, prg := range prgs {
-			if err = writePrgFile(frameFilename(i, kk[0].SourceFilename), prg); err != nil {
-				return fmt.Errorf("writePrgFile failed: %w", err)
+		for i := range prgs {
+			m, err := w.Write(prgs[i])
+			n += int64(m)
+			if err != nil {
+				return n, fmt.Errorf("Write failed: %w", err)
 			}
 		}
-		return nil
+		return n, nil
 	case len(hh) > 0:
-		if _, err = hh[0].WriteTo(f); err != nil {
-			return fmt.Errorf("WriteTo %q failed: %w", destFilename, err)
+		m, err := hh[0].WriteTo(w)
+		n += int64(m)
+		if err != nil {
+			return n, fmt.Errorf("WriteTo %q failed: %w", opt.OutFile, err)
 		}
-		if !quiet {
-			fmt.Printf("converted %q to %q\n", hh[0].SourceFilename, destFilename)
+		if !opt.Quiet {
+			fmt.Printf("converted %q to %q\n", hh[0].SourceFilename, opt.OutFile)
 		}
 
 		cc := make([]Charer, len(hh))
 		for i := range hh {
 			cc[i] = hh[i]
 		}
-		prgs, err := processAnimation(cc)
+		prgs, err := processAnimation(cc, opt)
 		if err != nil {
-			return fmt.Errorf("processHiresAnimation failed: %w", err)
+			return n, fmt.Errorf("processHiresAnimation failed: %w", err)
 		}
-		for i, prg := range prgs {
-			if err = writePrgFile(frameFilename(i, hh[0].SourceFilename), prg); err != nil {
-				return fmt.Errorf("writePrgFile failed: %w", err)
+		for i := range prgs {
+			m, err := w.Write(prgs[i])
+			n += int64(m)
+			if err != nil {
+				return n, fmt.Errorf("Write failed: %w", err)
 			}
 		}
-		return nil
+		return n, nil
 	case len(mcSprites) > 0:
 		data := [][]byte{defaultHeader()}
 		for _, s := range mcSprites {
 			data = append(data, s.Bitmap)
-			if !quiet {
-				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
+			if !opt.Quiet {
+				fmt.Printf("converted %q to %q\n", s.SourceFilename, opt.OutFile)
 			}
 		}
-		if _, err = writeData(f, data); err != nil {
-			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
+		if _, err = writeData(w, data); err != nil {
+			return n, fmt.Errorf("writeData %q failed: %w", opt.OutFile, err)
 		}
-		return nil
+		return n, nil
 	case len(scSprites) > 0:
 		data := [][]byte{defaultHeader()}
 		for _, s := range scSprites {
 			data = append(data, s.Bitmap)
-			if !quiet {
-				fmt.Printf("converted %q to %q\n", s.SourceFilename, destFilename)
+			if !opt.Quiet {
+				fmt.Printf("converted %q to %q\n", s.SourceFilename, opt.OutFile)
 			}
 		}
-		if _, err = writeData(f, data); err != nil {
-			return fmt.Errorf("writeData %q failed: %w", destFilename, err)
+		if _, err = writeData(w, data); err != nil {
+			return n, fmt.Errorf("writeData %q failed: %w", opt.OutFile, err)
 		}
-		return nil
+		return n, nil
 	}
-	return fmt.Errorf("handleAnimation %q failed: no frames written", imgs[0].sourceFilename)
+	return n, fmt.Errorf("handleAnimation %q failed: no frames written", imgs[0].sourceFilename)
 }
 
-func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) (err error) {
+func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) (n int64, err error) {
 	buf := &bytes.Buffer{}
+	opt := imgs[0].opt
 	switch {
 	case len(kk) > 0:
 		// handle display koala animation
-		if noCrunch {
-			if _, err = WriteKoalaDisplayAnimTo(w, kk); err != nil {
-				return fmt.Errorf("WriteKoalaDisplayAnimTo failed: %w", err)
+		if opt.NoCrunch {
+			m, err := WriteKoalaDisplayAnimTo(w, kk)
+			n += m
+			if err != nil {
+				return n, fmt.Errorf("WriteKoalaDisplayAnimTo failed: %w", err)
 			}
-			return nil
+			return n, nil
 		}
 		if _, err = WriteKoalaDisplayAnimTo(buf, kk); err != nil {
-			return fmt.Errorf("WriteKoalaDisplayAnimTo buf failed: %w", err)
+			return n, fmt.Errorf("WriteKoalaDisplayAnimTo buf failed: %w", err)
 		}
 	case len(hh) > 0:
 		// handle display hires animation
-		if noCrunch {
-			if _, err = WriteHiresDisplayAnimTo(w, hh); err != nil {
-				return fmt.Errorf("WriteHiresDisplayAnimTo failed: %w", err)
+		if opt.NoCrunch {
+			m, err := WriteHiresDisplayAnimTo(w, hh)
+			n += m
+			if err != nil {
+				return n, fmt.Errorf("WriteHiresDisplayAnimTo failed: %w", err)
 			}
-			return nil
+			return n, nil
 		}
 		if _, err = WriteHiresDisplayAnimTo(buf, hh); err != nil {
-			return fmt.Errorf("WriteHiresDisplayAnimTo buf failed: %w", err)
+			return n, fmt.Errorf("WriteHiresDisplayAnimTo buf failed: %w", err)
 		}
 	default:
-		return fmt.Errorf("animation displayers do not support %q", imgs[0].graphicsType)
+		return n, fmt.Errorf("animation displayers do not support %q", imgs[0].graphicsType)
 	}
 
-	opt := TSCrunch.Options{
+	tscopt := TSCrunch.Options{
 		PRG:     true,
 		QUIET:   true,
 		INPLACE: false,
 		JumpTo:  displayerJumpTo,
 	}
-	if verbose {
-		opt.QUIET = false
+	if opt.Verbose {
+		tscopt.QUIET = false
 	}
-	tsc, err := TSCrunch.New(opt, buf)
+	tsc, err := TSCrunch.New(tscopt, buf)
 	if err != nil {
-		return fmt.Errorf("tscrunch.New failed: %w", err)
+		return n, fmt.Errorf("tscrunch.New failed: %w", err)
 	}
-	if !quiet {
+	if !opt.Quiet {
 		fmt.Println("packing with TSCrunch...")
 	}
-	if _, err = tsc.WriteTo(w); err != nil {
-		return fmt.Errorf("tsc.WriteTo failed: %w", err)
-	}
-	return nil
-}
-
-func frameFilename(i int, filename string) string {
-	d := destinationFilename(filename)
-	return strings.TrimSuffix(d, filepath.Ext(d)) + ".frame" + strconv.Itoa(i) + ".prg"
-}
-
-func writePrgFile(filename string, prg []byte) error {
-	if verbose {
-		log.Printf("going to write file %q", filename)
-	}
-	f, err := os.Create(filename)
+	m, err := tsc.WriteTo(w)
+	n += m
 	if err != nil {
-		return fmt.Errorf("os.Create %q failed: %w", filename, err)
+		return n, fmt.Errorf("tsc.WriteTo failed: %w", err)
 	}
-	defer f.Close()
-
-	if _, err = writeData(f, [][]byte{defaultHeader(), prg}); err != nil {
-		return fmt.Errorf("writeData %q failed: %w", filename, err)
-	}
-	if !quiet {
-		fmt.Printf("write %q\n", filename)
-	}
-	return nil
+	return n, nil
 }
 
 type Char interface {
@@ -277,14 +261,14 @@ func (c SingleColorChar) Bytes() (buf []byte) {
 	return append(buf, c.ScreenColor)
 }
 
-func processFramesOfChars(frames [][]Char) ([][]byte, error) {
+func processFramesOfChars(frames [][]Char, opt Options) ([][]byte, error) {
 	if len(frames) < 2 {
 		return nil, fmt.Errorf("insufficient number of images %d < 2", len(frames))
 	}
 
 	prgs := make([][]byte, 0)
 	for i, frame := range frames {
-		if verbose {
+		if opt.Verbose {
 			log.Printf("frame %d length in changed chars: %d", i, len(frame))
 		}
 
@@ -299,7 +283,7 @@ func processFramesOfChars(frames [][]Char) ([][]byte, error) {
 			default:
 				// new chunk
 				if curChunk.charCount > 0 {
-					if verbose {
+					if opt.Verbose {
 						log.Println(curChunk.String())
 					}
 					prg = append(prg, curChunk.export()...)
@@ -311,7 +295,7 @@ func processFramesOfChars(frames [][]Char) ([][]byte, error) {
 		}
 		// add last chunk
 		if curChunk.charCount > 0 {
-			if verbose {
+			if opt.Verbose {
 				log.Printf("last chunk: %s", curChunk.String())
 			}
 			prg = append(prg, curChunk.export()...)
@@ -324,11 +308,11 @@ func processFramesOfChars(frames [][]Char) ([][]byte, error) {
 	return prgs, nil
 }
 
-func processAnimation(imgs []Charer) ([][]byte, error) {
+func processAnimation(imgs []Charer, opt Options) ([][]byte, error) {
 	if len(imgs) < 2 {
 		return nil, fmt.Errorf("insufficient number of images %d < 2", len(imgs))
 	}
-	if verbose {
+	if opt.Verbose {
 		log.Printf("total number of frames: %d", len(imgs))
 	}
 
@@ -350,31 +334,32 @@ func processAnimation(imgs []Charer) ([][]byte, error) {
 			}
 		}
 	}
-	return processFramesOfChars(frames)
+	return processFramesOfChars(frames, opt)
 }
 
 func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	bgBorder := kk[0].BackgroundColor | kk[0].BorderColor<<4
 	header := append([]byte{}, koalaDisplayAnim...)
-	if alternativeFade {
+	opt := kk[0].opt
+	if opt.AlternativeFade {
 		header = append([]byte{}, koalaDisplayAnimAlternative...)
 	}
-	header[0x820-0x7ff] = byte(frameDelay)
-	header[0x821-0x7ff] = byte(waitSeconds)
+	header[0x820-0x7ff] = byte(opt.FrameDelay)
+	header[0x821-0x7ff] = byte(opt.WaitSeconds)
 
 	frames := make([]Charer, len(kk))
 	for i := range kk {
 		frames[i] = kk[i]
 	}
-	framePrgs, err := processAnimation(frames)
+	framePrgs, err := processAnimation(frames, opt)
 	if err != nil {
 		return n, err
 	}
-	if !quiet {
+	if !opt.Quiet {
 		fmt.Printf("memory usage for displayer code: 0x%04x - 0x%04x\n", 0x0801, len(header)+0x7ff)
 	}
 
-	if includeSID == "" {
+	if opt.IncludeSID == "" {
 		buf := make([]byte, 0, 64*1024)
 
 		header = zeroFill(header, bitmapStart-0x7ff-len(header))
@@ -383,7 +368,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		for _, bin := range out {
 			buf = append(buf, bin...)
 		}
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, len(buf)+0x7ff)
 		}
 		buf = zeroFill(buf, koalaAnimationStart-0x7ff-len(buf))
@@ -392,7 +377,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 			buf = append(buf, bin...)
 		}
 		buf = append(buf, 0xff)
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", t1+0x7ff, len(buf)+0x7ff)
 			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", koalaFadePassStart, 0xcfff)
 		}
@@ -401,26 +386,26 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		return n, err
 	}
 
-	s, err := sid.LoadSID(includeSID)
+	s, err := sid.LoadSID(opt.IncludeSID)
 	if err != nil {
-		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+		return n, fmt.Errorf("sid.LoadSID failed: %w", err)
 	}
 	header = injectSIDHeader(header, s)
 	load := s.LoadAddress()
 	switch {
 	case int(load) < len(header)+0x7ff:
-		return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
+		return n, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
 	case load > 0xdff && load < 0x1fff:
 		header = zeroFill(header, int(load)-0x7ff-len(header))
 		header = append(header, s.RawBytes()...)
 		if len(header) > bitmapStart-0x7ff {
-			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
+			return n, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
 		}
 		header = zeroFill(header, bitmapStart-0x7ff-len(header))
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4711)
 		}
 		buf := make([]byte, koalaAnimationStart-0x4711)
@@ -428,17 +413,17 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 			buf = append(buf, bin...)
 		}
 		buf = append(buf, 0xff)
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", koalaAnimationStart, len(buf)+0x4711)
 			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", koalaFadePassStart, 0xcfff)
 		}
 		return writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, buf})
 	case (load > koalaFadePassStart && load < 0xe000) || load < koalaAnimationStart+0x100:
-		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
+		return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
 	header = zeroFill(header, bitmapStart-0x7ff-len(header))
-	if !quiet {
+	if !opt.Quiet {
 		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4711)
 	}
 
@@ -447,7 +432,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		framebuf = append(framebuf, bin...)
 	}
 	framebuf = append(framebuf, 0xff)
-	if !quiet {
+	if !opt.Quiet {
 		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", koalaAnimationStart, len(framebuf)+0x4711)
 		fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
 		fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", koalaFadePassStart, 0xcfff)
@@ -471,23 +456,24 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 // total bytes: 5 + 10 * charcount
 
 func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
+	opt := hh[0].opt
 	header := append([]byte{}, hiresDisplayAnim...)
-	header[0x820-0x7ff] = byte(frameDelay)
-	header[0x821-0x7ff] = byte(waitSeconds)
+	header[0x820-0x7ff] = byte(opt.FrameDelay)
+	header[0x821-0x7ff] = byte(opt.WaitSeconds)
 
 	frames := make([]Charer, len(hh))
 	for i := range hh {
 		frames[i] = hh[i]
 	}
-	framePrgs, err := processAnimation(frames)
+	framePrgs, err := processAnimation(frames, opt)
 	if err != nil {
 		return n, err
 	}
-	if !quiet {
+	if !opt.Quiet {
 		fmt.Printf("memory usage for displayer code: 0x%04x - 0x%04x\n", 0x0801, len(header)+0x7ff)
 	}
 
-	if includeSID == "" {
+	if opt.IncludeSID == "" {
 		buf := make([]byte, 0, 64*1024)
 
 		header = zeroFill(header, bitmapStart-0x7ff-len(header))
@@ -497,7 +483,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		for _, bin := range out {
 			buf = append(buf, bin...)
 		}
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4329)
 		}
 
@@ -507,7 +493,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		}
 		buf = append(buf, 0xff)
 
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(buf)+0x7ff)
 			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)
 		}
@@ -517,26 +503,26 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		return n, err
 	}
 
-	s, err := sid.LoadSID(includeSID)
+	s, err := sid.LoadSID(opt.IncludeSID)
 	if err != nil {
-		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+		return n, fmt.Errorf("sid.LoadSID failed: %w", err)
 	}
 	header = injectSIDHeader(header, s)
 	load := s.LoadAddress()
 	switch {
 	case int(load) < len(header)+0x7ff:
-		return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
+		return n, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
 	case load > 0xdff && load < 0x1fff:
 		header = zeroFill(header, int(load)-0x7ff-len(header))
 		header = append(header, s.RawBytes()...)
 		if len(header) > bitmapStart-0x7ff {
-			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
+			return n, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
 		}
 		header = zeroFill(header, bitmapStart-0x7ff-len(header))
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4329)
 		}
 		framebuf := make([]byte, hiresAnimationStart-0x4329)
@@ -544,17 +530,17 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 			framebuf = append(framebuf, bin...)
 		}
 		framebuf = append(framebuf, 0xff)
-		if !quiet {
+		if !opt.Quiet {
 			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(framebuf)+0x4328)
 			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)
 		}
 		return writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, framebuf})
 	case (load > hiresFadePassStart && load < 0xe000) || load < hiresAnimationStart+0x100:
-		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
+		return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
 	header = zeroFill(header, bitmapStart-0x7ff-len(header))
-	if !quiet {
+	if !opt.Quiet {
 		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", bitmapStart, 0x4329)
 	}
 	framebuf := make([]byte, hiresAnimationStart-0x4329)
@@ -562,7 +548,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		framebuf = append(framebuf, bin...)
 	}
 	framebuf = append(framebuf, 0xff)
-	if !quiet {
+	if !opt.Quiet {
 		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(framebuf)+0x4328)
 		fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
 		fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)

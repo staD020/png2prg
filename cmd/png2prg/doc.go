@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/staD020/png2prg"
 )
 
 func printUsage() {
@@ -12,7 +14,7 @@ func printUsage() {
 
 func printHelp() {
 	fmt.Println()
-	fmt.Printf("# PNG2PRG %v by Burglar\n", version)
+	fmt.Printf("# PNG2PRG %v by Burglar\n", png2prg.Version)
 	fmt.Println()
 	fmt.Println("Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or")
 	fmt.Println("multicolor bitmap, charset or sprites. It will find the best matching palette")
@@ -112,8 +114,8 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("If multiple files are added, they are treated as animation frames.")
 	fmt.Println("You can also supply an animated .gif.")
-	fmt.Println("The first image will be exported and each frame as a separate .prg,")
-	fmt.Println("containing the modified characters.")
+	fmt.Println("The first image will be exported with all framedata appended.")
+	fmt.Println("Koala animation frames start at $4711, hires at $4329.")
 	fmt.Println()
 	fmt.Println("The frame files are following this format.")
 	fmt.Println("Each frame consists of 1 or more chunks. A chunk looks like this:")

@@ -1,4 +1,4 @@
-package main
+package png2prg
 
 import (
 	"fmt"
@@ -82,13 +82,14 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 		BackgroundColor: img.backgroundColor.ColorIndex,
 		BorderColor:     img.borderColor.ColorIndex,
 		SourceFilename:  img.sourceFilename,
+		opt:             img.opt,
 	}
 
 	if len(img.preferredBitpairColors) == 0 {
 		numColors, colorIndexes, _ := img.countColors()
 		if numColors <= 4 {
 			img.preferredBitpairColors = colorIndexes
-			if verbose {
+			if img.opt.Verbose {
 				log.Printf("detected %d unique colors, assuming preferredBitpairColors %v", numColors, colorIndexes)
 			}
 		}
@@ -110,7 +111,7 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 				if bmppattern, ok := colorIndex1[rgb]; ok {
 					bmpbyte = bmpbyte | (bmppattern << (6 - byte(pixel)))
 				} else {
-					if verbose {
+					if img.opt.Verbose {
 						log.Printf("rgb %v not found in char %d.", rgb, char)
 						x, y := xyFromChar(char)
 						log.Printf("x, y = %d, %d", x, y)
@@ -138,6 +139,7 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 	h := Hires{
 		SourceFilename: img.sourceFilename,
 		BorderColor:    img.borderColor.ColorIndex,
+		opt:            img.opt,
 	}
 
 	for char := 0; char < 1000; char++ {
@@ -161,7 +163,7 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 				if bmppattern, ok := colorIndex1[rgb]; ok {
 					bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 				} else {
-					if verbose {
+					if img.opt.Verbose {
 						log.Printf("rgb: %v not found in char: %d.", rgb, char)
 						log.Printf("x, y = %d, %d", x, y)
 						log.Printf("colorIndex1: %v", colorIndex1)
@@ -185,6 +187,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 	c := SingleColorCharset{
 		SourceFilename: img.sourceFilename,
 		BorderColor:    img.borderColor.ColorIndex,
+		opt:            img.opt,
 	}
 	_, palette := img.maxColorsPerChar()
 	cc := sortColors(palette)
@@ -198,7 +201,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 		for i, col := range cc {
 			if col.ColorIndex == byte(forceBgCol) {
 				cc[0], cc[i] = cc[i], cc[0]
-				if verbose {
+				if img.opt.Verbose {
 					log.Printf("forced background color %d was found", forceBgCol)
 				}
 				break
@@ -223,7 +226,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 	c.CharColor = colorIndex2[1]
 	c.BackgroundColor = colorIndex2[0]
 
-	if noPackChars {
+	if img.opt.NoPackChars {
 		for char := 0; char < 256; char++ {
 			bitmapIndex := char * 8
 			x, y := xyFromChar(char)
@@ -234,7 +237,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 					if bmppattern, ok := colorIndex1[rgb]; ok {
 						bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 					} else {
-						if verbose {
+						if img.opt.Verbose {
 							log.Printf("rgb %v not found in char %d.", rgb, char)
 							log.Printf("x, y = %d, %d", x, y)
 							log.Printf("colorIndex1: %v", colorIndex1)
@@ -261,7 +264,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 				if bmppattern, ok := colorIndex1[rgb]; ok {
 					bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 				} else {
-					if verbose {
+					if img.opt.Verbose {
 						log.Printf("rgb %v not found in char %d.", rgb, char)
 						log.Printf("x, y = %d, %d", x, y)
 						log.Printf("colorIndex1: %v", colorIndex1)
@@ -298,7 +301,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 		}
 	}
 
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("used %d unique chars in the charset", j/8)
 	}
 
@@ -307,6 +310,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 
 func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err error) {
 	c.SourceFilename = img.sourceFilename
+	c.opt = img.opt
 	_, palette := img.maxColorsPerChar()
 	cc := sortColors(palette)
 	// we must sort reverse to avoid a high color in bitpair 11
@@ -325,13 +329,13 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 		return c, fmt.Errorf("multiColorIndexes failed: %w", err)
 	}
 
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("charset colors: %v\n", cc)
 		log.Printf("colorIndex1: %v\n", colorIndex1)
 		log.Printf("colorIndex2: %v\n", colorIndex2)
 	}
 	if colorIndex2[3] > 7 {
-		if !quiet {
+		if !img.opt.Quiet {
 			log.Println("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported, you may want to consider using -bitpair-colors")
 		}
 	}
@@ -345,7 +349,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	c.D023Color = colorIndex2[2]
 	c.BorderColor = img.borderColor.ColorIndex
 
-	if noPackChars {
+	if img.opt.NoPackChars {
 		for char := 0; char < 256; char++ {
 			bitmapIndex := char * 8
 			x, y := xyFromChar(char)
@@ -356,7 +360,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 					if bmppattern, ok := colorIndex1[rgb]; ok {
 						bmpbyte |= bmppattern << (6 - byte(pixel))
 					} else {
-						if verbose {
+						if img.opt.Verbose {
 							log.Printf("rgb %v not found in char %d.", rgb, char)
 							log.Printf("x, y = %d, %d", x, y)
 							log.Printf("colorIndex1: %v", colorIndex1)
@@ -380,7 +384,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 				if bmppattern, ok := colorIndex1[rgb]; ok {
 					bmpbyte |= bmppattern << (6 - byte(pixel))
 				} else {
-					if verbose {
+					if img.opt.Verbose {
 						log.Printf("rgb %v not found in char %d.", rgb, char)
 						log.Printf("x, y = %d, %d", x, y)
 						log.Printf("colorIndex1: %v", colorIndex1)
@@ -417,7 +421,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 		}
 	}
 
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("used %d unique chars in the charset", j/8)
 	}
 
@@ -447,7 +451,7 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 		for i, col := range cc {
 			if col.ColorIndex == byte(forceBgCol) {
 				cc[0], cc[i] = cc[i], cc[0]
-				if verbose {
+				if img.opt.Verbose {
 					log.Printf("forced background color %d was found", forceBgCol)
 				}
 				break
@@ -472,7 +476,7 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 		bit++
 	}
 
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("sprite colors: %v\n", cc)
 		log.Printf("colorIndex1: %v\n", colorIndex1)
 		log.Printf("colorIndex2: %v\n", colorIndex2)
@@ -490,7 +494,7 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 						if bmppattern, ok := colorIndex1[rgb]; ok {
 							bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 						} else {
-							if verbose {
+							if img.opt.Verbose {
 								log.Printf("rgb %v not found.", rgb)
 							}
 						}
@@ -501,7 +505,7 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 			s.Bitmap = append(s.Bitmap, 0)
 		}
 	}
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("converted %d sprites", maxX*maxY)
 	}
 
@@ -523,7 +527,7 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 		return s, fmt.Errorf("multiColorIndexes failed: %v", err)
 	}
 
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("sprite colors: %v\n", cc)
 		log.Printf("colorIndex1: %v\n", colorIndex1)
 		log.Printf("colorIndex2: %v\n", colorIndex2)
@@ -561,7 +565,7 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 						if bmppattern, ok := colorIndex1[rgb]; ok {
 							bmpbyte |= bmppattern << (6 - byte(pixel))
 						} else {
-							if verbose {
+							if img.opt.Verbose {
 								log.Printf("rgb %v not found.", rgb)
 							}
 						}
@@ -572,7 +576,7 @@ func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) 
 			s.Bitmap = append(s.Bitmap, 0)
 		}
 	}
-	if verbose {
+	if img.opt.Verbose {
 		log.Printf("converted %d sprites", s.Columns*s.Rows)
 	}
 	return s, nil
