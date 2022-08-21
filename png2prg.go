@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	version         = "1.3.4-dev"
+	version         = "1.3.5-dev"
 	displayerJumpTo = "$0822"
 )
 
