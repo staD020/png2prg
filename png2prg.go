@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"image"
+	"image/gif"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
@@ -42,10 +43,10 @@ func (c colorInfo) String() string {
 	return fmt.Sprintf("{%d, %s},", c.ColorIndex, c.RGB)
 }
 
-type graphicsType byte
+type GraphicsType byte
 
 const (
-	unknownGraphicsType graphicsType = iota
+	unknownGraphicsType GraphicsType = iota
 	singleColorBitmap
 	multiColorBitmap
 	singleColorCharset
@@ -54,7 +55,7 @@ const (
 	multiColorSprites
 )
 
-func stringToGraphicsType(s string) graphicsType {
+func stringToGraphicsType(s string) GraphicsType {
 	switch s {
 	case "koala":
 		return multiColorBitmap
@@ -72,7 +73,7 @@ func stringToGraphicsType(s string) graphicsType {
 	return unknownGraphicsType
 }
 
-func (t graphicsType) String() string {
+func (t GraphicsType) String() string {
 	switch t {
 	case singleColorBitmap:
 		return "hires"
@@ -151,7 +152,7 @@ type sourceImage struct {
 	backgroundColor        colorInfo
 	borderColor            colorInfo
 	preferredBitpairColors bitpairColors
-	graphicsType           graphicsType
+	graphicsType           GraphicsType
 }
 
 type MultiColorChar struct {
@@ -224,8 +225,8 @@ type MultiColorSprites struct {
 	Rows            byte
 }
 
-var displayers = make(map[graphicsType][]byte, 0)
-var displayersAlternative = make(map[graphicsType][]byte, 0)
+var displayers = make(map[GraphicsType][]byte, 0)
+var displayersAlternative = make(map[GraphicsType][]byte, 0)
 
 //go:embed "display_koala.prg"
 var koalaDisplay []byte
@@ -265,13 +266,162 @@ func init() {
 
 // TODO: make png2prg a lib
 type converter struct {
-	inFilenames []string
-	images      []sourceImage
+	opt    Options
+	images []sourceImage
 }
 
-func New(filenames []string) (*converter, error) {
-	c := &converter{inFilenames: filenames}
-	return c, nil
+type Options struct {
+	OutPath             string
+	TargetDir           string
+	Verbose             bool
+	Display             bool
+	NoPackChars         bool
+	NoCrunch            bool
+	AlternativeFade     bool
+	BitpairColorsString string
+	NoGuess             bool
+	GraphicsMode        string
+	ForceBorderColor    int
+	IncludeSID          string
+	FrameDelay          int
+	WaitSeconds         int
+	CurrentGraphicsType GraphicsType
+}
+
+func New(in map[string]io.Reader, opt Options) (*converter, error) {
+	var err error
+	imgs := []sourceImage{}
+	for path, r := range in {
+		switch strings.ToLower(filepath.Ext(path)) {
+		case ".gif":
+			g, err := gif.DecodeAll(r)
+			if err != nil {
+				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", path, err)
+			}
+			if verbose {
+				log.Printf("file %q has %d frames", path, len(g.Image))
+			}
+			for i, rawImage := range g.Image {
+				img := sourceImage{
+					sourceFilename: path,
+					image:          rawImage,
+				}
+				if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
+					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)
+				}
+				if err = img.checkBounds(); err != nil {
+					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", path, i, err)
+				}
+				imgs = append(imgs, img)
+			}
+		default:
+			img := sourceImage{sourceFilename: path}
+			if err = img.setPreferredBitpairColors(bitpairColorsString); err != nil {
+				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", bitpairColorsString, err)
+			}
+			if img.image, _, err = image.Decode(r); err != nil {
+				return nil, fmt.Errorf("image.Decode failed: %w", err)
+			}
+			if err = img.checkBounds(); err != nil {
+				return nil, fmt.Errorf("img.checkBounds failed: %w", err)
+			}
+			imgs = append(imgs, img)
+		}
+	}
+	return &converter{images: imgs, opt: opt}, nil
+}
+
+func NewFromPath(filenames []string, opt Options) (*converter, error) {
+	m := make(map[string]io.Reader, len(filenames))
+	for _, path := range filenames {
+		f, err := os.Open(path)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		m[path] = f
+	}
+	return New(m, opt)
+}
+
+func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
+	if len(c.images) == 0 {
+		return 0, fmt.Errorf("no images found")
+	}
+	if len(c.images) > 1 {
+		return 0, fmt.Errorf("%d images found", len(c.images))
+	}
+
+	img := c.images[0]
+	if verbose {
+		log.Printf("processing file %q", img.sourceFilename)
+	}
+	if err = img.analyze(); err != nil {
+		return 0, fmt.Errorf("analyze %q failed: %w", img.sourceFilename, err)
+	}
+
+	var wt io.WriterTo
+	switch img.graphicsType {
+	case multiColorBitmap:
+		if wt, err = img.convertToKoala(); err != nil {
+			return 0, fmt.Errorf("convertToKoala %q failed: %w", img.sourceFilename, err)
+		}
+	case singleColorBitmap:
+		if wt, err = img.convertToHires(); err != nil {
+			return 0, fmt.Errorf("convertToHires %q failed: %w", img.sourceFilename, err)
+		}
+	case singleColorCharset:
+		if wt, err = img.convertToSingleColorCharset(); err != nil {
+			if graphicsMode != "" {
+				return 0, fmt.Errorf("convertToSingleColorCharset %q failed: %w", img.sourceFilename, err)
+			}
+			if !quiet {
+				fmt.Printf("falling back to %s because convertToSingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
+			}
+			img.graphicsType = singleColorBitmap
+			if wt, err = img.convertToHires(); err != nil {
+				return 0, fmt.Errorf("convertToHires %q failed: %w", img.sourceFilename, err)
+			}
+		}
+	case multiColorCharset:
+		if wt, err = img.convertToMultiColorCharset(); err != nil {
+			if graphicsMode != "" {
+				return 0, fmt.Errorf("convertToMultiColorCharset %q failed: %w", img.sourceFilename, err)
+			}
+			if !quiet {
+				fmt.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
+			}
+			img.graphicsType = multiColorBitmap
+			err = img.findBackgroundColor()
+			if err != nil {
+				return 0, fmt.Errorf("findBackgroundColor %q failed: %w", img.sourceFilename, err)
+			}
+			if wt, err = img.convertToKoala(); err != nil {
+				return 0, fmt.Errorf("convertToKoala %q failed: %w", img.sourceFilename, err)
+			}
+		}
+	case singleColorSprites:
+		if wt, err = img.convertToSingleColorSprites(); err != nil {
+			return 0, fmt.Errorf("convertToSingleColorSprites %q failed: %w", img.sourceFilename, err)
+		}
+	case multiColorSprites:
+		if wt, err = img.convertToMultiColorSprites(); err != nil {
+			return 0, fmt.Errorf("convertToMultiColorSprites %q failed: %w", img.sourceFilename, err)
+		}
+	default:
+		return 0, fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
+	}
+
+	if display && !noCrunch {
+		wt, err = injectCrunch(wt)
+		if err != nil {
+			return 0, fmt.Errorf("injectCrunch failed: %w", err)
+		}
+		if !quiet {
+			fmt.Println("packing with TSCrunch...")
+		}
+	}
+	return wt.WriteTo(w)
 }
 
 func processFiles(filenames []string) (err error) {
@@ -407,7 +557,7 @@ func defaultHeader() []byte {
 	return []byte{0x00, 0x20}
 }
 
-func newHeader(t graphicsType) []byte {
+func newHeader(t GraphicsType) []byte {
 	bin := make([]byte, len(displayers[t]))
 	copy(bin, displayers[t])
 	return bin

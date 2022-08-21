@@ -27,7 +27,7 @@ var (
 	includeSID          string
 	frameDelay          int
 	waitSeconds         int
-	currentGraphicsType graphicsType
+	currentGraphicsType GraphicsType
 )
 
 func init() {
