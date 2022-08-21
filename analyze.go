@@ -575,7 +575,7 @@ func xyFromChar(i int) (int, int) {
 
 // analyzePalette finds the closest paletteMap and sets img.palette
 func (img *sourceImage) analyzePalette() error {
-	minDistance := int(9e9)
+	minDistance := int(9e6)
 	paletteName := ""
 	paletteMap := make(PaletteMap)
 	img.setSourceColors()
