@@ -2,82 +2,12 @@ package png2prg
 
 import (
 	"fmt"
-	"image"
-	"image/gif"
 	"log"
 	"math"
-	"os"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 )
-
-func newSourceImage(filename string, opt Options) (img sourceImage, err error) {
-	img.sourceFilename = filename
-	img.opt = opt
-	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
-		return img, fmt.Errorf("setPreferredBitpairColors failed: %w", err)
-	}
-	f, err := os.Open(filename)
-	if err != nil {
-		return img, fmt.Errorf("could not os.Open file %q: %w", filename, err)
-	}
-	defer f.Close()
-	if img.image, _, err = image.Decode(f); err != nil {
-		return img, fmt.Errorf("image.Decode %q failed: %w", filename, err)
-	}
-	if err = img.checkBounds(); err != nil {
-		return img, fmt.Errorf("img.checkBounds failed %q: %w", filename, err)
-	}
-	if opt.Verbose && (img.xOffset != 0 || img.yOffset != 0) {
-		log.Printf("img.xOffset, yOffset = %d, %d\n", img.xOffset, img.yOffset)
-	}
-	return img, nil
-}
-
-func newSourceImages(filenames []string, opt Options) (imgs []sourceImage, err error) {
-	for _, filename := range filenames {
-		switch strings.ToLower(filepath.Ext(filename)) {
-		case ".gif":
-			f, err := os.Open(filename)
-			if err != nil {
-				return nil, fmt.Errorf("os.Open could not open file %q: %w", filename, err)
-			}
-			defer f.Close()
-
-			g, err := gif.DecodeAll(f)
-			if err != nil {
-				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", filename, err)
-			}
-			if opt.Verbose {
-				log.Printf("file %q has %d frames", filename, len(g.Image))
-			}
-
-			for i, rawImage := range g.Image {
-				img := sourceImage{
-					opt:            opt,
-					sourceFilename: filename,
-					image:          rawImage,
-				}
-				if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
-					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
-				}
-				if err = img.checkBounds(); err != nil {
-					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", filename, i, err)
-				}
-				imgs = append(imgs, img)
-			}
-		default:
-			img, err := newSourceImage(filename, opt)
-			if err != nil {
-				return nil, fmt.Errorf("newSourceImage %q failed: %w", filename, err)
-			}
-			imgs = append(imgs, img)
-		}
-	}
-	return imgs, nil
-}
 
 func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 	if v == "" {

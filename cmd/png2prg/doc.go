@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 
 	"github.com/staD020/png2prg"
 )
@@ -201,5 +200,5 @@ func printHelp() {
 	flag.PrintDefaults()
 	fmt.Println("```")
 	fmt.Println()
-	os.Exit(0)
+	return
 }

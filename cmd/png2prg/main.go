@@ -29,7 +29,6 @@ var (
 	includeSID          string
 	frameDelay          int
 	waitSeconds         int
-	currentGraphicsType png2prg.GraphicsType
 )
 
 func init() {
@@ -77,9 +76,8 @@ func main() {
 	}
 	if len(filenames) == 0 {
 		printUsage()
-		os.Exit(0)
+		return
 	}
-	currentGraphicsType = png2prg.StringToGraphicsType(graphicsMode)
 	if forceBorderColor > 15 {
 		forceBorderColor = -1
 	}
@@ -105,16 +103,13 @@ func main() {
 		BitpairColorsString: bitpairColorsString,
 		NoGuess:             noGuess,
 		GraphicsMode:        graphicsMode,
+		CurrentGraphicsType: png2prg.StringToGraphicsType(graphicsMode),
 		FrameDelay:          frameDelay,
 		WaitSeconds:         waitSeconds,
 		ForceBorderColor:    forceBorderColor,
 		IncludeSID:          includeSID,
 	}
 	opt.OutFile = png2prg.DestinationFilename(filenames[0], opt)
-
-	//	if err := png2prg.ProcessFiles(opt, filenames...); err != nil {
-	//		log.Fatalf("ProcessFiles failed: %v", err)
-	//	}
 
 	w, err := os.Create(opt.OutFile)
 	if err != nil {
