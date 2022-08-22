@@ -78,9 +78,6 @@ func main() {
 		printUsage()
 		return
 	}
-	if forceBorderColor > 15 {
-		forceBorderColor = -1
-	}
 
 	if includeSID != "" && !display {
 		log.Printf("ignoring sid %q, it makes no sense without the -display flag set.\n", includeSID)

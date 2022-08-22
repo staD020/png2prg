@@ -298,6 +298,12 @@ type Options struct {
 
 func New(in map[string]io.Reader, opt Options) (*converter, error) {
 	var err error
+	if opt.ForceBorderColor > 15 {
+		if !opt.Quiet {
+			log.Printf("only values 0-15 are allowed, -force-border-color %d is not correct, now using default.", opt.ForceBorderColor)
+		}
+		opt.ForceBorderColor = -1
+	}
 	imgs := []sourceImage{}
 	for path, r := range in {
 		switch strings.ToLower(filepath.Ext(path)) {
