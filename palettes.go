@@ -1,6 +1,6 @@
 package png2prg
 
-var c64palettes = map[string][16]colorInfo{
+var C64Palettes = map[string][16]colorInfo{
 	"vice": {
 		{0, RGB{0x00, 0x00, 0x00}},
 		{1, RGB{0xff, 0xff, 0xff}},
@@ -91,7 +91,7 @@ var c64palettes = map[string][16]colorInfo{
 		{14, RGB{0x7c, 0x70, 0xda}},
 		{15, RGB{0xab, 0xab, 0xab}},
 	},
-	"electric cocillana": {
+	"electric": {
 		{0, RGB{0x00, 0x00, 0x00}},
 		{1, RGB{0xff, 0xff, 0xff}},
 		{2, RGB{0x8b, 0x1f, 0x00}},

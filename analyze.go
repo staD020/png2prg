@@ -509,7 +509,7 @@ func (img *sourceImage) analyzePalette() error {
 	paletteName := ""
 	paletteMap := make(PaletteMap)
 	img.setSourceColors()
-	for name, palette := range c64palettes {
+	for name, palette := range C64Palettes {
 		distance, curMap := img.distanceAndMap(palette)
 		if img.opt.Verbose {
 			log.Printf("%q distance: %v\n", name, distance)
@@ -532,8 +532,10 @@ func (img *sourceImage) analyzePalette() error {
 		m[ci] = true
 	}
 
+	if !img.opt.Quiet {
+		fmt.Printf("palette found: %s distance: %d\n", paletteName, minDistance)
+	}
 	if img.opt.Verbose {
-		log.Printf("%v palette found: %v distance: %v", img.sourceFilename, paletteName, minDistance)
 		log.Printf("palette: %s", paletteMap)
 	}
 	img.palette = paletteMap
