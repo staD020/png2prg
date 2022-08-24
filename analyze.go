@@ -368,7 +368,7 @@ func (img *sourceImage) findBackgroundColor() error {
 				if img.opt.Verbose {
 					log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 				}
-				img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
+				img.backgroundColor = ColorInfo{RGB: rgb, ColorIndex: colorIndex}
 				return nil
 			}
 		}
@@ -385,13 +385,13 @@ func (img *sourceImage) findBackgroundColor() error {
 			if img.opt.Verbose {
 				log.Printf("findBackgroundColor: found background color %d\n", colorIndex)
 			}
-			img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
+			img.backgroundColor = ColorInfo{RGB: rgb, ColorIndex: colorIndex}
 			return nil
 		case colorIndex == byte(forceBgCol):
 			if img.opt.Verbose {
 				log.Printf("findBackgroundColor: found preferred background color %d\n", forceBgCol)
 			}
-			img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
+			img.backgroundColor = ColorInfo{RGB: rgb, ColorIndex: colorIndex}
 			return nil
 		}
 	}
@@ -400,7 +400,7 @@ func (img *sourceImage) findBackgroundColor() error {
 		if img.opt.Verbose {
 			log.Printf("findBackgroundColor: we tried looking for color %d, but we have to settle for color %d\n", forceBgCol, colorIndex)
 		}
-		img.backgroundColor = colorInfo{RGB: rgb, ColorIndex: colorIndex}
+		img.backgroundColor = ColorInfo{RGB: rgb, ColorIndex: colorIndex}
 		return nil
 	}
 	return fmt.Errorf("background color not found")
@@ -410,14 +410,14 @@ func (img *sourceImage) findBorderColor() error {
 	if img.opt.ForceBorderColor >= 0 && img.opt.ForceBorderColor < 16 {
 		for rgb, ci := range img.palette {
 			if ci == byte(img.opt.ForceBorderColor) {
-				img.borderColor = colorInfo{RGB: rgb, ColorIndex: ci}
+				img.borderColor = ColorInfo{RGB: rgb, ColorIndex: ci}
 				if img.opt.Verbose {
 					log.Printf("force BorderColor: %v", img.borderColor)
 				}
 				return nil
 			}
 		}
-		img.borderColor = colorInfo{RGB: RGB{0x12, 0x34, 0x56}, ColorIndex: byte(img.opt.ForceBorderColor)}
+		img.borderColor = ColorInfo{RGB: RGB{0x12, 0x34, 0x56}, ColorIndex: byte(img.opt.ForceBorderColor)}
 		if img.opt.Verbose {
 			log.Printf("BorderColor %d not found in palette: %s", img.opt.ForceBorderColor, img.palette)
 			log.Printf("forcing BorderColor %d anyway: %v", img.opt.ForceBorderColor, img.borderColor)
@@ -429,7 +429,7 @@ func (img *sourceImage) findBorderColor() error {
 	}
 	rgb := img.colorAtXY(-10, -10)
 	if ci, ok := img.palette[rgb]; ok {
-		img.borderColor = colorInfo{RGB: rgb, ColorIndex: ci}
+		img.borderColor = ColorInfo{RGB: rgb, ColorIndex: ci}
 		if img.opt.Verbose {
 			log.Printf("findBorderColor found: %s", img.borderColor)
 		}
@@ -559,7 +559,7 @@ func (img *sourceImage) setSourceColors() {
 	img.colors = cc
 }
 
-func (img *sourceImage) distanceAndMap(palette [16]colorInfo) (int, PaletteMap) {
+func (img *sourceImage) distanceAndMap(palette [16]ColorInfo) (int, PaletteMap) {
 	m := make(PaletteMap, 16)
 	totalDistance := 0
 	for _, rgb := range img.colors {
@@ -572,7 +572,7 @@ func (img *sourceImage) distanceAndMap(palette [16]colorInfo) (int, PaletteMap) 
 	return totalDistance, m
 }
 
-func (r RGB) colorIndexAndDistance(palette [16]colorInfo) (byte, int) {
+func (r RGB) colorIndexAndDistance(palette [16]ColorInfo) (byte, int) {
 	distance := r.distanceTo(palette[0].RGB)
 	closestColorIndex := 0
 	for i := 0; i < len(palette); i++ {

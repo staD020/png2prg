@@ -33,12 +33,12 @@ func (r RGB) String() string {
 	return fmt.Sprintf("RGB{0x%02x, 0x%02x, 0x%02x}", r.R, r.G, r.B)
 }
 
-type colorInfo struct {
+type ColorInfo struct {
 	ColorIndex byte
 	RGB        RGB
 }
 
-func (c colorInfo) String() string {
+func (c ColorInfo) String() string {
 	//return fmt.Sprintf("{%d, #%02x%02x%02x}", c.ColorIndex, int(c.RGB.R), int(c.RGB.G), int(c.RGB.B))
 	return fmt.Sprintf("{%d, %s},", c.ColorIndex, c.RGB)
 }
@@ -150,8 +150,8 @@ type sourceImage struct {
 	colors                 []RGB
 	charColors             [1000]PaletteMap
 	backgroundCandidates   PaletteMap
-	backgroundColor        colorInfo
-	borderColor            colorInfo
+	backgroundColor        ColorInfo
+	borderColor            ColorInfo
 	preferredBitpairColors bitpairColors
 	graphicsType           GraphicsType
 }

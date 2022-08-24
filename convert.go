@@ -6,10 +6,10 @@ import (
 	"sort"
 )
 
-func sortColors(charColors PaletteMap) (cc []colorInfo) {
+func sortColors(charColors PaletteMap) (cc []ColorInfo) {
 	i := 0
 	for rgb, colorIndex := range charColors {
-		cc = append(cc, colorInfo{RGB: rgb, ColorIndex: colorIndex})
+		cc = append(cc, ColorInfo{RGB: rgb, ColorIndex: colorIndex})
 		i++
 	}
 	sort.Slice(cc, func(i, j int) bool {
@@ -18,7 +18,7 @@ func sortColors(charColors PaletteMap) (cc []colorInfo) {
 	return cc
 }
 
-func (img *sourceImage) multiColorIndexes(cc []colorInfo) (PaletteMap, map[byte]byte, error) {
+func (img *sourceImage) multiColorIndexes(cc []ColorInfo) (PaletteMap, map[byte]byte, error) {
 	// rgb to bitpair
 	colorIndex1 := make(PaletteMap)
 	// bitpair to colorindex
