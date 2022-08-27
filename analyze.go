@@ -214,8 +214,13 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 		img.preferredBitpairColors = append(img.preferredBitpairColors, colorIndex)
 		sumColors[colorIndex] = 0
 	}
+
+	// swap bitpair 01 with bitpair 11, it generally improves packing
+	if len(img.preferredBitpairColors) == 4 {
+		img.preferredBitpairColors[1], img.preferredBitpairColors[3] = img.preferredBitpairColors[3], img.preferredBitpairColors[1]
+	}
 	if img.opt.Verbose {
-		log.Printf("guessed some -bitpair-colors %v", img.preferredBitpairColors)
+		log.Printf("guessed some -bitpair-colors %s", img.preferredBitpairColors)
 	}
 
 	if img.graphicsType == multiColorCharset && len(img.preferredBitpairColors) == 4 {

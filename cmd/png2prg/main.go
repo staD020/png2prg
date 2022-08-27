@@ -86,7 +86,7 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.BoolVar(&opt.NoPackChars, "np", false, "no-pack")
 	flag.BoolVar(&opt.NoPackChars, "no-pack", false, "do not pack chars (only for sc/mc charset)")
 	flag.BoolVar(&opt.NoCrunch, "nc", false, "no-crunch")
-	flag.BoolVar(&opt.NoCrunch, "no-crunch", false, "do not TSCrunch koala/hires displayer")
+	flag.BoolVar(&opt.NoCrunch, "no-crunch", false, "do not TSCrunch displayer")
 
 	// flag.BoolVar(&opt.AlternativeFade, "alt-fade", false, "use alternative (less memory hungry) fade for animation displayers.")
 	flag.StringVar(&opt.IncludeSID, "sid", "", "include .sid in displayer (see -help for free memory locations)")
