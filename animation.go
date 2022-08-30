@@ -310,7 +310,7 @@ func processFramesOfChars(frames [][]Char, opt Options) ([][]byte, error) {
 
 func processAnimation(imgs []Charer, opt Options) ([][]byte, error) {
 	if len(imgs) < 2 {
-		return nil, fmt.Errorf("insufficient number of images %d < 2", len(imgs))
+		return nil, fmt.Errorf("insufficient number of frames %d < 2", len(imgs))
 	}
 	if opt.Verbose {
 		log.Printf("total number of frames: %d", len(imgs))

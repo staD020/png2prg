@@ -177,7 +177,7 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 			h.ScreenColor[char] = colorIndex2[1] << 4
 		}
 		if _, ok := colorIndex2[0]; ok {
-			h.ScreenColor[char] = h.ScreenColor[char] | colorIndex2[0]
+			h.ScreenColor[char] |= colorIndex2[0]
 		}
 	}
 	return h, nil

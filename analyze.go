@@ -549,7 +549,7 @@ func (img *sourceImage) analyzePalette() error {
 
 func (img *sourceImage) setSourceColors() {
 	m := make(map[RGB]bool, 16)
-	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x += 2 {
+	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x += 1 {
 		for y := 0; y < img.image.Bounds().Max.Y-img.yOffset; y++ {
 			rgb := img.colorAtXY(x, y)
 			if _, ok := m[rgb]; !ok {
