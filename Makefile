@@ -41,7 +41,7 @@ TESTSID=testdata/Laserdance.sid
 #TESTANIM=testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband*.png
 TESTANIM=testdata/jamesband*.png
 
-png2prg: $(TARGET)
+png2prg: $(TARGET) multipng2prg
 
 all: $(ALLTARGETS)
 

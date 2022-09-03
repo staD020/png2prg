@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"strings"
 	"sync"
@@ -15,6 +16,7 @@ import (
 )
 
 var (
+	memProfile string
 	cpuProfile string
 	help       bool
 )
@@ -55,36 +57,59 @@ func main() {
 		log.Fatalf("expandWildcards failed: %v", err)
 	}
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(filenames))
-	for i, filename := range filenames {
-		opt := opt
-		opt.OutFile = png2prg.DestinationFilename(filename, opt)
-		opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
+	wg := &sync.WaitGroup{}
+	const numWorkers = 8
+	jobs := make(chan string, numWorkers)
+	wg.Add(numWorkers)
+	for worker := 0; worker < numWorkers; worker++ {
+		go func(worker int) {
+			for filename := range jobs {
+				opt := opt
+				opt.OutFile = png2prg.DestinationFilename(filename, opt)
+				opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
 
-		go func(o png2prg.Options, i int, f string) {
-			defer wg.Done()
-			p, err := png2prg.NewFromPath(o, f)
-			if err != nil {
-				log.Printf("NewFromPath %q failed: %v", f, err)
-				return
+				p, err := png2prg.NewFromPath(opt, filename)
+				if err != nil {
+					log.Printf("NewFromPath %q failed: %v", filename, err)
+					return
+				}
+				w, err := os.Create(opt.OutFile)
+				if err != nil {
+					log.Printf("os.Create %q failed: %v", opt.OutFile, err)
+					return
+				}
+				defer w.Close()
+				_, err = p.WriteTo(w)
+				if err != nil {
+					log.Printf("WriteTo %q failed: %v", opt.OutFile, err)
+					return
+				}
+				if !opt.Quiet {
+					fmt.Printf("worker %d converted %q to %q\n", worker, filename, opt.OutFile)
+				}
 			}
-			w, err := os.Create(opt.OutFile)
-			if err != nil {
-				log.Printf("os.Create %q failed: %v", opt.OutFile, err)
-				return
-			}
-			defer w.Close()
-			_, err = p.WriteTo(w)
-			if err != nil {
-				log.Printf("WriteTo %q failed: %v", opt.OutFile, err)
-				return
-			}
-			if o.Verbose {
-				fmt.Printf("%02d. converted %q to %q\n", i, f, opt.OutFile)
-			}
-		}(opt, i, filename)
+			wg.Done()
+		}(worker)
 	}
+
+	for _, filename := range filenames {
+		jobs <- filename
+	}
+	close(jobs)
+
+	if memProfile != "" {
+		time.Sleep(3 * time.Second)
+		f, err := os.Create(memProfile)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		defer f.Close()
+		runtime.GC()
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+	}
+
 	wg.Wait()
 
 	if !opt.Quiet {
@@ -95,7 +120,7 @@ func main() {
 
 func initAndParseFlags() (opt png2prg.Options) {
 	flag.StringVar(&cpuProfile, "cpuprofile", "", "write cpu profile to `file`")
-
+	flag.StringVar(&memProfile, "memprofile", "", "write memory profile to `file`")
 	flag.BoolVar(&help, "h", false, "help")
 	flag.BoolVar(&help, "help", false, "help")
 
