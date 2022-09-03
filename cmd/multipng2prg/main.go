@@ -19,6 +19,7 @@ var (
 	memProfile string
 	cpuProfile string
 	help       bool
+	numWorkers int
 )
 
 func main() {
@@ -58,7 +59,6 @@ func main() {
 	}
 
 	wg := &sync.WaitGroup{}
-	const numWorkers = 8
 	jobs := make(chan string, numWorkers)
 	wg.Add(numWorkers)
 	for worker := 0; worker < numWorkers; worker++ {
@@ -71,18 +71,18 @@ func main() {
 				p, err := png2prg.NewFromPath(opt, filename)
 				if err != nil {
 					log.Printf("NewFromPath %q failed: %v", filename, err)
-					return
+					continue
 				}
 				w, err := os.Create(opt.OutFile)
 				if err != nil {
 					log.Printf("os.Create %q failed: %v", opt.OutFile, err)
-					return
+					continue
 				}
 				defer w.Close()
 				_, err = p.WriteTo(w)
 				if err != nil {
 					log.Printf("WriteTo %q failed: %v", opt.OutFile, err)
-					return
+					continue
 				}
 				if !opt.Quiet {
 					fmt.Printf("worker %d converted %q to %q\n", worker, filename, opt.OutFile)
@@ -151,7 +151,15 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.StringVar(&opt.IncludeSID, "sid", "", "include .sid in displayer (see -help for free memory locations)")
 	// flag.IntVar(&opt.FrameDelay, "frame-delay", 6, "frames to wait before displaying next animation frame")
 	// flag.IntVar(&opt.WaitSeconds, "wait-seconds", 0, "seconds to wait before animation starts")
+	flag.IntVar(&numWorkers, "w", 8, "workers")
+	flag.IntVar(&numWorkers, "workers", 8, "number of concurrent workers")
+
 	flag.Parse()
+
+	if numWorkers < 1 {
+		log.Printf("warning: minimum amount of workers is 1, not %d\n", numWorkers)
+		numWorkers = 1
+	}
 	return opt
 }
 
