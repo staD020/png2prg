@@ -61,60 +61,60 @@ func main() {
 	wg := &sync.WaitGroup{}
 	jobs := make(chan string, numWorkers)
 	wg.Add(numWorkers)
-	for worker := 0; worker < numWorkers; worker++ {
-		go func(worker int) {
-			for filename := range jobs {
-				opt := opt
-				opt.OutFile = png2prg.DestinationFilename(filename, opt)
-				opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
-
-				p, err := png2prg.NewFromPath(opt, filename)
-				if err != nil {
-					log.Printf("NewFromPath %q failed: %v", filename, err)
-					continue
-				}
-				w, err := os.Create(opt.OutFile)
-				if err != nil {
-					log.Printf("os.Create %q failed: %v", opt.OutFile, err)
-					continue
-				}
-				defer w.Close()
-				_, err = p.WriteTo(w)
-				if err != nil {
-					log.Printf("WriteTo %q failed: %v", opt.OutFile, err)
-					continue
-				}
-				if !opt.Quiet {
-					fmt.Printf("worker %d converted %q to %q\n", worker, filename, opt.OutFile)
-				}
-			}
-			wg.Done()
-		}(worker)
+	for i := 0; i < numWorkers; i++ {
+		go worker(i, wg, opt, jobs)
 	}
 
-	for _, filename := range filenames {
+	for i, filename := range filenames {
 		jobs <- filename
+		if i == 30 && memProfile != "" {
+			f, err := os.Create(memProfile)
+			if err != nil {
+				log.Fatal("could not create memory profile: ", err)
+			}
+			defer f.Close()
+			runtime.GC()
+			if err := pprof.WriteHeapProfile(f); err != nil {
+				log.Fatal("could not write memory profile: ", err)
+			}
+			fmt.Println("WriteHeapProfile done")
+		}
 	}
 	close(jobs)
-
-	if memProfile != "" {
-		time.Sleep(3 * time.Second)
-		f, err := os.Create(memProfile)
-		if err != nil {
-			log.Fatal("could not create memory profile: ", err)
-		}
-		defer f.Close()
-		runtime.GC()
-		if err := pprof.WriteHeapProfile(f); err != nil {
-			log.Fatal("could not write memory profile: ", err)
-		}
-	}
-
 	wg.Wait()
 
 	if !opt.Quiet {
 		fmt.Printf("converted %d files\n", len(filenames))
 		fmt.Printf("elapsed: %v\n", time.Since(t0))
+	}
+}
+
+func worker(i int, wg *sync.WaitGroup, opt png2prg.Options, jobs <-chan string) {
+	defer wg.Done()
+	for filename := range jobs {
+		opt := opt
+		opt.OutFile = png2prg.DestinationFilename(filename, opt)
+		opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
+
+		p, err := png2prg.NewFromPath(opt, filename)
+		if err != nil {
+			log.Printf("NewFromPath %q failed: %v", filename, err)
+			continue
+		}
+		w, err := os.Create(opt.OutFile)
+		if err != nil {
+			log.Printf("os.Create %q failed: %v", opt.OutFile, err)
+			continue
+		}
+		defer w.Close()
+		_, err = p.WriteTo(w)
+		if err != nil {
+			log.Printf("WriteTo %q failed: %v", opt.OutFile, err)
+			continue
+		}
+		if !opt.Quiet {
+			fmt.Printf("worker %d converted %q to %q\n", i, filename, opt.OutFile)
+		}
 	}
 }
 

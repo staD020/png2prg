@@ -435,6 +435,7 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 		SourceFilename: img.sourceFilename,
 		Columns:        byte(maxX),
 		Rows:           byte(maxY),
+		opt:            img.opt,
 	}
 	if maxX == 0 || maxY == 0 {
 		return s, fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", maxX, maxY)
@@ -513,7 +514,10 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 }
 
 func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) {
-	s := MultiColorSprites{SourceFilename: img.sourceFilename}
+	s := MultiColorSprites{
+		SourceFilename: img.sourceFilename,
+		opt:            img.opt,
+	}
 
 	cc := sortColors(img.palette)
 	if len(img.preferredBitpairColors) == 0 {
