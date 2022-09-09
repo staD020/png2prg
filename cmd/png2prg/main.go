@@ -46,14 +46,12 @@ func main() {
 		log.Fatalf("expandWildcards failed: %v", err)
 	}
 
+	process := processAsOne
 	if parallel {
-		if err = processInParallel(opt, filenames...); err != nil {
-			log.Fatalf("processInParallel failed: %v", err)
-		}
-	} else {
-		if err = processAsOne(opt, filenames...); err != nil {
-			log.Fatalf("processAsOne failed: %v", err)
-		}
+		process = processInParallel
+	}
+	if err = process(opt, filenames...); err != nil {
+		log.Fatalf("process failed: %v", err)
 	}
 
 	if !opt.Quiet {
