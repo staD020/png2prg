@@ -45,7 +45,7 @@ png2prg: $(TARGET) multipng2prg
 
 all: $(ALLTARGETS)
 
-bench:
+bench: $(DISPLAYERS)
 	go test -bench . -benchmem -cover ./...
 
 install: $(TARGET)
