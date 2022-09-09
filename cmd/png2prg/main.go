@@ -28,6 +28,17 @@ func main() {
 	if !opt.Quiet {
 		fmt.Printf("png2prg %v by burg\n", png2prg.Version)
 	}
+	if cpuProfile != "" {
+		f, err := os.Create(cpuProfile)
+		if err != nil {
+			log.Fatalf("could not create CPU profile %q: %v", cpuProfile, err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatalf("could not start CPU profile: %v", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
 
 	if help {
 		png2prg.PrintHelp()
@@ -82,15 +93,22 @@ func processAsOne(opt png2prg.Options, filenames ...string) error {
 
 func processInParallel(opt png2prg.Options, filenames ...string) error {
 	wg := &sync.WaitGroup{}
+	numWorkers := numWorkers
+	if numWorkers > len(filenames) {
+		numWorkers = len(filenames)
+	}
 	jobs := make(chan string, numWorkers)
 	wg.Add(numWorkers)
 	for i := 0; i < numWorkers; i++ {
 		go worker(i, wg, opt, jobs)
 	}
+	if !opt.Quiet {
+		fmt.Printf("started %d workers\n", numWorkers)
+	}
 
 	for i, filename := range filenames {
 		jobs <- filename
-		if i == 30 && memProfile != "" {
+		if i == int(len(filenames)/2) && memProfile != "" {
 			f, err := os.Create(memProfile)
 			if err != nil {
 				return fmt.Errorf("could not create memory profile: %w", err)
@@ -100,7 +118,9 @@ func processInParallel(opt png2prg.Options, filenames ...string) error {
 			if err := pprof.WriteHeapProfile(f); err != nil {
 				return fmt.Errorf("could not write memory profile: %w", err)
 			}
-			fmt.Println("WriteHeapProfile done")
+			if !opt.Quiet {
+				fmt.Println("WriteHeapProfile done")
+			}
 		}
 	}
 	close(jobs)
@@ -138,6 +158,8 @@ func worker(i int, wg *sync.WaitGroup, opt png2prg.Options, jobs <-chan string) 
 }
 
 func initAndParseFlags() (opt png2prg.Options) {
+	flag.StringVar(&cpuProfile, "cpuprofile", "", "write cpu profile to `file`")
+	flag.StringVar(&memProfile, "memprofile", "", "write memory profile to `file`")
 	flag.BoolVar(&help, "h", false, "help")
 	flag.BoolVar(&help, "help", false, "help")
 
