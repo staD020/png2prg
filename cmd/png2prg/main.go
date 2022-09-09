@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"runtime/pprof"
+	"strings"
 	"sync"
 	"time"
 
@@ -52,7 +54,7 @@ func main() {
 		log.Printf("ignoring sid %q, it makes no sense without the -display flag set.\n", opt.IncludeSID)
 	}
 
-	filenames, err := png2prg.ExpandWildcards(filenames)
+	filenames, err := expandWildcards(filenames)
 	if err != nil {
 		log.Fatalf("expandWildcards failed: %v", err)
 	}
@@ -155,6 +157,34 @@ func worker(i int, wg *sync.WaitGroup, opt png2prg.Options, jobs <-chan string) 
 			fmt.Printf("worker %d converted %q to %q\n", i, filename, opt.OutFile)
 		}
 	}
+}
+
+func expandWildcards(filenames []string) (result []string, err error) {
+	for _, filename := range filenames {
+		if !strings.ContainsAny(filename, "?*") {
+			result = append(result, filename)
+			continue
+		}
+		dir := filepath.Dir(filename)
+		ff, err := os.ReadDir(dir)
+		if err != nil {
+			return nil, fmt.Errorf("os.ReadDir %q failed: %w", dir, err)
+		}
+		name := filepath.Base(filename)
+		for _, f := range ff {
+			if f.IsDir() {
+				continue
+			}
+			ok, err := filepath.Match(name, f.Name())
+			if err != nil {
+				return nil, fmt.Errorf("filepath.Match %q failed: %w", filename, err)
+			}
+			if ok {
+				result = append(result, filepath.Join(dir, f.Name()))
+			}
+		}
+	}
+	return result, nil
 }
 
 func initAndParseFlags() (opt png2prg.Options) {
