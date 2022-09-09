@@ -1,12 +1,12 @@
-SRC=png2prg.go palettes.go animation.go analyze.go convert.go cmd/png2prg/main.go cmd/png2prg/doc.go
-MULTISRC=png2prg.go palettes.go animation.go analyze.go convert.go cmd/multipng2prg/main.go cmd/multipng2prg/doc.go
+SRC=png2prg.go palettes.go animation.go analyze.go convert.go doc.go cmd/png2prg/main.go
+MULTISRC=png2prg.go palettes.go animation.go analyze.go convert.go doc.go cmd/multipng2prg/main.go cmd/multipng2prg/doc.go
 DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg
 ASMLIB=lib.asm
 ASM=java -jar ./tools/KickAss-5.24.jar
 ASMFLAGS=-showmem -time
 X64=x64sc
 UPX=upx
-UPXFLAGS=--best
+UPXFLAGS=
 
 LDFLAGS=-s -w
 CGO=1
@@ -28,14 +28,15 @@ TESTPIC=testdata/ste_ghosts_goblins.gif
 #TESTPIC=testdata/mirage_parrot.png
 #TESTPIC=testdata/sander_ld.png
 #TESTPIC=testdata/sander_sander.png
-#TESTSID=testdata/Rivalry_tune_5.sid
+TESTSID=testdata/Rivalry_tune_5.sid
 #TESTSID=testdata/jasonpage_eighth_90.sid
 #TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
 #TESTSID=testdata/Yie_Ar_Kung_Fu_60.sid
 #TESTSID=testdata/lman_hellyeah.sid
 #TESTSID=testdata/Lift_Off_V2.sid
-TESTSID=testdata/Laserdance_10.sid
+#TESTSID=testdata/Laserdance_10.sid
 #TESTSID=testdata/Commando.sid
+#TESTSID=testdata/Commando_Take_Me_to_the_Bridge_Mix.sid
 #TESTANIM=testdata/sander_tankframes.gif
 #TESTANIM=testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband??.png
 #TESTANIM=testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband*.png
@@ -87,7 +88,7 @@ testanim: $(TARGET) $(TESTANIM) $(TESTSID)
 	$(X64) z.prg >/dev/null
 
 evoluer: $(TARGET)
-	./$(TARGET) -d -frame-delay 2 -o z.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
+	./$(TARGET) -d -frame-delay 4 -o z.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
 	$(X64) z.prg >/dev/null
 
 testpack: $(TARGET)

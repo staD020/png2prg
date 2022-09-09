@@ -1,19 +1,17 @@
-package main
+package png2prg
 
 import (
 	"flag"
 	"fmt"
-
-	"github.com/staD020/png2prg"
 )
 
-func printUsage() {
+func PrintUsage() {
 	fmt.Println("usage: ./png2prg [-help -h -d -q -v -bpc 0,6,14,3 -o outfile.prg -td testdata] FILE [FILE..]")
 }
 
-func printHelp() {
+func PrintHelp() {
 	fmt.Println()
-	fmt.Printf("# PNG2PRG %v by Burglar\n", png2prg.Version)
+	fmt.Printf("# PNG2PRG %v by Burglar\n", Version)
 	fmt.Println()
 	fmt.Println("Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or")
 	fmt.Println("multicolor bitmap, charset or sprites. It will find the best matching palette")

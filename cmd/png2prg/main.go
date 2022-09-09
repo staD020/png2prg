@@ -21,11 +21,11 @@ func main() {
 	}
 
 	if help {
-		printHelp()
+		png2prg.PrintHelp()
 		return
 	}
 	if len(filenames) == 0 {
-		printUsage()
+		png2prg.PrintUsage()
 		return
 	}
 	if opt.IncludeSID != "" && !opt.Display {
