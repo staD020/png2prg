@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/staD020/png2prg"
@@ -34,7 +32,7 @@ func main() {
 		log.Printf("ignoring sid %q, it makes no sense without the -display flag set.\n", opt.IncludeSID)
 	}
 
-	filenames, err := expandWildcards(filenames)
+	filenames, err := png2prg.ExpandWildcards(filenames)
 	if err != nil {
 		log.Fatalf("expandWildcards failed: %v", err)
 	}
@@ -94,32 +92,4 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.IntVar(&opt.WaitSeconds, "wait-seconds", 0, "seconds to wait before animation starts")
 	flag.Parse()
 	return opt
-}
-
-func expandWildcards(filenames []string) (result []string, err error) {
-	for _, filename := range filenames {
-		if !strings.ContainsAny(filename, "?*") {
-			result = append(result, filename)
-			continue
-		}
-		dir := filepath.Dir(filename)
-		ff, err := os.ReadDir(dir)
-		if err != nil {
-			return nil, fmt.Errorf("os.ReadDir %q failed: %w", dir, err)
-		}
-		name := filepath.Base(filename)
-		for _, f := range ff {
-			if f.IsDir() {
-				continue
-			}
-			ok, err := filepath.Match(name, f.Name())
-			if err != nil {
-				return nil, fmt.Errorf("filepath.Match %q failed: %w", filename, err)
-			}
-			if ok {
-				result = append(result, filepath.Join(dir, f.Name()))
-			}
-		}
-	}
-	return result, nil
 }

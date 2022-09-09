@@ -649,3 +649,31 @@ func DestinationFilename(filename string, opt Options) (destfilename string) {
 	}
 	return destfilename + filepath.Base(strings.TrimSuffix(filename, filepath.Ext(filename))+".prg")
 }
+
+func ExpandWildcards(filenames []string) (result []string, err error) {
+	for _, filename := range filenames {
+		if !strings.ContainsAny(filename, "?*") {
+			result = append(result, filename)
+			continue
+		}
+		dir := filepath.Dir(filename)
+		ff, err := os.ReadDir(dir)
+		if err != nil {
+			return nil, fmt.Errorf("os.ReadDir %q failed: %w", dir, err)
+		}
+		name := filepath.Base(filename)
+		for _, f := range ff {
+			if f.IsDir() {
+				continue
+			}
+			ok, err := filepath.Match(name, f.Name())
+			if err != nil {
+				return nil, fmt.Errorf("filepath.Match %q failed: %w", filename, err)
+			}
+			if ok {
+				result = append(result, filepath.Join(dir, f.Name()))
+			}
+		}
+	}
+	return result, nil
+}
