@@ -183,7 +183,7 @@ func (img *sourceImage) analyzeSprites() error {
 	return nil
 }
 
-func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16]int) {
+func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [maxColors]int) {
 	if len(img.preferredBitpairColors) >= maxColors {
 		return
 	}
@@ -249,9 +249,9 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [16
 	}
 }
 
-func (img *sourceImage) countSpriteColors() (int, []byte, [16]int) {
+func (img *sourceImage) countSpriteColors() (int, []byte, [maxColors]int) {
 	m := img.palette
-	sum := [16]int{}
+	sum := [maxColors]int{}
 
 	for y := 0; y < img.height; y++ {
 		for x := 0; x < img.width; x++ {
@@ -273,9 +273,9 @@ func (img *sourceImage) countSpriteColors() (int, []byte, [16]int) {
 	return len(m), ci, sum
 }
 
-func (img *sourceImage) countColors() (int, []byte, [16]int) {
-	m := make(PaletteMap, 16)
-	var sum [16]int
+func (img *sourceImage) countColors() (int, []byte, [maxColors]int) {
+	m := make(PaletteMap, maxColors)
+	var sum [maxColors]int
 	for i := range img.charColors {
 		for rgb, colorIndex := range img.charColors[i] {
 			m[rgb] = colorIndex
@@ -311,7 +311,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 	}
 
 	// need to copy the map, as we delete false candidates
-	candidates := make(PaletteMap, 16)
+	candidates := make(PaletteMap, maxColors)
 	switch {
 	case len(backgroundCharColors) > 0:
 		for k, v := range backgroundCharColors[0] {
@@ -341,7 +341,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 }
 
 func (img *sourceImage) findBackgroundColor() error {
-	var sumColors [16]int
+	var sumColors [maxColors]int
 	isSprites := img.graphicsType == singleColorSprites || img.graphicsType == multiColorSprites
 	if isSprites {
 		_, _, sumColors = img.countSpriteColors()
@@ -412,7 +412,7 @@ func (img *sourceImage) findBackgroundColor() error {
 }
 
 func (img *sourceImage) findBorderColor() error {
-	if img.opt.ForceBorderColor >= 0 && img.opt.ForceBorderColor < 16 {
+	if img.opt.ForceBorderColor >= 0 && img.opt.ForceBorderColor < maxColors {
 		for rgb, ci := range img.palette {
 			if ci == byte(img.opt.ForceBorderColor) {
 				img.borderColor = ColorInfo{RGB: rgb, ColorIndex: ci}
@@ -466,7 +466,7 @@ func (img *sourceImage) makeCharColors() error {
 			}
 		}
 		if len(charColors) > 4 {
-			count := make(map[byte]byte, 16)
+			count := make(map[byte]byte, maxColors)
 			for _, indexcolor := range charColors {
 				count[indexcolor] = 1
 			}
@@ -485,7 +485,7 @@ func (img *sourceImage) makeCharColors() error {
 }
 
 func (img *sourceImage) colorMapFromChar(char int) PaletteMap {
-	charColors := make(PaletteMap, 16)
+	charColors := make(PaletteMap, maxColors)
 	x, y := xyFromChar(char)
 	for pixely := y; pixely < y+8; pixely++ {
 		for pixelx := x; pixelx < x+8; pixelx++ {
@@ -513,7 +513,9 @@ func (img *sourceImage) analyzePalette() error {
 	minDistance := int(9e6)
 	paletteName := ""
 	paletteMap := make(PaletteMap)
-	img.setSourceColors()
+	if err := img.setSourceColors(); err != nil {
+		return fmt.Errorf("setSourceColors failed: %w", err)
+	}
 	for name, palette := range C64Palettes {
 		distance, curMap := img.distanceAndMap(palette)
 		if img.opt.Verbose {
@@ -527,7 +529,7 @@ func (img *sourceImage) analyzePalette() error {
 		}
 	}
 
-	m := [16]bool{}
+	m := [maxColors]bool{}
 	for _, ci := range paletteMap {
 		if m[ci] {
 			log.Printf("source colors: %#v", img.colors)
@@ -547,9 +549,9 @@ func (img *sourceImage) analyzePalette() error {
 	return nil
 }
 
-func (img *sourceImage) setSourceColors() {
-	m := make(map[RGB]bool, 16)
-	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x += 1 {
+func (img *sourceImage) setSourceColors() error {
+	m := make(map[RGB]bool, maxColors)
+	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x++ {
 		for y := 0; y < img.image.Bounds().Max.Y-img.yOffset; y++ {
 			rgb := img.colorAtXY(x, y)
 			if _, ok := m[rgb]; !ok {
@@ -557,15 +559,19 @@ func (img *sourceImage) setSourceColors() {
 			}
 		}
 	}
-	cc := make([]RGB, 0, 16)
+	cc := make([]RGB, 0, maxColors)
 	for rgb := range m {
 		cc = append(cc, rgb)
 	}
 	img.colors = cc
+	if len(m) > maxColors {
+		return fmt.Errorf("image uses %d colors, the maximum is %d.", len(m), maxColors)
+	}
+	return nil
 }
 
-func (img *sourceImage) distanceAndMap(palette [16]ColorInfo) (int, PaletteMap) {
-	m := make(PaletteMap, 16)
+func (img *sourceImage) distanceAndMap(palette [maxColors]ColorInfo) (int, PaletteMap) {
+	m := make(PaletteMap, maxColors)
 	totalDistance := 0
 	for _, rgb := range img.colors {
 		if _, ok := m[rgb]; !ok {
@@ -577,7 +583,7 @@ func (img *sourceImage) distanceAndMap(palette [16]ColorInfo) (int, PaletteMap) 
 	return totalDistance, m
 }
 
-func (r RGB) colorIndexAndDistance(palette [16]ColorInfo) (byte, int) {
+func (r RGB) colorIndexAndDistance(palette [maxColors]ColorInfo) (byte, int) {
 	distance := r.distanceTo(palette[0].RGB)
 	closestColorIndex := 0
 	for i := 0; i < len(palette); i++ {

@@ -23,6 +23,7 @@ import (
 const (
 	Version         = "1.3.5-dev"
 	displayerJumpTo = "$0822"
+	maxColors       = 16
 )
 
 type RGB struct {
@@ -107,7 +108,7 @@ func (b bitpairColors) String() (s string) {
 type PaletteMap map[RGB]byte
 
 func (m PaletteMap) devString() string {
-	reverse := [16]*RGB{}
+	reverse := [maxColors]*RGB{}
 	for r, c := range m {
 		r := r
 		reverse[c] = &r
@@ -123,7 +124,7 @@ func (m PaletteMap) devString() string {
 }
 
 func (m PaletteMap) String() string {
-	reverse := [16]*RGB{}
+	reverse := [maxColors]*RGB{}
 	for r, c := range m {
 		r := r
 		reverse[c] = &r
