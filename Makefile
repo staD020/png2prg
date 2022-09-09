@@ -1,5 +1,4 @@
 SRC=png2prg.go palettes.go animation.go analyze.go convert.go doc.go cmd/png2prg/main.go
-MULTISRC=png2prg.go palettes.go animation.go analyze.go convert.go doc.go cmd/multipng2prg/main.go cmd/multipng2prg/doc.go
 DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg
 ASMLIB=lib.asm
 ASM=java -jar ./tools/KickAss-5.24.jar
@@ -12,7 +11,7 @@ LDFLAGS=-s -w
 CGO=1
 GOBUILDFLAGS=-v -trimpath
 TARGET=png2prg_linux_amd64
-ALLTARGETS=$(TARGET) multipng2prg png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_x86.exe
+ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_x86.exe
 
 FLAGS=-d -v
 FLAGSANIM=-d -v -frame-delay 8
@@ -42,12 +41,12 @@ TESTSID=testdata/Rivalry_tune_5.sid
 #TESTANIM=testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband*.png
 TESTANIM=testdata/jamesband*.png
 
-png2prg: $(TARGET) multipng2prg
+png2prg: $(TARGET)
 
 all: $(ALLTARGETS)
 
 bench: $(DISPLAYERS)
-	go test -bench . -benchmem -cover ./...
+	go test -bench . -benchmem ./...
 
 install: $(TARGET)
 	sudo cp $(TARGET) /usr/local/bin/png2prg
@@ -75,9 +74,6 @@ png2prg_win_amd64.exe: $(SRC) $(DISPLAYERS)
 
 png2prg_win_x86.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=386 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
-
-multipng2prg: $(MULTISRC) $(DISPLAYERS)
-	CGO_ENABLED=$(CGO) GOOS=linux GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/multipng2prg/
 
 test: $(TARGET) $(TESTPIC) $(TESTSID)
 	./$(TARGET) $(FLAGS) -sid $(TESTSID) -o z.prg $(TESTPIC)

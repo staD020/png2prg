@@ -169,6 +169,8 @@ func PrintHelp() {
 	fmt.Println("   never happen. Please let me know if you run into this error.")
 	fmt.Println(" - Separated library and cli tool.")
 	fmt.Println(" - Slightly improved packratio for koala images, in most cases.")
+	fmt.Println(" - Patched [TSCrunch](https://github.com/staD020/TSCrunch/) further to increase crunch speed and use less memory.")
+	fmt.Println(" - Added -parallel and -worker flags to treat each input image as standalone and convert all images in parallel.")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.2")
 	fmt.Println()
