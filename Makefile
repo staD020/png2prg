@@ -45,6 +45,9 @@ png2prg: $(TARGET) multipng2prg
 
 all: $(ALLTARGETS)
 
+bench:
+	go test -bench . -benchmem -cover ./...
+
 install: $(TARGET)
 	sudo cp $(TARGET) /usr/local/bin/png2prg
 
