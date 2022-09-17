@@ -46,7 +46,7 @@ png2prg: $(TARGET)
 all: $(ALLTARGETS)
 
 bench: $(DISPLAYERS)
-	go test -bench . -benchmem ./...
+	go test -bench Benchmark. -benchmem ./...
 
 install: $(TARGET)
 	sudo cp $(TARGET) /usr/local/bin/png2prg
