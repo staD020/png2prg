@@ -297,7 +297,13 @@ type Options struct {
 	CurrentGraphicsType GraphicsType
 }
 
-func New(in map[string]io.Reader, opt Options) (*converter, error) {
+type InReader struct {
+	Reader io.Reader
+	Path   string
+}
+
+// TODO: fix ordering bug
+func New(in []InReader, opt Options) (*converter, error) {
 	var err error
 	if opt.ForceBorderColor > 15 {
 		if !opt.Quiet {
@@ -306,19 +312,20 @@ func New(in map[string]io.Reader, opt Options) (*converter, error) {
 		opt.ForceBorderColor = -1
 	}
 	imgs := []sourceImage{}
-	for path, r := range in {
-		switch strings.ToLower(filepath.Ext(path)) {
+	for _, ir := range in {
+		r := ir.Reader
+		switch strings.ToLower(filepath.Ext(ir.Path)) {
 		case ".gif":
 			g, err := gif.DecodeAll(r)
 			if err != nil {
-				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", path, err)
+				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", ir.Path, err)
 			}
 			if opt.Verbose {
-				log.Printf("file %q has %d frames", path, len(g.Image))
+				log.Printf("file %q has %d frames", ir.Path, len(g.Image))
 			}
 			for i, rawImage := range g.Image {
 				img := sourceImage{
-					sourceFilename: path,
+					sourceFilename: ir.Path,
 					opt:            opt,
 					image:          rawImage,
 				}
@@ -326,13 +333,13 @@ func New(in map[string]io.Reader, opt Options) (*converter, error) {
 					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 				}
 				if err = img.checkBounds(); err != nil {
-					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", path, i, err)
+					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", ir.Path, i, err)
 				}
 				imgs = append(imgs, img)
 			}
 		default:
 			img := sourceImage{
-				sourceFilename: path,
+				sourceFilename: ir.Path,
 				opt:            opt,
 			}
 			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
@@ -351,16 +358,16 @@ func New(in map[string]io.Reader, opt Options) (*converter, error) {
 }
 
 func NewFromPath(opt Options, filenames ...string) (*converter, error) {
-	m := make(map[string]io.Reader, len(filenames))
+	irs := []InReader{}
 	for _, path := range filenames {
 		f, err := os.Open(path)
 		if err != nil {
 			return nil, err
 		}
 		defer f.Close()
-		m[path] = f
+		irs = append(irs, InReader{Reader: f, Path: path})
 	}
-	return New(m, opt)
+	return New(irs, opt)
 }
 
 func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
