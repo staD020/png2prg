@@ -297,12 +297,24 @@ type Options struct {
 	CurrentGraphicsType GraphicsType
 }
 
-type InReader struct {
-	Reader io.Reader
-	Path   string
+type inReader struct {
+	io.Reader
+	path string
 }
 
-func New(in []InReader, opt Options) (*converter, error) {
+type Pather interface {
+	Path() string
+}
+
+func (r *inReader) Path() string {
+	return r.path
+}
+
+func (r *inReader) Read(p []byte) (int, error) {
+	return r.Reader.Read(p)
+}
+
+func New(opt Options, in ...io.Reader) (*converter, error) {
 	var err error
 	if opt.ForceBorderColor > 15 {
 		if !opt.Quiet {
@@ -310,20 +322,28 @@ func New(in []InReader, opt Options) (*converter, error) {
 		}
 		opt.ForceBorderColor = -1
 	}
+
 	imgs := []sourceImage{}
-	for _, ir := range in {
-		switch strings.ToLower(filepath.Ext(ir.Path)) {
+	for index, ir := range in {
+		path := ""
+		if p, isPather := in[0].(Pather); isPather {
+			path = p.Path()
+		}
+		if path == "" {
+			path = fmt.Sprintf("png2prg_%02d", index)
+		}
+		switch strings.ToLower(filepath.Ext(path)) {
 		case ".gif":
-			g, err := gif.DecodeAll(ir.Reader)
+			g, err := gif.DecodeAll(ir)
 			if err != nil {
-				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", ir.Path, err)
+				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", path, err)
 			}
 			if opt.Verbose {
-				log.Printf("file %q has %d frames", ir.Path, len(g.Image))
+				log.Printf("file %q has %d frames", path, len(g.Image))
 			}
 			for i, rawImage := range g.Image {
 				img := sourceImage{
-					sourceFilename: ir.Path,
+					sourceFilename: path,
 					opt:            opt,
 					image:          rawImage,
 				}
@@ -331,19 +351,19 @@ func New(in []InReader, opt Options) (*converter, error) {
 					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 				}
 				if err = img.checkBounds(); err != nil {
-					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", ir.Path, i, err)
+					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", path, i, err)
 				}
 				imgs = append(imgs, img)
 			}
 		default:
 			img := sourceImage{
-				sourceFilename: ir.Path,
+				sourceFilename: path,
 				opt:            opt,
 			}
 			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 			}
-			if img.image, _, err = image.Decode(ir.Reader); err != nil {
+			if img.image, _, err = image.Decode(ir); err != nil {
 				return nil, fmt.Errorf("image.Decode failed: %w", err)
 			}
 			if err = img.checkBounds(); err != nil {
@@ -356,16 +376,16 @@ func New(in []InReader, opt Options) (*converter, error) {
 }
 
 func NewFromPath(opt Options, filenames ...string) (*converter, error) {
-	in := []InReader{}
+	in := make([]io.Reader, 0, len(filenames))
 	for _, path := range filenames {
 		f, err := os.Open(path)
 		if err != nil {
 			return nil, err
 		}
 		defer f.Close()
-		in = append(in, InReader{Reader: f, Path: path})
+		in = append(in, &inReader{Reader: f, path: path})
 	}
-	return New(in, opt)
+	return New(opt, in...)
 }
 
 func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
