@@ -26,8 +26,8 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo) (PaletteMap, map[byte]
 
 	// set background
 	if img.graphicsType != singleColorBitmap {
-		colorIndex1[img.backgroundColor.RGB] = byte(0)
-		colorIndex2[byte(0)] = img.backgroundColor.ColorIndex
+		colorIndex1[img.backgroundColor.RGB] = 0
+		colorIndex2[0] = img.backgroundColor.ColorIndex
 	}
 	// which bitpairs do we have left
 	bitpairs := []byte{1, 2, 3}
