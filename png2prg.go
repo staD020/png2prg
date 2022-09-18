@@ -297,23 +297,6 @@ type Options struct {
 	CurrentGraphicsType GraphicsType
 }
 
-type inReader struct {
-	io.Reader
-	path string
-}
-
-type Pather interface {
-	Path() string
-}
-
-func (r *inReader) Path() string {
-	return r.path
-}
-
-func (r *inReader) Read(p []byte) (int, error) {
-	return r.Reader.Read(p)
-}
-
 func New(opt Options, in ...io.Reader) (*converter, error) {
 	var err error
 	if opt.ForceBorderColor > 15 {
@@ -324,13 +307,13 @@ func New(opt Options, in ...io.Reader) (*converter, error) {
 	}
 
 	imgs := []sourceImage{}
+	type namer interface {
+		Name() string
+	}
 	for index, ir := range in {
-		path := ""
-		if p, isPather := in[0].(Pather); isPather {
-			path = p.Path()
-		}
-		if path == "" {
-			path = fmt.Sprintf("png2prg_%02d", index)
+		path := fmt.Sprintf("png2prg_%02d", index)
+		if n, isNamer := in[0].(namer); isNamer {
+			path = n.Name()
 		}
 		switch strings.ToLower(filepath.Ext(path)) {
 		case ".gif":
@@ -383,7 +366,7 @@ func NewFromPath(opt Options, filenames ...string) (*converter, error) {
 			return nil, err
 		}
 		defer f.Close()
-		in = append(in, &inReader{Reader: f, path: path})
+		in = append(in, f)
 	}
 	return New(opt, in...)
 }
