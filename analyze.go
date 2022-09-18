@@ -533,7 +533,7 @@ func (img *sourceImage) analyzePalette() error {
 	for _, ci := range paletteMap {
 		if m[ci] {
 			log.Printf("source colors: %#v", img.colors)
-			log.Printf("palette: %#v", paletteMap)
+			log.Printf("palette: %s", paletteMap)
 			return fmt.Errorf("unable to properly detect palette.")
 		}
 		m[ci] = true
