@@ -30,14 +30,14 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("no sourceImage given")
 	}
 	opt := imgs[0].opt
-	currentGraphicsType := imgs[0].graphicsType
+	wantedGraphicsType := imgs[0].graphicsType
 	currentBitpairColors := bitpairColors{}
 	for i, img := range imgs {
 		if !opt.Quiet {
 			fmt.Printf("processing %q frame %d\n", img.sourceFilename, i)
 		}
-		if img.graphicsType != currentGraphicsType {
-			return n, fmt.Errorf("mixed graphicsmodes detected %q != %q", img.graphicsType, currentGraphicsType)
+		if img.graphicsType != wantedGraphicsType {
+			return n, fmt.Errorf("mixed graphicsmodes detected %q != %q", img.graphicsType, wantedGraphicsType)
 		}
 		if err := img.analyze(); err != nil {
 			log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)

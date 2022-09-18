@@ -272,7 +272,6 @@ func init() {
 	displayers[singleColorSprites] = scSpritesDisplay
 }
 
-// TODO: make png2prg a lib
 type converter struct {
 	opt    Options
 	images []sourceImage
