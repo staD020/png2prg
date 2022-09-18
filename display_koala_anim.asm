@@ -98,7 +98,7 @@ start:
 		lda #>irq
 		sta $ffff
 
-		lda #$ff
+		lda #$80
 	!:	cmp $d012
 		bne !-
 	.if (MUSICDEBUG) {
