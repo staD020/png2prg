@@ -302,7 +302,6 @@ type InReader struct {
 	Path   string
 }
 
-// TODO: fix ordering bug
 func New(in []InReader, opt Options) (*converter, error) {
 	var err error
 	if opt.ForceBorderColor > 15 {
@@ -313,10 +312,9 @@ func New(in []InReader, opt Options) (*converter, error) {
 	}
 	imgs := []sourceImage{}
 	for _, ir := range in {
-		r := ir.Reader
 		switch strings.ToLower(filepath.Ext(ir.Path)) {
 		case ".gif":
-			g, err := gif.DecodeAll(r)
+			g, err := gif.DecodeAll(ir.Reader)
 			if err != nil {
 				return nil, fmt.Errorf("gif.DecodeAll %q failed: %w", ir.Path, err)
 			}
@@ -345,7 +343,7 @@ func New(in []InReader, opt Options) (*converter, error) {
 			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 			}
-			if img.image, _, err = image.Decode(r); err != nil {
+			if img.image, _, err = image.Decode(ir.Reader); err != nil {
 				return nil, fmt.Errorf("image.Decode failed: %w", err)
 			}
 			if err = img.checkBounds(); err != nil {
@@ -358,16 +356,16 @@ func New(in []InReader, opt Options) (*converter, error) {
 }
 
 func NewFromPath(opt Options, filenames ...string) (*converter, error) {
-	irs := []InReader{}
+	in := []InReader{}
 	for _, path := range filenames {
 		f, err := os.Open(path)
 		if err != nil {
 			return nil, err
 		}
 		defer f.Close()
-		irs = append(irs, InReader{Reader: f, Path: path})
+		in = append(in, InReader{Reader: f, Path: path})
 	}
-	return New(irs, opt)
+	return New(in, opt)
 }
 
 func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
