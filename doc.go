@@ -164,7 +164,7 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println("## Changes for version 1.3")
 	fmt.Println()
-	fmt.Println(" - Support for even more far-out palette ranges (thanks Perplex!)")
+	fmt.Println(" - Support for even more far-out palette ranges (thanks Perplex)")
 	fmt.Println(" - Now throws an error if the palette can't be detected properly, this should")
 	fmt.Println("   never happen. Please let me know if you run into this error.")
 	fmt.Println(" - Separated library and cli tool.")

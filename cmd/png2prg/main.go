@@ -104,6 +104,10 @@ func processInParallel(opt png2prg.Options, filenames ...string) error {
 	for i := 0; i < numWorkers; i++ {
 		go worker(i, wg, opt, jobs)
 	}
+	defer func() {
+		close(jobs)
+		wg.Wait()
+	}()
 	if !opt.Quiet {
 		fmt.Printf("started %d workers\n", numWorkers)
 	}
@@ -125,8 +129,6 @@ func processInParallel(opt png2prg.Options, filenames ...string) error {
 			}
 		}
 	}
-	close(jobs)
-	wg.Wait()
 	return nil
 }
 
@@ -139,18 +141,18 @@ func worker(i int, wg *sync.WaitGroup, opt png2prg.Options, jobs <-chan string) 
 
 		p, err := png2prg.NewFromPath(opt, filename)
 		if err != nil {
-			log.Printf("NewFromPath %q failed: %v", filename, err)
+			log.Printf("skipping: NewFromPath %q failed: %v", filename, err)
 			continue
 		}
 		w, err := os.Create(opt.OutFile)
 		if err != nil {
-			log.Printf("os.Create %q failed: %v", opt.OutFile, err)
+			log.Printf("skipping: os.Create %q failed: %v", opt.OutFile, err)
 			continue
 		}
 		defer w.Close()
 		_, err = p.WriteTo(w)
 		if err != nil {
-			log.Printf("WriteTo %q failed: %v", opt.OutFile, err)
+			log.Printf("skipping: WriteTo %q failed: %v", opt.OutFile, err)
 			continue
 		}
 		if !opt.Quiet {
@@ -189,7 +191,7 @@ func expandWildcards(filenames []string) (result []string, err error) {
 
 func initAndParseFlags() (opt png2prg.Options) {
 	flag.StringVar(&cpuProfile, "cpuprofile", "", "write cpu profile to `file`")
-	flag.StringVar(&memProfile, "memprofile", "", "write memory profile to `file`")
+	flag.StringVar(&memProfile, "memprofile", "", "write memory profile to `file` (only in -parallel mode)")
 	flag.BoolVar(&help, "h", false, "help")
 	flag.BoolVar(&help, "help", false, "help")
 
