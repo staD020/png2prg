@@ -168,7 +168,7 @@ func PrintHelp() {
 	fmt.Println(" - Now throws an error if the palette can't be detected properly, this should")
 	fmt.Println("   never happen. Please let me know if you run into this error.")
 	fmt.Println(" - Separated library and cli tool.")
-	fmt.Println(" - Library supports the standard io.Reader and io.WriterTo interfaces.")
+	fmt.Println(" - Library supports the standard [io.Reader](https://pkg.go.dev/io@go1.19.1#Reader) and [io.Writer](https://pkg.go.dev/io@go1.19.1#Writer) interfaces.")
 	fmt.Println(" - Slightly improved packratio for koala images, in most cases.")
 	fmt.Println(" - Patched [TSCrunch](https://github.com/staD020/TSCrunch/) further to increase crunch speed and use less memory.")
 	fmt.Println(" - Added -parallel and -worker flags to treat each input image as standalone")
