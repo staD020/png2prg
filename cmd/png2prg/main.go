@@ -115,19 +115,26 @@ func processInParallel(opt png2prg.Options, filenames ...string) error {
 	for i, filename := range filenames {
 		jobs <- filename
 		if i == int(len(filenames)/2) && memProfile != "" {
-			f, err := os.Create(memProfile)
-			if err != nil {
-				return fmt.Errorf("could not create memory profile: %w", err)
-			}
-			defer f.Close()
-			runtime.GC()
-			if err := pprof.WriteHeapProfile(f); err != nil {
-				return fmt.Errorf("could not write memory profile: %w", err)
+			if err := writeMemProfile(memProfile); err != nil {
+				return fmt.Errorf("writeMemProfile failed: %w", err)
 			}
 			if !opt.Quiet {
-				fmt.Println("WriteHeapProfile done")
+				fmt.Println("writeMemProfile done")
 			}
 		}
+	}
+	return nil
+}
+
+func writeMemProfile(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("Create failed: %w", err)
+	}
+	defer f.Close()
+	runtime.GC()
+	if err := pprof.WriteHeapProfile(f); err != nil {
+		return fmt.Errorf("WriteHeapProfile failed: %w", err)
 	}
 	return nil
 }
