@@ -133,10 +133,7 @@ func writeMemProfile(path string) error {
 	}
 	defer f.Close()
 	runtime.GC()
-	if err := pprof.WriteHeapProfile(f); err != nil {
-		return fmt.Errorf("WriteHeapProfile failed: %w", err)
-	}
-	return nil
+	return pprof.WriteHeapProfile(f)
 }
 
 func worker(i int, wg *sync.WaitGroup, opt png2prg.Options, jobs <-chan string) {
