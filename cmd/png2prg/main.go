@@ -102,7 +102,7 @@ func processInParallel(opt png2prg.Options, filenames ...string) error {
 	jobs := make(chan string, numWorkers)
 	wg.Add(numWorkers)
 	for i := 0; i < numWorkers; i++ {
-		go worker(i, wg, opt, jobs)
+		go worker(i, opt, wg, jobs)
 	}
 	defer func() {
 		close(jobs)
@@ -136,7 +136,7 @@ func writeMemProfile(path string) error {
 	return pprof.WriteHeapProfile(f)
 }
 
-func worker(i int, wg *sync.WaitGroup, opt png2prg.Options, jobs <-chan string) {
+func worker(i int, opt png2prg.Options, wg *sync.WaitGroup, jobs <-chan string) {
 	defer wg.Done()
 	for filename := range jobs {
 		opt := opt
