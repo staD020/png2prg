@@ -293,6 +293,8 @@ type Options struct {
 	IncludeSID          string
 	FrameDelay          int
 	WaitSeconds         int
+	ForceXOffset        int
+	ForceYOffset        int
 	CurrentGraphicsType GraphicsType
 }
 
@@ -306,55 +308,63 @@ func New(opt Options, in ...io.Reader) (*converter, error) {
 
 	imgs := []sourceImage{}
 	for index, ir := range in {
-		path := fmt.Sprintf("png2prg_%02d", index)
-		if n, isNamer := in[0].(interface{ Name() string }); isNamer {
-			path = n.Name()
-		}
-
-		bin, err := io.ReadAll(ir)
+		ii, err := NewSourceImages(opt, index, ir)
 		if err != nil {
-			return nil, fmt.Errorf("io.ReadAll %q failed: %w", path, err)
+			return nil, fmt.Errorf("NewSourceImages failed: %w", err)
 		}
-
-		// try gif first
-		if g, err := gif.DecodeAll(bytes.NewReader(bin)); err == nil {
-			if opt.Verbose {
-				log.Printf("file %q has %d frames", path, len(g.Image))
-			}
-			for i, rawImage := range g.Image {
-				img := sourceImage{
-					sourceFilename: path,
-					opt:            opt,
-					image:          rawImage,
-				}
-				if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
-					return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
-				}
-				if err = img.checkBounds(); err != nil {
-					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", path, i, err)
-				}
-				imgs = append(imgs, img)
-			}
-			continue
-		}
-
-		// should be png or jpg
-		img := sourceImage{
-			sourceFilename: path,
-			opt:            opt,
-		}
-		if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
-			return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
-		}
-		if img.image, _, err = image.Decode(bytes.NewReader(bin)); err != nil {
-			return nil, fmt.Errorf("image.Decode failed: %w", err)
-		}
-		if err = img.checkBounds(); err != nil {
-			return nil, fmt.Errorf("img.checkBounds failed: %w", err)
-		}
-		imgs = append(imgs, img)
+		imgs = append(imgs, ii...)
 	}
 	return &converter{images: imgs, opt: opt}, nil
+}
+
+func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, err error) {
+	path := fmt.Sprintf("png2prg_%02d", index)
+	if n, isNamer := r.(interface{ Name() string }); isNamer {
+		path = n.Name()
+	}
+	bin, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("io.ReadAll %q failed: %w", path, err)
+	}
+
+	// try gif first
+	if g, err := gif.DecodeAll(bytes.NewReader(bin)); err == nil {
+		if opt.Verbose {
+			log.Printf("file %q has %d frames", path, len(g.Image))
+		}
+		for i, rawImage := range g.Image {
+			img := sourceImage{
+				sourceFilename: path,
+				opt:            opt,
+				image:          rawImage,
+			}
+			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
+				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
+			}
+			if err = img.checkBounds(); err != nil {
+				return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", path, i, err)
+			}
+			imgs = append(imgs, img)
+		}
+		return imgs, nil
+	}
+
+	// should be png or jpg
+	img := sourceImage{
+		sourceFilename: path,
+		opt:            opt,
+	}
+	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
+		return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
+	}
+	if img.image, _, err = image.Decode(bytes.NewReader(bin)); err != nil {
+		return nil, fmt.Errorf("image.Decode failed: %w", err)
+	}
+	if err = img.checkBounds(); err != nil {
+		return nil, fmt.Errorf("img.checkBounds failed: %w", err)
+	}
+	imgs = append(imgs, img)
+	return imgs, nil
 }
 
 func NewFromPath(opt Options, filenames ...string) (*converter, error) {

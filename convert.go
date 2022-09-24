@@ -98,7 +98,7 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 	for char := 0; char < 1000; char++ {
 		colorIndex1, colorIndex2, err := img.multiColorIndexes(sortColors(img.charColors[char]))
 		if err != nil {
-			return k, fmt.Errorf("error in char %d: %w", char, err)
+			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 		}
 
 		bitmapIndex := char * 8
@@ -150,7 +150,7 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 
 		colorIndex1, colorIndex2, err := img.multiColorIndexes(cc)
 		if err != nil {
-			return h, fmt.Errorf("error in char %d: %v", char, err)
+			return h, fmt.Errorf("multiColorIndexes failed: error in char %d: %v", char, err)
 		}
 
 		bitmapIndex := char * 8

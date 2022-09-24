@@ -48,8 +48,9 @@ func (img *sourceImage) checkBounds() error {
 		// default screenshot size in vice with default borders
 		img.xOffset += (384 - 320) / 2       // 32
 		img.yOffset += ((272 - 200) / 2) - 1 // 35
-		// some people
-		// img.xOffset, img.yOffset = 32, 36
+		if img.opt.ForceXOffset > 0 || img.opt.ForceYOffset > 0 {
+			img.xOffset, img.yOffset = img.opt.ForceXOffset, img.opt.ForceYOffset
+		}
 		img.width, img.height = 320, 200
 		return nil
 	case img.hasSpriteDimensions():

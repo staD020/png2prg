@@ -63,7 +63,7 @@ func main() {
 	if parallel {
 		process = processInParallel
 	}
-	if err = process(opt, filenames...); err != nil {
+	if err = process(&opt, filenames...); err != nil {
 		log.Fatalf("process failed: %v", err)
 	}
 
@@ -73,11 +73,11 @@ func main() {
 	}
 }
 
-func processAsOne(opt png2prg.Options, filenames ...string) error {
-	opt.OutFile = png2prg.DestinationFilename(filenames[0], opt)
+func processAsOne(opt *png2prg.Options, filenames ...string) error {
+	opt.OutFile = png2prg.DestinationFilename(filenames[0], (*opt))
 	opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
 
-	p, err := png2prg.NewFromPath(opt, filenames...)
+	p, err := png2prg.NewFromPath(*opt, filenames...)
 	if err != nil {
 		return fmt.Errorf("NewFromPath failed: %w", err)
 	}
@@ -86,14 +86,30 @@ func processAsOne(opt png2prg.Options, filenames ...string) error {
 		return fmt.Errorf("os.Create failed: %w", err)
 	}
 	defer w.Close()
-	_, err = p.WriteTo(w)
+	n, err := p.WriteTo(w)
 	if err != nil {
-		return fmt.Errorf("WriteTo failed: %w", err)
+		// w can only be reused if 0 bytes have been written so far
+		if n > 0 {
+			return fmt.Errorf("WriteTo failed: %w", err)
+		}
+		log.Printf("WriteTo failed: %v", err)
+		log.Println("attempting alternate x, y offset 32, 36")
+		opt.ForceXOffset, opt.ForceYOffset = 32, 36
+		p, err = png2prg.NewFromPath(*opt, filenames...)
+		if err != nil {
+			return fmt.Errorf("NewFromPath failed: %w", err)
+		}
+		_, err = p.WriteTo(w)
+		if err != nil {
+			return fmt.Errorf("WriteTo failed: %w", err)
+		}
+		fmt.Printf("alternate x, y offset %d, %d succeeded for file %q\n", opt.ForceXOffset, opt.ForceYOffset, opt.OutFile)
+		fmt.Printf("proper vice screenshot offset is %d, %d. please fix your images to convert without error messages.\n", 32, 35)
 	}
 	return nil
 }
 
-func processInParallel(opt png2prg.Options, filenames ...string) error {
+func processInParallel(opt *png2prg.Options, filenames ...string) error {
 	wg := &sync.WaitGroup{}
 	numWorkers := numWorkers
 	if numWorkers > len(filenames) {
@@ -101,8 +117,8 @@ func processInParallel(opt png2prg.Options, filenames ...string) error {
 	}
 	jobs := make(chan string, numWorkers)
 	wg.Add(numWorkers)
-	for i := 0; i < numWorkers; i++ {
-		go worker(i, opt, wg, jobs)
+	for i := 1; i <= numWorkers; i++ {
+		go worker(i, *opt, wg, jobs)
 	}
 	defer func() {
 		close(jobs)
@@ -114,7 +130,7 @@ func processInParallel(opt png2prg.Options, filenames ...string) error {
 
 	for i, filename := range filenames {
 		jobs <- filename
-		if i == int(len(filenames)/2) && memProfile != "" {
+		if memProfile != "" && i == int(len(filenames)/2) {
 			if err := writeMemProfile(memProfile); err != nil {
 				return fmt.Errorf("writeMemProfile failed: %w", err)
 			}
@@ -140,24 +156,8 @@ func worker(i int, opt png2prg.Options, wg *sync.WaitGroup, jobs <-chan string) 
 	defer wg.Done()
 	for filename := range jobs {
 		opt := opt
-		opt.OutFile = png2prg.DestinationFilename(filename, opt)
-		opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
-
-		p, err := png2prg.NewFromPath(opt, filename)
-		if err != nil {
-			log.Printf("skipping: NewFromPath %q failed: %v", filename, err)
-			continue
-		}
-		w, err := os.Create(opt.OutFile)
-		if err != nil {
-			log.Printf("skipping: os.Create %q failed: %v", opt.OutFile, err)
-			continue
-		}
-		defer w.Close()
-		_, err = p.WriteTo(w)
-		if err != nil {
-			log.Printf("skipping: WriteTo %q failed: %v", opt.OutFile, err)
-			continue
+		if err := processAsOne(&opt, filename); err != nil {
+			log.Printf("skipping processAsOne %q failed: %v", filename, err)
 		}
 		if !opt.Quiet {
 			fmt.Printf("worker %d converted %q to %q\n", i, filename, opt.OutFile)
