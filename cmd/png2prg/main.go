@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -81,12 +82,8 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 	if err != nil {
 		return fmt.Errorf("NewFromPath failed: %w", err)
 	}
-	w, err := os.Create(opt.OutFile)
-	if err != nil {
-		return fmt.Errorf("os.Create failed: %w", err)
-	}
-	defer w.Close()
-	n, err := p.WriteTo(w)
+	buf := new(bytes.Buffer)
+	n, err := p.WriteTo(buf)
 	if err != nil {
 		// w can only be reused if 0 bytes have been written so far
 		if n > 0 {
@@ -99,12 +96,23 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 		if err != nil {
 			return fmt.Errorf("NewFromPath failed: %w", err)
 		}
-		_, err = p.WriteTo(w)
+		_, err = p.WriteTo(buf)
 		if err != nil {
 			return fmt.Errorf("WriteTo failed: %w", err)
 		}
 		fmt.Printf("alternate x, y offset %d, %d succeeded for file %q\n", opt.ForceXOffset, opt.ForceYOffset, opt.OutFile)
 		fmt.Printf("proper vice screenshot offset is %d, %d. please fix your images to convert without error messages.\n", 32, 35)
+	}
+	w, err := os.Create(opt.OutFile)
+	if err != nil {
+		return fmt.Errorf("os.Create failed: %w", err)
+	}
+	defer w.Close()
+	if _, err = w.Write(buf.Bytes()); err != nil {
+		return fmt.Errorf("w.Write failed: %w", err)
+	}
+	if !opt.Quiet {
+		fmt.Printf("write %q\n", opt.OutFile)
 	}
 	return nil
 }

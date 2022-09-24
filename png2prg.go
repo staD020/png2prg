@@ -461,9 +461,6 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 	if err != nil {
 		return n, fmt.Errorf("WriteTo failed: %w", err)
 	}
-	if !c.opt.Quiet {
-		fmt.Printf("write %q\n", c.opt.OutFile)
-	}
 	return n, nil
 }
 
