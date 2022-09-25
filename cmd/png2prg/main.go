@@ -91,12 +91,10 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 		log.Printf("WriteTo failed: %v", err)
 		log.Printf("attempting alternate x, y offset %d, %d", 32, 36)
 		opt.ForceXOffset, opt.ForceYOffset = 32, 36
-		p, err = png2prg.NewFromPath(*opt, filenames...)
-		if err != nil {
+		if p, err = png2prg.NewFromPath(*opt, filenames...); err != nil {
 			return fmt.Errorf("NewFromPath failed: %w", err)
 		}
-		_, err = p.WriteTo(buf)
-		if err != nil {
+		if _, err = p.WriteTo(buf); err != nil {
 			return fmt.Errorf("WriteTo failed: %w", err)
 		}
 		fmt.Printf("alternate x, y offset %d, %d succeeded for file %q\n", opt.ForceXOffset, opt.ForceYOffset, opt.OutFile)

@@ -300,9 +300,7 @@ type Options struct {
 
 func New(opt Options, in ...io.Reader) (*converter, error) {
 	if opt.ForceBorderColor > 15 {
-		if !opt.Quiet {
-			log.Printf("only values 0-15 are allowed, -force-border-color %d is not correct, now using default.", opt.ForceBorderColor)
-		}
+		log.Printf("only values 0-15 are allowed, -force-border-color %d is not correct, now using default.", opt.ForceBorderColor)
 		opt.ForceBorderColor = -1
 	}
 
@@ -372,7 +370,7 @@ func NewFromPath(opt Options, filenames ...string) (*converter, error) {
 	for _, path := range filenames {
 		f, err := os.Open(path)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("os.Open failed: %w", err)
 		}
 		defer f.Close()
 		in = append(in, f)

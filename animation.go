@@ -51,6 +51,7 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			log.Println("this would cause huge animation frame sizes and probably crash the displayer")
 			return n, fmt.Errorf("bitpairColors differ between frames, maybe use -bitpair-colors %s", currentBitpairColors)
 		}
+
 		switch img.graphicsType {
 		case multiColorBitmap:
 			k, err := img.convertToKoala()
