@@ -83,14 +83,13 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 		return fmt.Errorf("NewFromPath failed: %w", err)
 	}
 	buf := new(bytes.Buffer)
-	n, err := p.WriteTo(buf)
-	if err != nil {
+	if n, err := p.WriteTo(buf); err != nil {
 		// w can only be reused if 0 bytes have been written so far
 		if n > 0 {
 			return fmt.Errorf("WriteTo failed: %w", err)
 		}
 		log.Printf("WriteTo failed: %v", err)
-		log.Println("attempting alternate x, y offset 32, 36")
+		log.Printf("attempting alternate x, y offset %d, %d", 32, 36)
 		opt.ForceXOffset, opt.ForceYOffset = 32, 36
 		p, err = png2prg.NewFromPath(*opt, filenames...)
 		if err != nil {
