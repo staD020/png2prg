@@ -533,18 +533,18 @@ func (img *sourceImage) analyzePalette() error {
 	m := [maxColors]bool{}
 	for _, ci := range paletteMap {
 		if m[ci] {
-			log.Printf("source colors: %s", img.colors)
-			log.Printf("palette: %s", paletteMap)
-			return fmt.Errorf("unable to properly detect palette.")
+			log.Printf("file %q source colors: %s", img.sourceFilename, img.colors)
+			log.Printf("file %q palette: %s", img.sourceFilename, paletteMap)
+			return fmt.Errorf("unable to properly detect palette")
 		}
 		m[ci] = true
 	}
 
 	if !img.opt.Quiet {
-		fmt.Printf("palette found: %s distance: %d\n", paletteName, minDistance)
+		fmt.Printf("file %q palette found: %s distance: %d\n", img.sourceFilename, paletteName, minDistance)
 	}
 	if img.opt.Verbose {
-		log.Printf("palette: %s", paletteMap)
+		log.Printf("file %q palette: %s", img.sourceFilename, paletteMap)
 	}
 	img.palette = paletteMap
 	return nil
@@ -566,7 +566,7 @@ func (img *sourceImage) setSourceColors() error {
 	}
 	img.colors = cc
 	if len(m) > maxColors {
-		return fmt.Errorf("image uses %d colors, the maximum is %d.", len(m), maxColors)
+		return fmt.Errorf("image %q uses %d colors, the maximum is %d.", img.sourceFilename, len(m), maxColors)
 	}
 	return nil
 }

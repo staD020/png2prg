@@ -517,12 +517,12 @@ func injectSIDHeader(header []byte, s *sid.SID) []byte {
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
 	if !k.opt.Display {
-		return writeData(w, [][]byte{defaultHeader(), k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
+		return writeData(w, defaultHeader(), k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder})
 	}
 	header := newHeader(multiColorBitmap)
 	if k.opt.IncludeSID == "" {
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
-		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
+		return writeData(w, header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder})
 	}
 
 	s, err := sid.LoadSID(k.opt.IncludeSID)
@@ -544,14 +544,14 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 			fmt.Printf("injected %q: %s\n", k.opt.IncludeSID, s)
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
-		return writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}})
+		return writeData(w, header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder})
 	case load < 0x8f00:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
 	header = zeroFill(header, 0x2000-0x7ff-len(header))
 	buf := make([]byte, load-0x4711)
-	n, err = writeData(w, [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}, buf, s.RawBytes()})
+	n, err = writeData(w, header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder}, buf, s.RawBytes())
 	if err != nil {
 		return n, err
 	}
@@ -563,12 +563,12 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	if !h.opt.Display {
-		return writeData(w, [][]byte{defaultHeader(), h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
+		return writeData(w, defaultHeader(), h.Bitmap[:], h.ScreenColor[:], []byte{h.BorderColor})
 	}
 	header := newHeader(singleColorBitmap)
 	if h.opt.IncludeSID == "" {
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
-		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
+		return writeData(w, header, h.Bitmap[:], h.ScreenColor[:], []byte{h.BorderColor})
 	}
 
 	s, err := sid.LoadSID(h.opt.IncludeSID)
@@ -590,14 +590,14 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 			fmt.Printf("injected %q: %s\n", h.opt.IncludeSID, s)
 		}
 		header = zeroFill(header, 0x2000-0x7ff-len(header))
-		return writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}})
+		return writeData(w, header, h.Bitmap[:], h.ScreenColor[:], []byte{h.BorderColor})
 	case load < 0x6c00:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
 	header = zeroFill(header, 0x2000-0x7ff-len(header))
 	buf := make([]byte, load-0x4329)
-	n, err = writeData(w, [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}, buf, s.RawBytes()})
+	n, err = writeData(w, header, h.Bitmap[:], h.ScreenColor[:], []byte{h.BorderColor}, buf, s.RawBytes())
 	if err != nil {
 		return n, err
 	}
@@ -612,7 +612,7 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.Display {
 		header = newHeader(multiColorCharset)
 	}
-	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], {c.CharColor, c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor}})
+	return writeData(w, header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor})
 }
 
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
@@ -620,7 +620,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.Display {
 		header = newHeader(singleColorCharset)
 	}
-	return writeData(w, [][]byte{header, c.Bitmap[:], c.Screen[:], {c.CharColor, c.BackgroundColor}})
+	return writeData(w, header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor})
 }
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
@@ -629,7 +629,7 @@ func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 		header = newHeader(singleColorSprites)
 		header = append(header, s.Columns, s.Rows, s.BackgroundColor, s.SpriteColor)
 	}
-	return writeData(w, [][]byte{header, s.Bitmap[:]})
+	return writeData(w, header, s.Bitmap[:])
 }
 
 func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
@@ -638,10 +638,10 @@ func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 		header = newHeader(multiColorSprites)
 		header = append(header, s.Columns, s.Rows, s.BackgroundColor, s.D025Color, s.SpriteColor, s.D026Color)
 	}
-	return writeData(w, [][]byte{header, s.Bitmap[:]})
+	return writeData(w, header, s.Bitmap[:])
 }
 
-func writeData(w io.Writer, data [][]byte) (n int64, err error) {
+func writeData(w io.Writer, data ...[]byte) (n int64, err error) {
 	for _, d := range data {
 		var m int
 		m, err = w.Write(d)

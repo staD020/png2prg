@@ -157,7 +157,7 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, opt.OutFile)
 			}
 		}
-		if _, err = writeData(w, data); err != nil {
+		if _, err = writeData(w, data...); err != nil {
 			return n, fmt.Errorf("writeData %q failed: %w", opt.OutFile, err)
 		}
 		return n, nil
@@ -169,7 +169,7 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, opt.OutFile)
 			}
 		}
-		if _, err = writeData(w, data); err != nil {
+		if _, err = writeData(w, data...); err != nil {
 			return n, fmt.Errorf("writeData %q failed: %w", opt.OutFile, err)
 		}
 		return n, nil
@@ -418,7 +418,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", koalaAnimationStart, len(buf)+0x4711)
 			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", koalaFadePassStart, 0xcfff)
 		}
-		return writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, buf})
+		return writeData(w, header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], []byte{bgBorder}, buf)
 	case (load > koalaFadePassStart && load < 0xe000) || load < koalaAnimationStart+0x100:
 		return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
@@ -440,7 +440,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	}
 
 	buf := make([]byte, int(load)-0x4711-len(framebuf))
-	n, err = writeData(w, [][]byte{header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], {bgBorder}, framebuf, buf, s.RawBytes()})
+	n, err = writeData(w, header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], []byte{bgBorder}, framebuf, buf, s.RawBytes())
 	if err != nil {
 		return n, err
 	}
@@ -535,7 +535,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(framebuf)+0x4328)
 			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)
 		}
-		return writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, framebuf})
+		return writeData(w, header, hh[0].Bitmap[:], hh[0].ScreenColor[:], []byte{hh[0].BorderColor}, framebuf)
 	case (load > hiresFadePassStart && load < 0xe000) || load < hiresAnimationStart+0x100:
 		return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
@@ -556,7 +556,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	}
 
 	buf := make([]byte, int(load)-0x4329-len(framebuf))
-	n, err = writeData(w, [][]byte{header, hh[0].Bitmap[:], hh[0].ScreenColor[:], {hh[0].BorderColor}, framebuf, buf, s.RawBytes()})
+	n, err = writeData(w, header, hh[0].Bitmap[:], hh[0].ScreenColor[:], []byte{hh[0].BorderColor}, framebuf, buf, s.RawBytes())
 	if err != nil {
 		return n, err
 	}
