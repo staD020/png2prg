@@ -293,16 +293,16 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 		return c, fmt.Errorf("image packs to %d unique chars, the max is 256.", len(charMap))
 	}
 
-	j := 0
-	for _, bytes := range charMap {
-		for _, b := range bytes {
-			c.Bitmap[j] = b
-			j++
+	charCount := 0
+	for i := range charMap {
+		for j := range charMap[i] {
+			c.Bitmap[charCount] = charMap[i][j]
+			charCount++
 		}
 	}
 
 	if img.opt.Verbose {
-		log.Printf("used %d unique chars in the charset", j/8)
+		log.Printf("used %d unique chars in the charset", charCount/8)
 	}
 
 	return c, nil

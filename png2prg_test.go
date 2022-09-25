@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const inFile = "testdata/the_sarge_steady_eddie_ready_hires.png"
+const inFile = "testdata/floris_untitled.png"
 const testSID = "testdata/Laserdance_10.sid"
 
 func BenchmarkNewFromPath(b *testing.B) {
