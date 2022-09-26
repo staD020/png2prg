@@ -33,6 +33,8 @@ func PrintHelp() {
 	fmt.Println("already be compliant with c64 color and size restrictions.")
 	fmt.Println("In verbose mode (-v) it outputs locations of color clashes, if any.")
 	fmt.Println()
+	fmt.Println("If you do need to wire fullcolor images, check out Youth's [Retropixels](https://www.micheldebree.nl/retropixels/).")
+	fmt.Println()
 	fmt.Println("## Supported Graphics Modes")
 	fmt.Println()
 	fmt.Println("    koala:     multicolor bitmap (max 4 colors per char)")
