@@ -26,6 +26,14 @@ const (
 	maxColors       = 16
 )
 
+var TSCOptions = TSCrunch.Options{
+	PRG:     true,
+	QUIET:   true,
+	INPLACE: false,
+	SkipRLE: true,
+	JumpTo:  displayerJumpTo,
+}
+
 type RGB struct {
 	R, G, B byte
 }
@@ -468,12 +476,7 @@ func injectCrunch(c io.WriterTo, verbose bool) (io.WriterTo, error) {
 	if _, err := c.WriteTo(buf); err != nil {
 		return nil, fmt.Errorf("WriteTo buffer failed: %w", err)
 	}
-	opt := TSCrunch.Options{
-		PRG:     true,
-		QUIET:   true,
-		INPLACE: false,
-		JumpTo:  displayerJumpTo,
-	}
+	opt := TSCOptions
 	if verbose {
 		opt.QUIET = false
 	}

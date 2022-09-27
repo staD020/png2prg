@@ -88,9 +88,6 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		if err != nil {
 			return n, fmt.Errorf("writeAnimationDisplayerTo failed: %w", err)
 		}
-		if !opt.Quiet {
-			fmt.Printf("write %q\n", opt.OutFile)
-		}
 		return n, nil
 	}
 
@@ -211,12 +208,7 @@ func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh [
 		return n, fmt.Errorf("animation displayers do not support %q", imgs[0].graphicsType)
 	}
 
-	tscopt := TSCrunch.Options{
-		PRG:     true,
-		QUIET:   true,
-		INPLACE: false,
-		JumpTo:  displayerJumpTo,
-	}
+	tscopt := TSCOptions
 	if opt.Verbose {
 		tscopt.QUIET = false
 	}
