@@ -405,50 +405,50 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 	var wt io.WriterTo
 	switch img.graphicsType {
 	case multiColorBitmap:
-		if wt, err = img.convertToKoala(); err != nil {
-			return 0, fmt.Errorf("convertToKoala %q failed: %w", img.sourceFilename, err)
+		if wt, err = img.Koala(); err != nil {
+			return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
 		}
 	case singleColorBitmap:
-		if wt, err = img.convertToHires(); err != nil {
-			return 0, fmt.Errorf("convertToHires %q failed: %w", img.sourceFilename, err)
+		if wt, err = img.Hires(); err != nil {
+			return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
 		}
 	case singleColorCharset:
-		if wt, err = img.convertToSingleColorCharset(); err != nil {
+		if wt, err = img.SingleColorCharset(); err != nil {
 			if c.opt.GraphicsMode != "" {
-				return 0, fmt.Errorf("convertToSingleColorCharset %q failed: %w", img.sourceFilename, err)
+				return 0, fmt.Errorf("img.SingleColorCharset %q failed: %w", img.sourceFilename, err)
 			}
 			if !c.opt.Quiet {
-				fmt.Printf("falling back to %s because convertToSingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
+				fmt.Printf("falling back to %s because img.SingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
 			}
 			img.graphicsType = singleColorBitmap
-			if wt, err = img.convertToHires(); err != nil {
-				return 0, fmt.Errorf("convertToHires %q failed: %w", img.sourceFilename, err)
+			if wt, err = img.Hires(); err != nil {
+				return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
 			}
 		}
 	case multiColorCharset:
-		if wt, err = img.convertToMultiColorCharset(); err != nil {
+		if wt, err = img.MultiColorCharset(); err != nil {
 			if c.opt.GraphicsMode != "" {
-				return 0, fmt.Errorf("convertToMultiColorCharset %q failed: %w", img.sourceFilename, err)
+				return 0, fmt.Errorf("img.MultiColorCharset %q failed: %w", img.sourceFilename, err)
 			}
 			if !c.opt.Quiet {
-				fmt.Printf("falling back to %s because convertToMultiColorCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
+				fmt.Printf("falling back to %s because img.MultiColorCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
 			}
 			img.graphicsType = multiColorBitmap
 			err = img.findBackgroundColor()
 			if err != nil {
 				return 0, fmt.Errorf("findBackgroundColor %q failed: %w", img.sourceFilename, err)
 			}
-			if wt, err = img.convertToKoala(); err != nil {
-				return 0, fmt.Errorf("convertToKoala %q failed: %w", img.sourceFilename, err)
+			if wt, err = img.Koala(); err != nil {
+				return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
 			}
 		}
 	case singleColorSprites:
-		if wt, err = img.convertToSingleColorSprites(); err != nil {
-			return 0, fmt.Errorf("convertToSingleColorSprites %q failed: %w", img.sourceFilename, err)
+		if wt, err = img.SingleColorSprites(); err != nil {
+			return 0, fmt.Errorf("img.SingleColorSprites %q failed: %w", img.sourceFilename, err)
 		}
 	case multiColorSprites:
-		if wt, err = img.convertToMultiColorSprites(); err != nil {
-			return 0, fmt.Errorf("convertToMultiColorSprites %q failed: %w", img.sourceFilename, err)
+		if wt, err = img.MultiColorSprites(); err != nil {
+			return 0, fmt.Errorf("img.MultiColorSprites %q failed: %w", img.sourceFilename, err)
 		}
 	default:
 		return 0, fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)

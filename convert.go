@@ -77,7 +77,7 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo) (PaletteMap, map[byte]
 	return colorIndex1, colorIndex2, nil
 }
 
-func (img *sourceImage) convertToKoala() (Koala, error) {
+func (img *sourceImage) Koala() (Koala, error) {
 	k := Koala{
 		BackgroundColor: img.backgroundColor.ColorIndex,
 		BorderColor:     img.borderColor.ColorIndex,
@@ -135,7 +135,7 @@ func (img *sourceImage) convertToKoala() (Koala, error) {
 	return k, nil
 }
 
-func (img *sourceImage) convertToHires() (Hires, error) {
+func (img *sourceImage) Hires() (Hires, error) {
 	h := Hires{
 		SourceFilename: img.sourceFilename,
 		BorderColor:    img.borderColor.ColorIndex,
@@ -183,7 +183,7 @@ func (img *sourceImage) convertToHires() (Hires, error) {
 	return h, nil
 }
 
-func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error) {
+func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 	c := SingleColorCharset{
 		SourceFilename: img.sourceFilename,
 		BorderColor:    img.borderColor.ColorIndex,
@@ -308,7 +308,7 @@ func (img *sourceImage) convertToSingleColorCharset() (SingleColorCharset, error
 	return c, nil
 }
 
-func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err error) {
+func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 	c.SourceFilename = img.sourceFilename
 	c.opt = img.opt
 	_, palette := img.maxColorsPerChar()
@@ -428,7 +428,7 @@ func (img *sourceImage) convertToMultiColorCharset() (c MultiColorCharset, err e
 	return c, nil
 }
 
-func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error) {
+func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 	maxX := img.width / 24
 	maxY := img.height / 21
 	s := SingleColorSprites{
@@ -513,7 +513,7 @@ func (img *sourceImage) convertToSingleColorSprites() (SingleColorSprites, error
 	return s, nil
 }
 
-func (img *sourceImage) convertToMultiColorSprites() (MultiColorSprites, error) {
+func (img *sourceImage) MultiColorSprites() (MultiColorSprites, error) {
 	s := MultiColorSprites{
 		SourceFilename: img.sourceFilename,
 		opt:            img.opt,

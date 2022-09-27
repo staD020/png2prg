@@ -54,27 +54,27 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 
 		switch img.graphicsType {
 		case multiColorBitmap:
-			k, err := img.convertToKoala()
+			k, err := img.Koala()
 			if err != nil {
-				return n, fmt.Errorf("convertToKoala failed: %w", err)
+				return n, fmt.Errorf("img.Koala failed: %w", err)
 			}
 			kk = append(kk, k)
 		case singleColorBitmap:
-			h, err := img.convertToHires()
+			h, err := img.Hires()
 			if err != nil {
-				return n, fmt.Errorf("convertToHires failed: %w", err)
+				return n, fmt.Errorf("img.Hires failed: %w", err)
 			}
 			hh = append(hh, h)
 		case multiColorSprites:
-			s, err := img.convertToMultiColorSprites()
+			s, err := img.MultiColorSprites()
 			if err != nil {
-				return n, fmt.Errorf("convertToMultiColorSprites failed: %w", err)
+				return n, fmt.Errorf("img.MultiColorSprites failed: %w", err)
 			}
 			mcSprites = append(mcSprites, s)
 		case singleColorSprites:
-			s, err := img.convertToSingleColorSprites()
+			s, err := img.SingleColorSprites()
 			if err != nil {
-				return n, fmt.Errorf("convertToSingleColorSprites failed: %w", err)
+				return n, fmt.Errorf("img.SingleColorSprites failed: %w", err)
 			}
 			scSprites = append(scSprites, s)
 		default:
