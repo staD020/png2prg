@@ -103,11 +103,11 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, opt.OutFile)
 		}
 
-		cc := make([]Charer, len(kk))
+		frames := make([]Charer, len(kk))
 		for i := range kk {
-			cc[i] = kk[i]
+			frames[i] = kk[i]
 		}
-		prgs, err := processAnimation(cc, opt)
+		prgs, err := processAnimation(opt, frames)
 		if err != nil {
 			return n, fmt.Errorf("processAnimation failed: %w", err)
 		}
@@ -130,11 +130,11 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			fmt.Printf("converted %q to %q\n", hh[0].SourceFilename, opt.OutFile)
 		}
 
-		cc := make([]Charer, len(hh))
+		frames := make([]Charer, len(hh))
 		for i := range hh {
-			cc[i] = hh[i]
+			frames[i] = hh[i]
 		}
-		prgs, err := processAnimation(cc, opt)
+		prgs, err := processAnimation(opt, frames)
 		if err != nil {
 			return n, fmt.Errorf("processHiresAnimation failed: %w", err)
 		}
@@ -254,7 +254,7 @@ func (c SingleColorChar) Bytes() (buf []byte) {
 	return append(buf, c.ScreenColor)
 }
 
-func processFramesOfChars(frames [][]Char, opt Options) ([][]byte, error) {
+func processFramesOfChars(opt Options, frames [][]Char) ([][]byte, error) {
 	if len(frames) < 2 {
 		return nil, fmt.Errorf("insufficient number of images %d < 2", len(frames))
 	}
@@ -272,7 +272,7 @@ func processFramesOfChars(frames [][]Char, opt Options) ([][]byte, error) {
 			switch {
 			case curChar == char.Index()-1:
 				// next char of current chunk
-				curChunk.appendChar(char)
+				curChunk.append(char)
 			default:
 				// new chunk
 				if curChunk.charCount > 0 {
@@ -282,7 +282,7 @@ func processFramesOfChars(frames [][]Char, opt Options) ([][]byte, error) {
 					prg = append(prg, curChunk.export()...)
 				}
 				curChunk = newChunk(char.Index())
-				curChunk.appendChar(char)
+				curChunk.append(char)
 			}
 			curChar = char.Index()
 		}
@@ -301,7 +301,7 @@ func processFramesOfChars(frames [][]Char, opt Options) ([][]byte, error) {
 	return prgs, nil
 }
 
-func processAnimation(imgs []Charer, opt Options) ([][]byte, error) {
+func processAnimation(opt Options, imgs []Charer) ([][]byte, error) {
 	if len(imgs) < 2 {
 		return nil, fmt.Errorf("insufficient number of frames %d < 2", len(imgs))
 	}
@@ -309,9 +309,9 @@ func processAnimation(imgs []Charer, opt Options) ([][]byte, error) {
 		log.Printf("total number of frames: %d", len(imgs))
 	}
 
-	frames := make([][]Char, len(imgs))
+	charFrames := make([][]Char, len(imgs))
 	for i := 0; i < len(imgs)-1; i++ {
-		frames[i] = make([]Char, 0)
+		charFrames[i] = []Char{}
 	}
 
 	for i := 0; i < 1000; i++ {
@@ -323,11 +323,11 @@ func processAnimation(imgs []Charer, opt Options) ([][]byte, error) {
 			prevChar := imgs[k].Char(i)
 			frameChar := imgs[j].Char(i)
 			if prevChar != frameChar {
-				frames[j] = append(frames[j], frameChar)
+				charFrames[j] = append(charFrames[j], frameChar)
 			}
 		}
 	}
-	return processFramesOfChars(frames, opt)
+	return processFramesOfChars(opt, charFrames)
 }
 
 func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
@@ -344,7 +344,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	for i := range kk {
 		frames[i] = kk[i]
 	}
-	framePrgs, err := processAnimation(frames, opt)
+	framePrgs, err := processAnimation(opt, frames)
 	if err != nil {
 		return n, err
 	}
@@ -458,7 +458,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	for i := range hh {
 		frames[i] = hh[i]
 	}
-	framePrgs, err := processAnimation(frames, opt)
+	framePrgs, err := processAnimation(opt, frames)
 	if err != nil {
 		return n, err
 	}
@@ -576,7 +576,7 @@ func newChunk(charIndex int) chunk {
 	}
 }
 
-func (c *chunk) appendChar(char Char) {
+func (c *chunk) append(char Char) {
 	c.charBytes = append(c.charBytes, char.Bytes()...)
 	c.charCount++
 }
