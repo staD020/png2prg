@@ -7,10 +7,8 @@ import (
 )
 
 func sortColors(charColors PaletteMap) (cc []ColorInfo) {
-	i := 0
 	for rgb, colorIndex := range charColors {
 		cc = append(cc, ColorInfo{RGB: rgb, ColorIndex: colorIndex})
-		i++
 	}
 	sort.Slice(cc, func(i, j int) bool {
 		return cc[i].ColorIndex < cc[j].ColorIndex
@@ -64,7 +62,6 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo) (PaletteMap, map[byte]
 	// fill or replace missing colors
 	for _, ci := range cc {
 		if _, ok := colorIndex1[ci.RGB]; !ok {
-			// col not found
 			if len(bitpairs) == 0 {
 				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
 			}
@@ -161,7 +158,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 			for pixel := 0; pixel < 8; pixel++ {
 				rgb := img.colorAtXY(x+pixel, y+byteIndex)
 				if bmppattern, ok := colorIndex1[rgb]; ok {
-					bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
+					bmpbyte |= bmppattern << (7 - byte(pixel))
 				} else {
 					if img.opt.Verbose {
 						log.Printf("rgb: %v not found in char: %d.", rgb, char)
@@ -235,7 +232,7 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 				for pixel := 0; pixel < 8; pixel++ {
 					rgb := img.colorAtXY(x+pixel, y+byteIndex)
 					if bmppattern, ok := colorIndex1[rgb]; ok {
-						bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
+						bmpbyte |= bmppattern << (7 - byte(pixel))
 					} else {
 						if img.opt.Verbose {
 							log.Printf("rgb %v not found in char %d.", rgb, char)
@@ -262,7 +259,7 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 			for pixel := 0; pixel < 8; pixel++ {
 				rgb := img.colorAtXY(x+pixel, y+byteIndex)
 				if bmppattern, ok := colorIndex1[rgb]; ok {
-					bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
+					bmpbyte |= bmppattern << (7 - byte(pixel))
 				} else {
 					if img.opt.Verbose {
 						log.Printf("rgb %v not found in char %d.", rgb, char)
@@ -330,18 +327,18 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 	}
 
 	if img.opt.Verbose {
-		log.Printf("charset colors: %v\n", cc)
+		log.Printf("charset colors: %s\n", cc)
 		log.Printf("colorIndex1: %v\n", colorIndex1)
 		log.Printf("colorIndex2: %v\n", colorIndex2)
 	}
 	if colorIndex2[3] > 7 {
 		if !img.opt.Quiet {
-			log.Println("the bitpair 11 can only contain colors 0-7, singlecolor-mixed mode is not supported, you may want to consider using -bitpair-colors")
+			log.Println("the bitpair 11 can only contain colors 0-7, mixed sc/mc mode is not supported, you may want to consider using -bitpair-colors")
 		}
 	}
 
 	type charBytes [8]byte
-	charMap := []charBytes{}
+	charset := []charBytes{}
 
 	c.CharColor = colorIndex2[3] | 8
 	c.BackgroundColor = colorIndex2[0]
@@ -396,35 +393,33 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 
 		found := false
 		curChar := 0
-		for curChar = range charMap {
-			if cbuf == charMap[curChar] {
+		for curChar = range charset {
+			if cbuf == charset[curChar] {
 				found = true
 				break
 			}
 		}
 		if !found {
-			charMap = append(charMap, cbuf)
-			curChar = len(charMap) - 1
+			charset = append(charset, cbuf)
+			curChar = len(charset) - 1
 		}
 		c.Screen[char] = byte(curChar)
 	}
 
-	if len(charMap) > 256 {
-		return c, fmt.Errorf("image packs to %d unique chars, the max is 256.", len(charMap))
+	if len(charset) > 256 {
+		return c, fmt.Errorf("image packs to %d unique chars, the max is 256.", len(charset))
 	}
 
-	j := 0
-	for _, bytes := range charMap {
+	i := 0
+	for _, bytes := range charset {
 		for _, b := range bytes {
-			c.Bitmap[j] = b
-			j++
+			c.Bitmap[i] = b
+			i++
 		}
 	}
-
-	if img.opt.Verbose {
-		log.Printf("used %d unique chars in the charset", j/8)
+	if !img.opt.Quiet {
+		fmt.Printf("used %d unique chars in the charset", len(charset))
 	}
-
 	return c, nil
 }
 
@@ -442,12 +437,10 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 	}
 
 	cc := sortColors(img.palette)
-
 	forceBgCol := -1
 	if len(img.preferredBitpairColors) > 0 {
 		forceBgCol = int(img.preferredBitpairColors[0])
 	}
-
 	if forceBgCol >= 0 {
 		for i, col := range cc {
 			if col.ColorIndex == byte(forceBgCol) {
