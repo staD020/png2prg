@@ -40,8 +40,7 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			return n, fmt.Errorf("mixed graphicsmodes detected %q != %q", img.graphicsType, wantedGraphicsType)
 		}
 		if err := img.analyze(); err != nil {
-			log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)
-			continue
+			return n, fmt.Errorf("warning: skipping frame %d, analyze failed: %w", i, err)
 		}
 		if len(currentBitpairColors) == 0 {
 			currentBitpairColors = img.preferredBitpairColors
