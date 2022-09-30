@@ -290,18 +290,14 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 		return c, fmt.Errorf("image packs to %d unique chars, the max is 256.", len(charMap))
 	}
 
-	charCount := 0
 	for i := range charMap {
 		for j := range charMap[i] {
-			c.Bitmap[charCount] = charMap[i][j]
-			charCount++
+			c.Bitmap[i*8+j] = charMap[i][j]
 		}
 	}
-
-	if img.opt.Verbose {
-		log.Printf("used %d unique chars in the charset", charCount/8)
+	if !img.opt.Quiet {
+		fmt.Printf("used %d unique chars in the charset\n", len(charMap))
 	}
-
 	return c, nil
 }
 
@@ -410,11 +406,9 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		return c, fmt.Errorf("image packs to %d unique chars, the max is 256.", len(charset))
 	}
 
-	i := 0
-	for _, bytes := range charset {
-		for _, b := range bytes {
-			c.Bitmap[i] = b
-			i++
+	for i, bytes := range charset {
+		for j, b := range bytes {
+			c.Bitmap[i*8+j] = b
 		}
 	}
 	if !img.opt.Quiet {
@@ -499,8 +493,8 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 			s.Bitmap = append(s.Bitmap, 0)
 		}
 	}
-	if img.opt.Verbose {
-		log.Printf("converted %d sprites", maxX*maxY)
+	if !img.opt.Quiet {
+		fmt.Printf("converted %d sprites\n", maxX*maxY)
 	}
 
 	return s, nil
@@ -573,8 +567,8 @@ func (img *sourceImage) MultiColorSprites() (MultiColorSprites, error) {
 			s.Bitmap = append(s.Bitmap, 0)
 		}
 	}
-	if img.opt.Verbose {
-		log.Printf("converted %d sprites", s.Columns*s.Rows)
+	if !img.opt.Quiet {
+		fmt.Printf("converted %d sprites\n", s.Columns*s.Rows)
 	}
 	return s, nil
 }
