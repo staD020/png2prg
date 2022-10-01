@@ -30,7 +30,7 @@ var TSCOptions = TSCrunch.Options{
 	PRG:     true,
 	QUIET:   true,
 	INPLACE: false,
-	SkipRLE: true,
+	Fast:    true,
 	JumpTo:  displayerJumpTo,
 }
 
