@@ -11,7 +11,7 @@ LDFLAGS=-s -w
 CGO=1
 GOBUILDFLAGS=-v -trimpath
 TARGET=png2prg_linux_amd64
-ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_x86.exe
+ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_x86.exe png2prg_linux_arm64
 
 FLAGS=-d -v
 FLAGSANIM=-d -v -frame-delay 8
@@ -62,6 +62,9 @@ compress: $(TARGET).upx png2prg_darwin_amd64.upx png2prg_darwin_arm64.upx png2pr
 
 $(TARGET): $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=linux GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
+
+png2prg_linux_arm64: $(SRC) $(DISPLAYERS)
+	CGO_ENABLED=$(CGO) GOOS=linux GOARCH=arm64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
 
 png2prg_darwin_amd64: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=darwin GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
