@@ -311,17 +311,16 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 		}
 	}
 
-	// need to copy the map, as we delete false candidates
 	candidates := make(PaletteMap, maxColors)
-	switch {
-	case len(backgroundCharColors) > 0:
-		for k, v := range backgroundCharColors[0] {
-			candidates[k] = v
-		}
-	default:
+	if len(backgroundCharColors) == 0 {
 		for k, v := range img.palette {
 			candidates[k] = v
 		}
+		img.backgroundCandidates = candidates
+		return
+	}
+	for k, v := range backgroundCharColors[0] {
+		candidates[k] = v
 	}
 	if img.opt.Verbose {
 		log.Printf("all BackgroundColor candidates: %v", candidates)
@@ -538,6 +537,17 @@ func (img *sourceImage) analyzePalette() error {
 			return fmt.Errorf("unable to properly detect palette")
 		}
 		m[ci] = true
+	}
+
+	// add unused colors to the palette, so they can be reserved with -bitpair-colors
+LOOP:
+	for c64col, colInfo := range C64Palettes[paletteName] {
+		for _, c64col2 := range paletteMap {
+			if c64col == int(c64col2) {
+				continue LOOP
+			}
+		}
+		paletteMap[colInfo.RGB] = colInfo.ColorIndex
 	}
 
 	if !img.opt.Quiet {
