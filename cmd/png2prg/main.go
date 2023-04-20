@@ -75,7 +75,7 @@ func main() {
 }
 
 func processAsOne(opt *png2prg.Options, filenames ...string) error {
-	opt.OutFile = png2prg.DestinationFilename(filenames[0], (*opt))
+	opt.OutFile = png2prg.DestinationFilename(filenames[0], *opt)
 	opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
 
 	p, err := png2prg.NewFromPath(*opt, filenames...)
