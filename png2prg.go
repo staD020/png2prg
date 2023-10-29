@@ -189,12 +189,55 @@ type Koala struct {
 	opt             Options
 }
 
+type c64Symbols struct {
+	key   string
+	value int
+}
+
+func writeSymbolsTo(w io.Writer, syms []c64Symbols) (n int64, err error) {
+	for _, sym := range syms {
+		n2 := 0
+		if sym.value < 16 {
+			n2, err = fmt.Fprintf(w, "%s = %d\n", sym.key, sym.value)
+		} else {
+			n2, err = fmt.Fprintf(w, "%s = $%x\n", sym.key, sym.value)
+		}
+		n += int64(n2)
+		if err != nil {
+			return n, err
+		}
+	}
+	return n, nil
+}
+
+type Symbolser interface {
+	Symbols() []c64Symbols
+}
+
+func (img Koala) Symbols() []c64Symbols {
+	return []c64Symbols{
+		{"bitmap", 0x2000},
+		{"screenram", 0x3f40},
+		{"colorram", 0x4328},
+		{"d020color", int(img.BorderColor)},
+		{"d021color", int(img.BackgroundColor)},
+	}
+}
+
 type Hires struct {
 	SourceFilename string
 	Bitmap         [8000]byte
 	ScreenColor    [1000]byte
 	BorderColor    byte
 	opt            Options
+}
+
+func (h Hires) Symbols() []c64Symbols {
+	return []c64Symbols{
+		{"bitmap", 0x2000},
+		{"screenram", 0x3f40},
+		{"d020color", int(h.BorderColor)},
+	}
 }
 
 type MultiColorCharset struct {
@@ -209,6 +252,18 @@ type MultiColorCharset struct {
 	opt             Options
 }
 
+func (img MultiColorCharset) Symbols() []c64Symbols {
+	return []c64Symbols{
+		{"bitmap", 0x2000},
+		{"screenram", 0x2800},
+		{"charcolor", int(img.CharColor)},
+		{"d020color", int(img.BorderColor)},
+		{"d021color", int(img.BackgroundColor)},
+		{"d022color", int(img.D022Color)},
+		{"d023color", int(img.D023Color)},
+	}
+}
+
 type SingleColorCharset struct {
 	SourceFilename  string
 	Bitmap          [0x800]byte
@@ -217,6 +272,16 @@ type SingleColorCharset struct {
 	BackgroundColor byte
 	BorderColor     byte
 	opt             Options
+}
+
+func (img SingleColorCharset) Symbols() []c64Symbols {
+	return []c64Symbols{
+		{"bitmap", 0x2000},
+		{"screenram", 0x2800},
+		{"charcolor", int(img.CharColor)},
+		{"d020color", int(img.BorderColor)},
+		{"d021color", int(img.BackgroundColor)},
+	}
 }
 
 type SingleColorSprites struct {
@@ -229,6 +294,16 @@ type SingleColorSprites struct {
 	opt             Options
 }
 
+func (img SingleColorSprites) Symbols() []c64Symbols {
+	return []c64Symbols{
+		{"bitmap", 0x2000},
+		{"columns", int(img.Columns)},
+		{"rows", int(img.Rows)},
+		{"spritecolor", int(img.SpriteColor)},
+		{"d021color", int(img.BackgroundColor)},
+	}
+}
+
 type MultiColorSprites struct {
 	SourceFilename  string
 	Bitmap          []byte
@@ -239,6 +314,18 @@ type MultiColorSprites struct {
 	Columns         byte
 	Rows            byte
 	opt             Options
+}
+
+func (img MultiColorSprites) Symbols() []c64Symbols {
+	return []c64Symbols{
+		{"bitmap", 0x2000},
+		{"columns", int(img.Columns)},
+		{"rows", int(img.Rows)},
+		{"spritecolor", int(img.SpriteColor)},
+		{"d021color", int(img.BackgroundColor)},
+		{"d025color", int(img.D025Color)},
+		{"d026color", int(img.D026Color)},
+	}
 }
 
 var displayers = make(map[GraphicsType][]byte, 0)
@@ -281,8 +368,9 @@ func init() {
 }
 
 type converter struct {
-	opt    Options
-	images []sourceImage
+	opt     Options
+	images  []sourceImage
+	symbols []c64Symbols
 }
 
 type Options struct {
@@ -293,6 +381,7 @@ type Options struct {
 	Display             bool
 	NoPackChars         bool
 	NoCrunch            bool
+	Symbols             bool
 	AlternativeFade     bool
 	BitpairColorsString string
 	NoGuess             bool
@@ -454,6 +543,14 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		return 0, fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
 	}
 
+	if c.opt.Symbols {
+		s, ok := wt.(Symbolser)
+		if !ok {
+			return 0, fmt.Errorf("symbols not supported for %q", img.sourceFilename)
+		}
+		c.symbols = s.Symbols()
+	}
+
 	if c.opt.Display && !c.opt.NoCrunch {
 		wt, err = injectCrunch(wt, c.opt.Verbose)
 		if err != nil {
@@ -468,6 +565,10 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("WriteTo failed: %w", err)
 	}
 	return n, nil
+}
+
+func (c *converter) WriteSymbolsTo(w io.Writer) (int64, error) {
+	return writeSymbolsTo(w, c.symbols)
 }
 
 // injectCrunch drains the input io.WriterTo and returns a new TSCrunch WriterTo.
