@@ -179,7 +179,6 @@ func PrintHelp() {
 	fmt.Println(" - Stop relying on .gif filename extension, detect it.")
 	fmt.Println(" - When conversion fails for images in vice 384x272 resolution (offset 32, 35),")
 	fmt.Println("   png2prg also tries common wrong offset 32, 36, used by multiple graphicians.")
-	fmt.Println(" - allow unused colors to be reserved with -bitpair-colors.")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.2")
 	fmt.Println()

@@ -152,18 +152,13 @@ func (img *sourceImage) analyzeSprites() error {
 		return fmt.Errorf("%d X-sprites x %d Y-sprites: cant have 0 sprites", img.width/24, img.height/21)
 	}
 
-	numColors, colorIndexes, sumColors := img.countSpriteColors()
-	if img.opt.Verbose {
-		log.Printf("total sprite colors: %d (%v)\n", numColors, colorIndexes)
-	}
-
 	switch {
-	case numColors <= 2:
+	case len(img.palette) <= 2:
 		img.graphicsType = singleColorSprites
-	case numColors == 3 || numColors == 4:
+	case len(img.palette) == 3 || len(img.palette) == 4:
 		img.graphicsType = multiColorSprites
 	default:
-		return fmt.Errorf("too many colors %d > 4", numColors)
+		return fmt.Errorf("too many colors %d > 4", len(img.palette))
 	}
 
 	if !img.opt.Quiet {
@@ -184,7 +179,8 @@ func (img *sourceImage) analyzeSprites() error {
 	if img.opt.NoGuess {
 		return nil
 	}
-	img.guessPreferredBitpairColors(numColors, sumColors)
+	max, _, sumColors := img.countSpriteColors()
+	img.guessPreferredBitpairColors(max, sumColors)
 	return nil
 }
 
@@ -255,6 +251,7 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [ma
 }
 
 func (img *sourceImage) countSpriteColors() (int, []byte, [maxColors]int) {
+	m := img.palette
 	sum := [maxColors]int{}
 
 	for y := 0; y < img.height; y++ {
@@ -267,17 +264,14 @@ func (img *sourceImage) countSpriteColors() (int, []byte, [maxColors]int) {
 			panic("countSpriteColors: this should never happen")
 		}
 	}
-	cis := []byte{}
+	ci := []byte{}
 	for _, v := range img.palette {
-		if sum[v] == 0 {
-			continue
-		}
-		cis = append(cis, v)
+		ci = append(ci, v)
 	}
-	sort.Slice(cis, func(i, j int) bool {
-		return cis[i] < cis[j]
+	sort.Slice(ci, func(i, j int) bool {
+		return ci[i] < ci[j]
 	})
-	return len(cis), cis, sum
+	return len(m), ci, sum
 }
 
 func (img *sourceImage) countColors() (int, []byte, [maxColors]int) {
@@ -317,16 +311,17 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 		}
 	}
 
+	// need to copy the map, as we delete false candidates
 	candidates := make(PaletteMap, maxColors)
-	if len(backgroundCharColors) == 0 {
+	switch {
+	case len(backgroundCharColors) > 0:
+		for k, v := range backgroundCharColors[0] {
+			candidates[k] = v
+		}
+	default:
 		for k, v := range img.palette {
 			candidates[k] = v
 		}
-		img.backgroundCandidates = candidates
-		return
-	}
-	for k, v := range backgroundCharColors[0] {
-		candidates[k] = v
 	}
 	if img.opt.Verbose {
 		log.Printf("all BackgroundColor candidates: %v", candidates)
@@ -543,17 +538,6 @@ func (img *sourceImage) analyzePalette() error {
 			return fmt.Errorf("unable to properly detect palette")
 		}
 		m[ci] = true
-	}
-
-	// add unused colors to the palette, so they can be reserved with -bitpair-colors
-LOOP:
-	for c64col, colInfo := range C64Palettes[paletteName] {
-		for _, c64col2 := range paletteMap {
-			if c64col == int(c64col2) {
-				continue LOOP
-			}
-		}
-		paletteMap[colInfo.RGB] = colInfo.ColorIndex
 	}
 
 	if !img.opt.Quiet {
