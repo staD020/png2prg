@@ -430,7 +430,16 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 		return s, fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", maxX, maxY)
 	}
 
-	cc := sortColors(img.palette)
+	_, ci, _ := img.countSpriteColors()
+	var cc []ColorInfo
+	for _, colinf := range sortColors(img.palette) {
+		for colorIndex := range ci {
+			if colorIndex == int(colinf.ColorIndex) {
+				cc = append(cc, colinf)
+			}
+		}
+	}
+
 	forceBgCol := -1
 	if len(img.preferredBitpairColors) > 0 {
 		forceBgCol = int(img.preferredBitpairColors[0])

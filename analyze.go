@@ -152,13 +152,18 @@ func (img *sourceImage) analyzeSprites() error {
 		return fmt.Errorf("%d X-sprites x %d Y-sprites: cant have 0 sprites", img.width/24, img.height/21)
 	}
 
+	numColors, colorIndexes, sumColors := img.countSpriteColors()
+	if img.opt.Verbose {
+		log.Printf("total sprite colors: %d (%v)\n", numColors, colorIndexes)
+	}
+
 	switch {
-	case len(img.palette) <= 2:
+	case numColors <= 2:
 		img.graphicsType = singleColorSprites
-	case len(img.palette) == 3 || len(img.palette) == 4:
+	case numColors == 3 || numColors == 4:
 		img.graphicsType = multiColorSprites
 	default:
-		return fmt.Errorf("too many colors %d > 4", len(img.palette))
+		return fmt.Errorf("too many colors %d > 4", numColors)
 	}
 
 	if !img.opt.Quiet {
@@ -179,8 +184,7 @@ func (img *sourceImage) analyzeSprites() error {
 	if img.opt.NoGuess {
 		return nil
 	}
-	max, _, sumColors := img.countSpriteColors()
-	img.guessPreferredBitpairColors(max, sumColors)
+	img.guessPreferredBitpairColors(numColors, sumColors)
 	return nil
 }
 
@@ -251,7 +255,6 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [ma
 }
 
 func (img *sourceImage) countSpriteColors() (int, []byte, [maxColors]int) {
-	m := img.palette
 	sum := [maxColors]int{}
 
 	for y := 0; y < img.height; y++ {
@@ -264,14 +267,17 @@ func (img *sourceImage) countSpriteColors() (int, []byte, [maxColors]int) {
 			panic("countSpriteColors: this should never happen")
 		}
 	}
-	ci := []byte{}
+	cis := []byte{}
 	for _, v := range img.palette {
-		ci = append(ci, v)
+		if sum[v] == 0 {
+			continue
+		}
+		cis = append(cis, v)
 	}
-	sort.Slice(ci, func(i, j int) bool {
-		return ci[i] < ci[j]
+	sort.Slice(cis, func(i, j int) bool {
+		return cis[i] < cis[j]
 	})
-	return len(m), ci, sum
+	return len(cis), cis, sum
 }
 
 func (img *sourceImage) countColors() (int, []byte, [maxColors]int) {
