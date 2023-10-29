@@ -232,11 +232,11 @@ type Hires struct {
 	opt            Options
 }
 
-func (h Hires) Symbols() []c64Symbols {
+func (img Hires) Symbols() []c64Symbols {
 	return []c64Symbols{
 		{"bitmap", 0x2000},
 		{"screenram", 0x3f40},
-		{"d020color", int(h.BorderColor)},
+		{"d020color", int(img.BorderColor)},
 	}
 }
 
