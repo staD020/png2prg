@@ -107,4 +107,4 @@ testpack: $(TARGET)
 	$(X64) zz_guess.sfx.exo >/dev/null
 
 clean:
-	rm -f $(ALLTARGETS) GEN_*.go *.prg *.exo *.dali *.upx
+	rm -f $(ALLTARGETS) GEN_*.go *.prg *.exo *.dali *.upx *.sym
