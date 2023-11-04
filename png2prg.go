@@ -24,6 +24,11 @@ const (
 	Version         = "1.3.12-dev"
 	displayerJumpTo = "$0822"
 	maxColors       = 16
+
+	BitmapAddress           = 0x2000
+	BitmapScreenRAMAddress  = 0x3f40
+	BitmapColorRAMAddress   = 0x4328
+	CharsetScreenRAMAddress = 0x2800
 )
 
 var TSCOptions = TSCrunch.Options{
@@ -189,34 +194,18 @@ type Koala struct {
 	opt             Options
 }
 
-type c64Symbols struct {
+type c64Symbol struct {
 	key   string
 	value int
 }
 
-func writeSymbolsTo(w io.Writer, syms []c64Symbols) (n int64, err error) {
-	for _, sym := range syms {
-		n2 := 0
-		if sym.value < 16 {
-			n2, err = fmt.Fprintf(w, "%s = %d\n", sym.key, sym.value)
-		} else {
-			n2, err = fmt.Fprintf(w, "%s = $%x\n", sym.key, sym.value)
-		}
-		n += int64(n2)
-		if err != nil {
-			return n, err
-		}
-	}
-	return n, nil
-}
-
 type Symbolser interface {
-	Symbols() []c64Symbols
+	Symbols() []c64Symbol
 }
 
-func (img Koala) Symbols() []c64Symbols {
-	return []c64Symbols{
-		{"bitmap", 0x2000},
+func (img Koala) Symbols() []c64Symbol {
+	return []c64Symbol{
+		{"bitmap", BitmapAddress},
 		{"screenram", 0x3f40},
 		{"colorram", 0x4328},
 		{"d020color", int(img.BorderColor)},
@@ -232,9 +221,9 @@ type Hires struct {
 	opt            Options
 }
 
-func (img Hires) Symbols() []c64Symbols {
-	return []c64Symbols{
-		{"bitmap", 0x2000},
+func (img Hires) Symbols() []c64Symbol {
+	return []c64Symbol{
+		{"bitmap", BitmapAddress},
 		{"screenram", 0x3f40},
 		{"d020color", int(img.BorderColor)},
 	}
@@ -252,9 +241,9 @@ type MultiColorCharset struct {
 	opt             Options
 }
 
-func (img MultiColorCharset) Symbols() []c64Symbols {
-	return []c64Symbols{
-		{"bitmap", 0x2000},
+func (img MultiColorCharset) Symbols() []c64Symbol {
+	return []c64Symbol{
+		{"bitmap", BitmapAddress},
 		{"screenram", 0x2800},
 		{"charcolor", int(img.CharColor)},
 		{"d020color", int(img.BorderColor)},
@@ -274,9 +263,9 @@ type SingleColorCharset struct {
 	opt             Options
 }
 
-func (img SingleColorCharset) Symbols() []c64Symbols {
-	return []c64Symbols{
-		{"bitmap", 0x2000},
+func (img SingleColorCharset) Symbols() []c64Symbol {
+	return []c64Symbol{
+		{"bitmap", BitmapAddress},
 		{"screenram", 0x2800},
 		{"charcolor", int(img.CharColor)},
 		{"d020color", int(img.BorderColor)},
@@ -294,9 +283,9 @@ type SingleColorSprites struct {
 	opt             Options
 }
 
-func (img SingleColorSprites) Symbols() []c64Symbols {
-	return []c64Symbols{
-		{"bitmap", 0x2000},
+func (img SingleColorSprites) Symbols() []c64Symbol {
+	return []c64Symbol{
+		{"bitmap", BitmapAddress},
 		{"columns", int(img.Columns)},
 		{"rows", int(img.Rows)},
 		{"spritecolor", int(img.SpriteColor)},
@@ -316,9 +305,9 @@ type MultiColorSprites struct {
 	opt             Options
 }
 
-func (img MultiColorSprites) Symbols() []c64Symbols {
-	return []c64Symbols{
-		{"bitmap", 0x2000},
+func (img MultiColorSprites) Symbols() []c64Symbol {
+	return []c64Symbol{
+		{"bitmap", BitmapAddress},
 		{"columns", int(img.Columns)},
 		{"rows", int(img.Rows)},
 		{"spritecolor", int(img.SpriteColor)},
@@ -370,7 +359,7 @@ func init() {
 type converter struct {
 	opt     Options
 	images  []sourceImage
-	symbols []c64Symbols
+	symbols []c64Symbol
 }
 
 type Options struct {
@@ -567,8 +556,20 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 	return n, nil
 }
 
-func (c *converter) WriteSymbolsTo(w io.Writer) (int64, error) {
-	return writeSymbolsTo(w, c.symbols)
+func (c *converter) WriteSymbolsTo(w io.Writer) (n int64, err error) {
+	for _, s := range c.symbols {
+		n2 := 0
+		if s.value < 16 {
+			n2, err = fmt.Fprintf(w, "%s = %d\n", s.key, s.value)
+		} else {
+			n2, err = fmt.Fprintf(w, "%s = $%x\n", s.key, s.value)
+		}
+		n += int64(n2)
+		if err != nil {
+			return n, err
+		}
+	}
+	return n, nil
 }
 
 // injectCrunch drains the input io.WriterTo and returns a new TSCrunch WriterTo.
@@ -588,9 +589,9 @@ func injectCrunch(c io.WriterTo, verbose bool) (io.WriterTo, error) {
 	return c, nil
 }
 
-// defaultHeader returns the startaddress of a file located at 0x2000.
+// defaultHeader returns the startaddress of a file located at BitmapAddress.
 func defaultHeader() []byte {
-	return []byte{0x00, 0x20}
+	return []byte{BitmapAddress & 0xff, BitmapAddress >> 8}
 }
 
 func newHeader(t GraphicsType) []byte {
@@ -625,7 +626,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	}
 	header := newHeader(multiColorBitmap)
 	if k.opt.IncludeSID == "" {
-		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
 		return writeData(w, header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder})
 	}
 
@@ -641,19 +642,19 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	case load > 0xcff && load < 0x1fff:
 		header = zeroFill(header, int(load)-0x7ff-len(header))
 		header = append(header, s.RawBytes()...)
-		if len(header) > 0x2000-0x7ff {
+		if len(header) > BitmapAddress-0x7ff {
 			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
 		if !k.opt.Quiet {
 			fmt.Printf("injected %q: %s\n", k.opt.IncludeSID, s)
 		}
-		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
 		return writeData(w, header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder})
 	case load < 0x8f00:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
-	header = zeroFill(header, 0x2000-0x7ff-len(header))
+	header = zeroFill(header, BitmapAddress-0x7ff-len(header))
 	buf := make([]byte, load-0x4711)
 	n, err = writeData(w, header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder}, buf, s.RawBytes())
 	if err != nil {
@@ -671,7 +672,7 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	}
 	header := newHeader(singleColorBitmap)
 	if h.opt.IncludeSID == "" {
-		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
 		return writeData(w, header, h.Bitmap[:], h.ScreenColor[:], []byte{h.BorderColor})
 	}
 
@@ -687,19 +688,19 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	case load > 0xcff && load < 0x1fff:
 		header = zeroFill(header, int(load)-0x7ff-len(header))
 		header = append(header, s.RawBytes()...)
-		if len(header) > 0x2000-0x7ff {
+		if len(header) > BitmapAddress-0x7ff {
 			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
 		}
 		if !h.opt.Quiet {
 			fmt.Printf("injected %q: %s\n", h.opt.IncludeSID, s)
 		}
-		header = zeroFill(header, 0x2000-0x7ff-len(header))
+		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
 		return writeData(w, header, h.Bitmap[:], h.ScreenColor[:], []byte{h.BorderColor})
 	case load < 0x6c00:
 		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 	}
 
-	header = zeroFill(header, 0x2000-0x7ff-len(header))
+	header = zeroFill(header, BitmapAddress-0x7ff-len(header))
 	buf := make([]byte, load-0x4329)
 	n, err = writeData(w, header, h.Bitmap[:], h.ScreenColor[:], []byte{h.BorderColor}, buf, s.RawBytes())
 	if err != nil {
