@@ -98,8 +98,8 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		if !c.opt.Quiet {
 			fmt.Printf("converted %q to %q\n", kk[0].SourceFilename, c.opt.OutFile)
 		}
-		c.symbols = append(c.symbols, kk[0].Symbols()...)
-		c.symbols = append(c.symbols, c64Symbol{"animation", koalaAnimationStart})
+		c.Symbols = append(c.Symbols, kk[0].Symbols()...)
+		c.Symbols = append(c.Symbols, c64Symbol{"animation", koalaAnimationStart})
 
 		frames := make([]Charer, len(kk))
 		for i := range kk {
@@ -127,8 +127,8 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		if !c.opt.Quiet {
 			fmt.Printf("converted %q to %q\n", hh[0].SourceFilename, c.opt.OutFile)
 		}
-		c.symbols = append(c.symbols, hh[0].Symbols()...)
-		c.symbols = append(c.symbols, c64Symbol{"animation", hiresAnimationStart})
+		c.Symbols = append(c.Symbols, hh[0].Symbols()...)
+		c.Symbols = append(c.Symbols, c64Symbol{"animation", hiresAnimationStart})
 
 		frames := make([]Charer, len(hh))
 		for i := range hh {
@@ -154,7 +154,7 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, c.opt.OutFile)
 			}
 		}
-		c.symbols = append(c.symbols, mcSprites[0].Symbols()...)
+		c.Symbols = append(c.Symbols, mcSprites[0].Symbols()...)
 		if _, err = writeData(w, data...); err != nil {
 			return n, fmt.Errorf("writeData %q failed: %w", c.opt.OutFile, err)
 		}
@@ -167,7 +167,7 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 				fmt.Printf("converted %q to %q\n", s.SourceFilename, c.opt.OutFile)
 			}
 		}
-		c.symbols = append(c.symbols, scSprites[0].Symbols()...)
+		c.Symbols = append(c.Symbols, scSprites[0].Symbols()...)
 		if _, err = writeData(w, data...); err != nil {
 			return n, fmt.Errorf("writeData %q failed: %w", c.opt.OutFile, err)
 		}

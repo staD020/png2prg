@@ -359,7 +359,7 @@ func init() {
 type converter struct {
 	opt     Options
 	images  []sourceImage
-	symbols []c64Symbol
+	Symbols []c64Symbol
 }
 
 type Options struct {
@@ -537,7 +537,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		if !ok {
 			return 0, fmt.Errorf("symbols not supported for %q", img.sourceFilename)
 		}
-		c.symbols = s.Symbols()
+		c.Symbols = s.Symbols()
 	}
 
 	if c.opt.Display && !c.opt.NoCrunch {
@@ -557,7 +557,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (c *converter) WriteSymbolsTo(w io.Writer) (n int64, err error) {
-	for _, s := range c.symbols {
+	for _, s := range c.Symbols {
 		n2 := 0
 		if s.value < 16 {
 			n2, err = fmt.Fprintf(w, "%s = %d\n", s.key, s.value)
