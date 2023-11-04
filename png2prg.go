@@ -21,11 +21,15 @@ import (
 )
 
 const (
-	Version          = "1.3.12-dev"
-	displayerJumpTo  = "$0822"
-	maxColors        = 16
-	FullScreenWidth  = 320
-	FullScreenHeight = 200
+	Version              = "1.3.12-dev"
+	displayerJumpTo      = "$0822"
+	maxColors            = 16
+	FullScreenWidth      = 320
+	FullScreenHeight     = 200
+	ViceFullScreenWidth  = 384
+	ViceFullScreenHeight = 272
+	SpriteWidth          = 24
+	SpriteHeight         = 21
 
 	BitmapAddress           = 0x2000
 	BitmapScreenRAMAddress  = 0x3f40

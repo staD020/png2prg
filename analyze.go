@@ -42,16 +42,16 @@ func (img *sourceImage) checkBounds() error {
 	img.width, img.height = img.image.Bounds().Max.X-img.xOffset, img.image.Bounds().Max.Y-img.yOffset
 
 	switch {
-	case (img.width == 320) && (img.height == 200):
+	case (img.width == FullScreenWidth) && (img.height == FullScreenHeight):
 		return nil
-	case (img.width == 384) && (img.height == 272):
+	case (img.width == ViceFullScreenWidth) && (img.height == ViceFullScreenHeight):
 		// default screenshot size in vice with default borders
-		img.xOffset += (384 - 320) / 2       // 32
-		img.yOffset += ((272 - 200) / 2) - 1 // 35
+		img.xOffset += (ViceFullScreenWidth - FullScreenWidth) / 2         // 32
+		img.yOffset += ((ViceFullScreenHeight - FullScreenHeight) / 2) - 1 // 35
 		if img.opt.ForceXOffset > 0 || img.opt.ForceYOffset > 0 {
 			img.xOffset, img.yOffset = img.opt.ForceXOffset, img.opt.ForceYOffset
 		}
-		img.width, img.height = 320, 200
+		img.width, img.height = FullScreenWidth, FullScreenHeight
 		return nil
 	case img.hasSpriteDimensions():
 		return nil
@@ -59,26 +59,26 @@ func (img *sourceImage) checkBounds() error {
 		if img.opt.Verbose {
 			log.Printf("sprites forced, allowing non-sprite dimension %d * %d", img.width, img.height)
 		}
-		if img.width%24 == 0 {
-			img.width = int(math.Floor(float64(img.width)/24)) * 24
+		if img.width%SpriteWidth == 0 {
+			img.width = int(math.Floor(float64(img.width)/SpriteWidth)) * SpriteWidth
 		} else {
-			img.width = int(math.Floor(float64(img.width)/24)+1) * 24
+			img.width = int(math.Floor(float64(img.width)/SpriteWidth)+1) * SpriteWidth
 		}
-		if img.height%21 == 0 {
-			img.height = int(math.Floor(float64(img.height)/21)) * 21
+		if img.height%SpriteHeight == 0 {
+			img.height = int(math.Floor(float64(img.height)/SpriteHeight)) * SpriteHeight
 		} else {
-			img.height = int(math.Floor(float64(img.height)/21)+1) * 21
+			img.height = int(math.Floor(float64(img.height)/SpriteHeight)+1) * SpriteHeight
 		}
 		if img.opt.Verbose {
 			log.Printf("forcing dimension %d * %d", img.width, img.height)
 		}
 		return nil
 	}
-	return fmt.Errorf("image is not 320x200, 384x272 or x*24 x y*21 pixels, but %d x %d pixels", img.width, img.height)
+	return fmt.Errorf("image is not %dx%d, %dx%d or x*%d x y*%d pixels, but %d x %d pixels", FullScreenWidth, FullScreenHeight, ViceFullScreenWidth, ViceFullScreenHeight, SpriteWidth, SpriteHeight, img.width, img.height)
 }
 
 func (img *sourceImage) hasSpriteDimensions() bool {
-	return (img.width%24 == 0) && (img.height%21 == 0)
+	return (img.width%SpriteWidth == 0) && (img.height%SpriteHeight == 0)
 }
 
 func (img *sourceImage) analyze() (err error) {
@@ -148,8 +148,8 @@ func (img *sourceImage) analyze() (err error) {
 }
 
 func (img *sourceImage) analyzeSprites() error {
-	if img.width/24 == 0 || img.height/21 == 0 {
-		return fmt.Errorf("%d X-sprites x %d Y-sprites: cant have 0 sprites", img.width/24, img.height/21)
+	if img.width/SpriteWidth == 0 || img.height/SpriteHeight == 0 {
+		return fmt.Errorf("%d X-sprites x %d Y-sprites: cant have 0 sprites", img.width/SpriteWidth, img.height/SpriteHeight)
 	}
 
 	switch {
@@ -505,7 +505,7 @@ func (img *sourceImage) colorAtXY(x, y int) RGB {
 }
 
 func xyFromChar(i int) (int, int) {
-	return 8*i - (320 * int(math.Floor(float64(i/40)))),
+	return 8*i - (FullScreenWidth * int(math.Floor(float64(i/40)))),
 		8 * int(math.Floor(float64(i/40)))
 }
 
