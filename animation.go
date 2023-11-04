@@ -79,7 +79,7 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	}
 
 	if c.opt.Display {
-		m, err := writeAnimationDisplayerTo(w, imgs, kk, hh, scSprites, mcSprites)
+		m, err := c.writeAnimationDisplayerTo(w, imgs, kk, hh, scSprites, mcSprites)
 		n += m
 		if err != nil {
 			return n, fmt.Errorf("writeAnimationDisplayerTo failed: %w", err)
@@ -176,13 +176,14 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	return n, fmt.Errorf("handleAnimation %q failed: no frames written", imgs[0].sourceFilename)
 }
 
-func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) (n int64, err error) {
+func (c *converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) (n int64, err error) {
 	buf := &bytes.Buffer{}
-	opt := imgs[0].opt
 	switch {
 	case len(kk) > 0:
 		// handle display koala animation
-		if opt.NoCrunch {
+		c.Symbols = append(c.Symbols, kk[0].Symbols()...)
+		c.Symbols = append(c.Symbols, c64Symbol{"animation", koalaAnimationStart})
+		if c.opt.NoCrunch {
 			m, err := WriteKoalaDisplayAnimTo(w, kk)
 			n += m
 			if err != nil {
@@ -195,7 +196,9 @@ func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh [
 		}
 	case len(hh) > 0:
 		// handle display hires animation
-		if opt.NoCrunch {
+		c.Symbols = append(c.Symbols, hh[0].Symbols()...)
+		c.Symbols = append(c.Symbols, c64Symbol{"animation", hiresAnimationStart})
+		if c.opt.NoCrunch {
 			m, err := WriteHiresDisplayAnimTo(w, hh)
 			n += m
 			if err != nil {
@@ -211,14 +214,14 @@ func writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh [
 	}
 
 	tscopt := TSCOptions
-	if opt.Verbose {
+	if c.opt.Verbose {
 		tscopt.QUIET = false
 	}
 	tsc, err := TSCrunch.New(tscopt, buf)
 	if err != nil {
 		return n, fmt.Errorf("tscrunch.New failed: %w", err)
 	}
-	if !opt.Quiet {
+	if !c.opt.Quiet {
 		fmt.Println("packing with TSCrunch...")
 	}
 	m, err := tsc.WriteTo(w)
