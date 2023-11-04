@@ -21,9 +21,11 @@ import (
 )
 
 const (
-	Version         = "1.3.12-dev"
-	displayerJumpTo = "$0822"
-	maxColors       = 16
+	Version          = "1.3.12-dev"
+	displayerJumpTo  = "$0822"
+	maxColors        = 16
+	FullScreenWidth  = 320
+	FullScreenHeight = 200
 
 	BitmapAddress           = 0x2000
 	BitmapScreenRAMAddress  = 0x3f40
@@ -206,8 +208,8 @@ type Symbolser interface {
 func (img Koala) Symbols() []c64Symbol {
 	return []c64Symbol{
 		{"bitmap", BitmapAddress},
-		{"screenram", 0x3f40},
-		{"colorram", 0x4328},
+		{"screenram", BitmapScreenRAMAddress},
+		{"colorram", BitmapColorRAMAddress},
 		{"d020color", int(img.BorderColor)},
 		{"d021color", int(img.BackgroundColor)},
 	}
@@ -224,7 +226,7 @@ type Hires struct {
 func (img Hires) Symbols() []c64Symbol {
 	return []c64Symbol{
 		{"bitmap", BitmapAddress},
-		{"screenram", 0x3f40},
+		{"screenram", BitmapScreenRAMAddress},
 		{"d020color", int(img.BorderColor)},
 	}
 }
@@ -244,7 +246,7 @@ type MultiColorCharset struct {
 func (img MultiColorCharset) Symbols() []c64Symbol {
 	return []c64Symbol{
 		{"bitmap", BitmapAddress},
-		{"screenram", 0x2800},
+		{"screenram", CharsetScreenRAMAddress},
 		{"charcolor", int(img.CharColor)},
 		{"d020color", int(img.BorderColor)},
 		{"d021color", int(img.BackgroundColor)},
@@ -266,7 +268,7 @@ type SingleColorCharset struct {
 func (img SingleColorCharset) Symbols() []c64Symbol {
 	return []c64Symbol{
 		{"bitmap", BitmapAddress},
-		{"screenram", 0x2800},
+		{"screenram", CharsetScreenRAMAddress},
 		{"charcolor", int(img.CharColor)},
 		{"d020color", int(img.BorderColor)},
 		{"d021color", int(img.BackgroundColor)},

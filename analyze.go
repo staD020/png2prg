@@ -29,8 +29,8 @@ func parseBitPairColors(bp string) ([]byte, error) {
 		if err != nil {
 			return result, fmt.Errorf("strconv.Atoi conversion of %q to integers failed: %w", bp, err)
 		}
-		if i < -1 || i > 15 {
-			return result, fmt.Errorf("incorrect color %d", i)
+		if i < -1 || i >= maxColors {
+			return result, fmt.Errorf("incorrect c64 color %d", i)
 		}
 		result = append(result, byte(i))
 	}
