@@ -109,10 +109,10 @@ func (img *sourceImage) Koala() (Koala, error) {
 					bmpbyte = bmpbyte | (bmppattern << (6 - byte(pixel)))
 				} else {
 					if img.opt.Verbose {
-						log.Printf("rgb %v not found in char %d.", rgb, char)
-						x, y := xyFromChar(char)
-						log.Printf("x, y = %d, %d", x, y)
-						log.Printf("colorIndex1: %v", colorIndex1)
+						//log.Printf("rgb %v not found in char %d.", rgb, char)
+						//x, y := xyFromChar(char)
+						//log.Printf("x, y = %d, %d", x, y)
+						//log.Printf("colorIndex1: %v", colorIndex1)
 					}
 				}
 			}

@@ -1,4 +1,4 @@
-SRC=png2prg.go palettes.go animation.go analyze.go convert.go doc.go cmd/png2prg/main.go
+SRC=*.go cmd/png2prg/*.go
 DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg
 ASMLIB=lib.asm
 ASM=java -jar ./tools/KickAss-5.24.jar

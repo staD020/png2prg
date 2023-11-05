@@ -8,6 +8,7 @@ import (
 	"image/gif"
 	_ "image/gif"
 	_ "image/jpeg"
+	"image/png"
 	_ "image/png"
 	"io"
 	"log"
@@ -73,6 +74,7 @@ const (
 	multiColorCharset
 	singleColorSprites
 	multiColorSprites
+	multiColorInterlaceBitmap // https://csdb.dk/release/?id=3961
 )
 
 func StringToGraphicsType(s string) GraphicsType {
@@ -89,6 +91,8 @@ func StringToGraphicsType(s string) GraphicsType {
 		return singleColorSprites
 	case "mcsprites":
 		return multiColorSprites
+	case "mcibitmap":
+		return multiColorInterlaceBitmap
 	}
 	return unknownGraphicsType
 }
@@ -107,6 +111,8 @@ func (t GraphicsType) String() string {
 		return "singlecolor sprites"
 	case multiColorSprites:
 		return "multicolor sprites"
+	case multiColorInterlaceBitmap:
+		return "mcibitmap"
 	default:
 		return "unknown"
 	}
@@ -474,11 +480,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 	if len(c.images) == 0 {
 		return 0, fmt.Errorf("no images found")
 	}
-	if len(c.images) > 1 {
-		return c.WriteAnimationTo(w)
-	}
-
-	img := c.images[0]
+	img := &c.images[0]
 	if c.opt.Verbose {
 		log.Printf("processing file %q", img.sourceFilename)
 	}
@@ -486,11 +488,110 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		return 0, fmt.Errorf("analyze %q failed: %w", img.sourceFilename, err)
 	}
 
+	if len(c.images) == 1 {
+		if img.graphicsType == multiColorInterlaceBitmap {
+			rgba0, rgba1, err := img.SplitInterlace()
+			if err != nil {
+				return n, fmt.Errorf("img.SplitInterlace %q failed: %w", img.sourceFilename, err)
+			}
+			if !c.opt.Quiet {
+				log.Printf("interlaced pic was split")
+			}
+			c.opt.CurrentGraphicsType = multiColorBitmap
+			c.opt.GraphicsMode = multiColorBitmap.String()
+
+			png0 := new(bytes.Buffer)
+			if err = png.Encode(png0, rgba0); err != nil {
+				return n, fmt.Errorf("png.Encode rgba0 %q failed: %w", img.sourceFilename, err)
+			}
+			ii0, err := NewSourceImages(c.opt, 0, png0)
+			if err != nil {
+				return n, fmt.Errorf("NewSourceImages %q failed: %w", img.sourceFilename, err)
+			}
+			if err = ii0[0].analyze(); err != nil {
+				return 0, fmt.Errorf("analyze %q failed: %w", ii0[0].sourceFilename, err)
+			}
+
+			png1 := new(bytes.Buffer)
+			if err = png.Encode(png1, rgba1); err != nil {
+				return n, fmt.Errorf("png.Encode rgba0 %q failed: %w", img.sourceFilename, err)
+			}
+			ii1, err := NewSourceImages(c.opt, 1, png1)
+			if err != nil {
+				return n, fmt.Errorf("NewSourceImages %q failed: %w", img.sourceFilename, err)
+			}
+			if err = ii1[0].analyze(); err != nil {
+				return 0, fmt.Errorf("analyze %q failed: %w", ii1[0].sourceFilename, err)
+			}
+
+			c.images = []sourceImage{ii0[0], ii1[0]}
+			return c.WriteInterlaceTo(w)
+		}
+	}
+	if len(c.images) > 1 {
+		return c.WriteAnimationTo(w)
+	}
+
 	var wt io.WriterTo
 	switch img.graphicsType {
 	case multiColorBitmap:
 		if wt, err = img.Koala(); err != nil {
 			return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
+		}
+	case multiColorInterlaceBitmap:
+		rgba0, rgba1, err := img.SplitInterlace()
+		if err != nil {
+			return 0, fmt.Errorf("img.SplitInterlace %q failed: %w", img.sourceFilename, err)
+		}
+		png0 := new(bytes.Buffer)
+		if err = png.Encode(png0, rgba0); err != nil {
+			return 0, fmt.Errorf("png.Encode rgba0 %q failed: %w", img.sourceFilename, err)
+		}
+
+		c.opt.CurrentGraphicsType = multiColorBitmap
+		c.opt.GraphicsMode = "koala"
+		if !c.opt.Quiet {
+			log.Printf("interlaced pic was split")
+		}
+
+		png1 := new(bytes.Buffer)
+		if err = png.Encode(png1, rgba1); err != nil {
+			return 0, fmt.Errorf("png.Encode rgba1 %q failed: %w", img.sourceFilename, err)
+		}
+
+		c2, err := New(c.opt, png0)
+		if err != nil {
+			return 0, fmt.Errorf("New png0 %q failed: %w", img.sourceFilename, err)
+		}
+		n, err := c2.WriteTo(w)
+		if err != nil {
+			return n, fmt.Errorf("c2.WriteTo %q failed: %w", img.sourceFilename, err)
+		}
+
+		if c.opt.BitpairColorsString == "" {
+			c.opt.BitpairColorsString = c2.images[0].preferredBitpairColors.String()
+			log.Printf("trying to use the same -bpc %s for both interlaced images.", c.opt.BitpairColorsString)
+		}
+
+		if c.opt.Symbols {
+			bm2 := int(BitmapAddress + n)
+			bs2 := int(bm2 + 0x1f40)
+			bc2 := int(bm2 + 0x1f40 + 1000)
+			c.Symbols = []c64Symbol{
+				{"bitmap1", BitmapAddress},
+				{"screenram1", BitmapScreenRAMAddress},
+				{"colorram1", BitmapColorRAMAddress},
+				{"bitmap2", bm2},
+				{"screenram2", bs2},
+				{"colorram2", bc2},
+				{"d020color", int(img.borderColor.ColorIndex)},
+				{"d021color", int(img.backgroundColor.ColorIndex)},
+			}
+		}
+
+		wt, err = New(c.opt, png1)
+		if err != nil {
+			return n, fmt.Errorf("New png1 %q failed: %w", img.sourceFilename, err)
 		}
 	case singleColorBitmap:
 		if wt, err = img.Hires(); err != nil {
@@ -535,15 +636,17 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 			return 0, fmt.Errorf("img.MultiColorSprites %q failed: %w", img.sourceFilename, err)
 		}
 	default:
-		return 0, fmt.Errorf("unsupported graphicsType for %q", img.sourceFilename)
+		return 0, fmt.Errorf("unsupported graphicsType %q for %q", img.graphicsType, img.sourceFilename)
 	}
 
 	if c.opt.Symbols {
 		s, ok := wt.(Symbolser)
-		if !ok {
-			return 0, fmt.Errorf("symbols not supported for %q", img.sourceFilename)
+		if ok {
+			c.Symbols = append(c.Symbols, s.Symbols()...)
 		}
-		c.Symbols = s.Symbols()
+		if len(c.Symbols) == 0 {
+			return 0, fmt.Errorf("symbols not supported %T for %q", wt, img.sourceFilename)
+		}
 	}
 
 	if c.opt.Display && !c.opt.NoCrunch {

@@ -113,6 +113,9 @@ func (img *sourceImage) analyze() (err error) {
 		img.graphicsType = multiColorCharset
 	case max > 2:
 		img.graphicsType = multiColorBitmap
+		if img.isMultiColorInterlace() {
+			img.graphicsType = multiColorInterlaceBitmap
+		}
 	}
 	if !img.opt.Quiet {
 		fmt.Printf("file %q has graphics mode: %s\n", img.sourceFilename, img.graphicsType)
