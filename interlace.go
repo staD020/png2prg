@@ -48,7 +48,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("interlaces requires exactly 2 images at this stage, not %d", len(c.images))
 	}
 	img0 := &c.images[0]
-	img1 := &c.images[0]
+	img1 := &c.images[1]
 
 	k0, err := img0.Koala()
 	if err != nil {
@@ -65,14 +65,15 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("writeData failed: %w", err)
 	}
 
+	sharedBitmap := k0.Bitmap == k1.Bitmap
 	sharedScreenRAM := k0.ScreenColor == k1.ScreenColor
 	sharedColorRAM := k0.D800Color == k1.D800Color
 	if !c.opt.Quiet {
-		fmt.Printf("sharedScreenRAM: %v sharedColorRAM: %v\n", sharedScreenRAM, sharedColorRAM)
+		fmt.Printf("sharedBitmap: %v sharedScreenRAM: %v sharedColorRAM: %v\n", sharedBitmap, sharedScreenRAM, sharedColorRAM)
 	}
 
 	if c.opt.Symbols {
-		bm2 := int(BitmapAddress + n)
+		bm2 := int(BitmapAddress + n - 2)
 		bs2 := int(bm2 + 0x1f40)
 		bc2 := int(bm2 + 0x1f40 + 1000)
 		c.Symbols = []c64Symbol{
@@ -86,7 +87,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 			{"d021color", int(img0.backgroundColor.ColorIndex)},
 		}
 	}
-	n2, err = writeData(w, defaultHeader(), k1.Bitmap[:], k1.ScreenColor[:], k1.D800Color[:])
+	n2, err = writeData(w, k1.Bitmap[:], k1.ScreenColor[:], k1.D800Color[:])
 	n += n2
 	if err != nil {
 		return n, fmt.Errorf("writeData failed: %w", err)
@@ -103,6 +104,8 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 		opt:             img.opt,
 	}
 
+	fmt.Printf("first: %s, second: %s\n", first.sourceFilename, img.sourceFilename)
+
 	for char := 0; char < 1000; char++ {
 		colorIndex1, colorIndex2, err := first.multiColorIndexes(sortColors(first.charColors[char]))
 		if err != nil {
@@ -118,13 +121,6 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 				rgb := img.colorAtXY(x+pixel, y+byteIndex)
 				if bmppattern, ok := colorIndex1[rgb]; ok {
 					bmpbyte = bmpbyte | (bmppattern << (6 - byte(pixel)))
-				} else {
-					if img.opt.Verbose {
-						//log.Printf("rgb %v not found in char %d.", rgb, char)
-						//x, y := xyFromChar(char)
-						//log.Printf("x, y = %d, %d", x, y)
-						//log.Printf("colorIndex1: %v", colorIndex1)
-					}
 				}
 			}
 			k.Bitmap[bitmapIndex+byteIndex] = bmpbyte
