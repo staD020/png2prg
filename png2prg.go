@@ -383,7 +383,7 @@ var koalaDisplayAnimAlternative []byte
 var hiresDisplayAnim []byte
 
 //go:embed "display_mci_bitmap.prg"
-var hiresDisplayMCIBitmap []byte
+var koalaDisplayMCIBitmap []byte
 
 func init() {
 	displayers[multiColorBitmap] = koalaDisplay
@@ -392,6 +392,7 @@ func init() {
 	displayers[singleColorCharset] = scCharsetDisplay
 	displayers[multiColorSprites] = mcSpritesDisplay
 	displayers[singleColorSprites] = scSpritesDisplay
+	displayers[multiColorInterlaceBitmap] = koalaDisplayMCIBitmap
 }
 
 type converter struct {

@@ -59,17 +59,38 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("img1.InterlaceKoala failed: %w", err)
 	}
 
-	n2, err := writeData(w, defaultHeader(), k0.Bitmap[:], k0.ScreenColor[:], k0.D800Color[:])
-	n += n2
-	if err != nil {
-		return n, fmt.Errorf("writeData failed: %w", err)
-	}
-
 	sharedBitmap := k0.Bitmap == k1.Bitmap
 	sharedScreenRAM := k0.ScreenColor == k1.ScreenColor
 	sharedColorRAM := k0.D800Color == k1.D800Color
 	if !c.opt.Quiet {
 		fmt.Printf("sharedBitmap: %v sharedScreenRAM: %v sharedColorRAM: %v\n", sharedBitmap, sharedScreenRAM, sharedColorRAM)
+	}
+
+	var n2 int64
+	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
+	if c.opt.Display {
+		header := newHeader(multiColorInterlaceBitmap)
+		if c.opt.IncludeSID == "" {
+			header = zeroFill(header, BitmapAddress-0x7ff-len(header))
+			header = append(header, k0.Bitmap[:]...)
+			header = zeroFill(header, 0x4000-0x7ff-len(header))
+			header = append(header, k0.ScreenColor[:]...)
+			header = zeroFill(header, 0x4400-0x7ff-len(header))
+			header = append(header, k0.D800Color[:]...)
+			header = append(header, bgBorder)
+			header = zeroFill(header, 0x5c00-0x7ff-len(header))
+			header = append(header, k1.ScreenColor[:]...)
+			header = zeroFill(header, 0x6000-0x7ff-len(header))
+			header = append(header, k1.Bitmap[:]...)
+			return writeData(w, header)
+		}
+		panic("no sid yet")
+	}
+
+	n2, err = writeData(w, defaultHeader(), k0.Bitmap[:], k0.ScreenColor[:], k0.D800Color[:], []byte{bgBorder})
+	n += n2
+	if err != nil {
+		return n, fmt.Errorf("writeData failed: %w", err)
 	}
 
 	if c.opt.Symbols {

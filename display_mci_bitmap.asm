@@ -107,43 +107,9 @@ start:
 	!:
 	.for (var i=0; i<4; i++) {
 		sta screenram+(i*$100),x
-		sta screenram2+(i*$100),x
 		sta colorram+(i*$100),x
 	}
 		inx
-		bne !-
-
-		ldy #4
-		ldx #$e8
-	!:
-smc_koalasrc_col:
-		lda koala_source+$2328+$300,x
-smc_src_col:
-		sta src_colorram+$300,x
-		dex
-		cpx #$ff
-		bne !-
-		dec smc_koalasrc_col+2
-		dec smc_src_col+2
-		dey
-		bne !-
-
-		ldy #4
-		ldx #$e8
-	!:
-smc_koalasrc_screen:
-		lda koala_source+$1f40+$300,x
-smc_src_screen:
-		sta src_screenram+$300,x
-smc_src_screen2:
-		sta screenram2+$300,x
-		dex
-		cpx #$ff
-		bne !-
-		dec smc_koalasrc_screen+2
-		dec smc_src_screen+2
-		dec smc_src_screen2+2
-		dey
 		bne !-
 
 		jsr vblank
@@ -204,10 +170,32 @@ smc_yval:	ldy #steps-1
 		cmp #(steps/2)-1
 		bne fade_loop
 
+		ldx #0
+	!:
+	.for (var i=0; i<4; i++) {
+		lda screenram+(i*$100),x
+		sta screenram2+(i*$100),x
+	}
+		inx
+		bne !-
+
+interlaceloop:
 	!:	lda $dc01
 		cmp #$ef
-		bne !-
 		beq fade_loop
+
+		jsr vblank
+		:setBank(bitmap2)
+		lda #toD018(screenram2, bitmap2)
+		sta $d018
+		inc $d016
+
+		jsr vblank
+		:setBank(bitmap)
+		lda #toD018(screenram, bitmap)
+		sta $d018
+		dec $d016
+		jmp interlaceloop
 !done:
 	.if (LOOP) {
 		lda #$ef
