@@ -74,9 +74,9 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 			header = zeroFill(header, BitmapAddress-0x7ff-len(header))
 			header = append(header, k0.Bitmap[:]...)
 			header = zeroFill(header, 0x4000-0x7ff-len(header))
-			header = append(header, k0.ScreenColor[:]...)
+			header = append(header, k1.ScreenColor[:]...)
 			header = zeroFill(header, 0x4400-0x7ff-len(header))
-			header = append(header, k0.D800Color[:]...)
+			header = append(header, k1.D800Color[:]...)
 			header = append(header, bgBorder)
 			header = zeroFill(header, 0x5c00-0x7ff-len(header))
 			header = append(header, k1.ScreenColor[:]...)
@@ -117,6 +117,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 }
 
 // InterlaceKoala returns the secondary Koala, with as many bitpairs/colors the same as the first image.
+// it also merges possibly missing colors into k.ScreenColor and k.D800Color, use those.
 func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 	k := Koala{
 		BackgroundColor: img.backgroundColor.ColorIndex,
@@ -125,12 +126,26 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 		opt:             img.opt,
 	}
 
-	fmt.Printf("first: %s, second: %s\n", first.sourceFilename, img.sourceFilename)
-
 	for char := 0; char < 1000; char++ {
 		colorIndex1, colorIndex2, err := first.multiColorIndexes(sortColors(first.charColors[char]))
 		if err != nil {
 			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
+		}
+		tempbpc := bitpairColors{255, 255, 255, 255}
+		for k, v := range colorIndex2 {
+			tempbpc[k] = v
+		}
+		img.preferredBitpairColors = tempbpc
+		secondIndex1, secondIndex2, err := img.multiColorIndexes(sortColors(img.charColors[char]))
+		if err != nil {
+			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
+		}
+
+		for k, v := range secondIndex1 {
+			if _, ok := colorIndex1[k]; !ok {
+				colorIndex1[k] = v
+				colorIndex2[v] = secondIndex2[v]
+			}
 		}
 
 		bitmapIndex := char * 8
