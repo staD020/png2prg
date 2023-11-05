@@ -46,6 +46,28 @@ var TSCOptions = TSCrunch.Options{
 	JumpTo:  displayerJumpTo,
 }
 
+type Options struct {
+	OutFile             string
+	TargetDir           string
+	Verbose             bool
+	Quiet               bool
+	Display             bool
+	NoPackChars         bool
+	NoCrunch            bool
+	Symbols             bool
+	AlternativeFade     bool
+	BitpairColorsString string
+	NoGuess             bool
+	GraphicsMode        string
+	ForceBorderColor    int
+	IncludeSID          string
+	FrameDelay          int
+	WaitSeconds         int
+	ForceXOffset        int
+	ForceYOffset        int
+	CurrentGraphicsType GraphicsType
+}
+
 type RGB struct {
 	R, G, B byte
 }
@@ -374,28 +396,6 @@ type converter struct {
 	Symbols []c64Symbol
 }
 
-type Options struct {
-	OutFile             string
-	TargetDir           string
-	Verbose             bool
-	Quiet               bool
-	Display             bool
-	NoPackChars         bool
-	NoCrunch            bool
-	Symbols             bool
-	AlternativeFade     bool
-	BitpairColorsString string
-	NoGuess             bool
-	GraphicsMode        string
-	ForceBorderColor    int
-	IncludeSID          string
-	FrameDelay          int
-	WaitSeconds         int
-	ForceXOffset        int
-	ForceYOffset        int
-	CurrentGraphicsType GraphicsType
-}
-
 func New(opt Options, in ...io.Reader) (*converter, error) {
 	if opt.ForceBorderColor > 15 {
 		log.Printf("only values 0-15 are allowed, -force-border-color %d is not correct, now using default.", opt.ForceBorderColor)
@@ -495,7 +495,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 				return n, fmt.Errorf("img.SplitInterlace %q failed: %w", img.sourceFilename, err)
 			}
 			if !c.opt.Quiet {
-				log.Printf("interlaced pic was split")
+				fmt.Printf("interlaced pic was split")
 			}
 			c.opt.CurrentGraphicsType = multiColorBitmap
 			c.opt.GraphicsMode = multiColorBitmap.String()
@@ -539,6 +539,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 			return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
 		}
 	case multiColorInterlaceBitmap:
+		panic("should be unreachable")
 		rgba0, rgba1, err := img.SplitInterlace()
 		if err != nil {
 			return 0, fmt.Errorf("img.SplitInterlace %q failed: %w", img.sourceFilename, err)
@@ -551,7 +552,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		c.opt.CurrentGraphicsType = multiColorBitmap
 		c.opt.GraphicsMode = "koala"
 		if !c.opt.Quiet {
-			log.Printf("interlaced pic was split")
+			fmt.Printf("interlaced pic was split")
 		}
 
 		png1 := new(bytes.Buffer)
