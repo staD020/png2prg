@@ -127,7 +127,7 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 	}
 
 	for char := 0; char < 1000; char++ {
-		colorIndex1, colorIndex2, err := first.multiColorIndexes(sortColors(first.charColors[char]))
+		colorIndex1, colorIndex2, err := first.multiColorIndexes(sortColors(first.charColors[char]), false)
 		if err != nil {
 			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 		}
@@ -136,7 +136,7 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 			tempbpc[k] = v
 		}
 		img.preferredBitpairColors = tempbpc
-		secondIndex1, secondIndex2, err := img.multiColorIndexes(sortColors(img.charColors[char]))
+		secondIndex1, secondIndex2, err := img.multiColorIndexes(sortColors(img.charColors[char]), true)
 		if err != nil {
 			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 		}

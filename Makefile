@@ -13,12 +13,13 @@ GOBUILDFLAGS=-v -trimpath
 TARGET=png2prg_linux_amd64
 ALLTARGETS=$(TARGET) png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_x86.exe png2prg_linux_arm64
 
-FLAGS=-d -v
+FLAGS=-d -v -i
 FLAGSANIM=-d -v -frame-delay 8
 FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,1,8,2
-TESTPIC=testdata/ste_ghosts_goblins.gif
+TESTPIC=testdata/madonna/cjam_pure_madonna.png
+#TESTPIC=testdata/ste_ghosts_goblins.gif
 #TESTPIC=testdata/ilesj_orbital_impaler.png
 #TESTPIC=testdata/deev_desolate_hires.png
 #TESTPIC=testdata/the_sarge_steady_eddie_ready_hires.png
@@ -27,7 +28,7 @@ TESTPIC=testdata/ste_ghosts_goblins.gif
 #TESTPIC=testdata/mirage_parrot.png
 #TESTPIC=testdata/sander_ld.png
 #TESTPIC=testdata/sander_sander.png
-TESTSID=testdata/Rivalry_tune_5.sid
+#TESTSID=testdata/Rivalry_tune_5.sid
 #TESTSID=testdata/jasonpage_eighth_90.sid
 #TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
 #TESTSID=testdata/Yie_Ar_Kung_Fu_60.sid
@@ -79,8 +80,10 @@ png2prg_win_x86.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=386 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
 
 test: $(TARGET) $(TESTPIC) $(TESTSID)
-	./$(TARGET) $(FLAGS) -sid $(TESTSID) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGS) -o z.prg $(TESTPIC)
 	$(X64) z.prg >/dev/null
+
+#	./$(TARGET) $(FLAGS) -sid $(TESTSID) -o z.prg $(TESTPIC)
 
 testanim: $(TARGET) $(TESTANIM) $(TESTSID)
 	./$(TARGET) $(FLAGSANIM) -sid $(TESTSID) -o z.prg $(TESTANIM)

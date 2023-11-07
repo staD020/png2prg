@@ -155,6 +155,16 @@ func (b bitpairColors) String() (s string) {
 
 type PaletteMap map[RGB]byte
 
+func (m PaletteMap) RGB(c64Color byte) RGB {
+	for rgb, col := range m {
+		if col == c64Color {
+			return rgb
+		}
+	}
+	panic(fmt.Sprintf("c64Color %v not found in palette %v", c64Color, m))
+	return RGB{}
+}
+
 func (m PaletteMap) devString() string {
 	reverse := [maxColors]*RGB{}
 	for r, c := range m {
