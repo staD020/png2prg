@@ -59,12 +59,14 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("img1.InterlaceKoala failed: %w", err)
 	}
 
-	sharedBitmap := k0.Bitmap == k1.Bitmap
-	sharedScreenRAM := k0.ScreenColor == k1.ScreenColor
-	sharedColorRAM := k0.D800Color == k1.D800Color
-	if !c.opt.Quiet {
-		fmt.Printf("sharedBitmap: %v sharedScreenRAM: %v sharedColorRAM: %v\n", sharedBitmap, sharedScreenRAM, sharedColorRAM)
-	}
+	/*
+		sharedBitmap := k0.Bitmap == k1.Bitmap
+		sharedScreenRAM := k0.ScreenColor == k1.ScreenColor
+		sharedColorRAM := k0.D800Color == k1.D800Color
+		if !c.opt.Quiet {
+			fmt.Printf("sharedBitmap: %v sharedScreenRAM: %v sharedColorRAM: %v\n", sharedBitmap, sharedScreenRAM, sharedColorRAM)
+		}
+	*/
 
 	var n2 int64
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
