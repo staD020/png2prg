@@ -1,10 +1,13 @@
 package png2prg
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/color"
 	"io"
+
+	"github.com/staD020/TSCrunch"
 )
 
 // https://csdb.dk/release/?id=3961 zootrope by clone/wd
@@ -59,18 +62,10 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("img1.InterlaceKoala failed: %w", err)
 	}
 
-	/*
-		sharedBitmap := k0.Bitmap == k1.Bitmap
-		sharedScreenRAM := k0.ScreenColor == k1.ScreenColor
-		sharedColorRAM := k0.D800Color == k1.D800Color
-		if !c.opt.Quiet {
-			fmt.Printf("sharedBitmap: %v sharedScreenRAM: %v sharedColorRAM: %v\n", sharedBitmap, sharedScreenRAM, sharedColorRAM)
-		}
-	*/
-
 	var n2 int64
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
 	if c.opt.Display {
+		buf := &bytes.Buffer{}
 		header := newHeader(multiColorInterlaceBitmap)
 		if c.opt.IncludeSID == "" {
 			header = zeroFill(header, BitmapAddress-0x7ff-len(header))
@@ -84,7 +79,29 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 			header = append(header, k1.ScreenColor[:]...)
 			header = zeroFill(header, 0x6000-0x7ff-len(header))
 			header = append(header, k1.Bitmap[:]...)
-			return writeData(w, header)
+			n, err = writeData(buf, header)
+			if err != nil {
+				return n, fmt.Errorf("writeData failed: %w", err)
+			}
+		}
+		if !c.opt.NoCrunch {
+			tscopt := TSCOptions
+			if c.opt.Verbose {
+				tscopt.QUIET = false
+			}
+			tsc, err := TSCrunch.New(tscopt, buf)
+			if err != nil {
+				return n, fmt.Errorf("tscrunch.New failed: %w", err)
+			}
+			if !c.opt.Quiet {
+				fmt.Println("packing with TSCrunch...")
+			}
+			m, err := tsc.WriteTo(w)
+			n += m
+			if err != nil {
+				return n, fmt.Errorf("tsc.WriteTo failed: %w", err)
+			}
+			return n, nil
 		}
 		panic("no sid yet")
 	}
