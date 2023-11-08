@@ -714,7 +714,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	switch {
 	case int(load) < len(header)+0x7ff:
 		return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
-	case load > 0xcff && load < 0x1fff:
+	case load > 0xcff && load < BitmapAddress:
 		header = zeroFill(header, int(load)-0x7ff-len(header))
 		header = append(header, s.RawBytes()...)
 		if len(header) > BitmapAddress-0x7ff {

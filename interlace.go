@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"github.com/staD020/TSCrunch"
+	"github.com/staD020/sid"
 )
 
 // https://csdb.dk/release/?id=3961 zootrope by clone/wd
@@ -84,26 +85,67 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 				return n, fmt.Errorf("writeData failed: %w", err)
 			}
 		}
-		if !c.opt.NoCrunch {
-			tscopt := TSCOptions
-			if c.opt.Verbose {
-				tscopt.QUIET = false
-			}
-			tsc, err := TSCrunch.New(tscopt, buf)
+		if c.opt.IncludeSID != "" {
+			s, err := sid.LoadSID(c.opt.IncludeSID)
 			if err != nil {
-				return n, fmt.Errorf("tscrunch.New failed: %w", err)
+				return n, fmt.Errorf("sid.LoadSID failed: %w", err)
 			}
-			if !c.opt.Quiet {
-				fmt.Println("packing with TSCrunch...")
+			header = injectSIDHeader(header, s)
+			load := s.LoadAddress()
+			switch {
+			case int(load) < len(header)+0x7ff:
+				return n, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
+			case load > 0xcff && load < 0x1fff:
+				header = zeroFill(header, int(load)-0x7ff-len(header))
+				header = append(header, s.RawBytes()...)
+				if len(header) > BitmapAddress-0x7ff {
+					return n, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
+				}
+				if !c.opt.Quiet {
+					fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+				}
+			case load < 0x8f00:
+				return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 			}
-			m, err := tsc.WriteTo(w)
-			n += m
+			header = zeroFill(header, BitmapAddress-0x7ff-len(header))
+			header = append(header, k0.Bitmap[:]...)
+			header = zeroFill(header, 0x4000-0x7ff-len(header))
+			header = append(header, k1.ScreenColor[:]...)
+			header = zeroFill(header, 0x4400-0x7ff-len(header))
+			header = append(header, k1.D800Color[:]...)
+			header = append(header, bgBorder)
+			header = zeroFill(header, 0x5c00-0x7ff-len(header))
+			header = append(header, k1.ScreenColor[:]...)
+			header = zeroFill(header, 0x6000-0x7ff-len(header))
+			header = append(header, k1.Bitmap[:]...)
+
+			n, err = writeData(buf, header)
 			if err != nil {
-				return n, fmt.Errorf("tsc.WriteTo failed: %w", err)
+				return n, fmt.Errorf("writeData failed: %w", err)
 			}
-			return n, nil
 		}
-		panic("no sid yet")
+
+		if c.opt.NoCrunch {
+			m, err := w.Write(buf.Bytes())
+			return int64(m), err
+		}
+		tscopt := TSCOptions
+		if c.opt.Verbose {
+			tscopt.QUIET = false
+		}
+		tsc, err := TSCrunch.New(tscopt, buf)
+		if err != nil {
+			return n, fmt.Errorf("tscrunch.New failed: %w", err)
+		}
+		if !c.opt.Quiet {
+			fmt.Println("packing with TSCrunch...")
+		}
+		m, err := tsc.WriteTo(w)
+		n += m
+		if err != nil {
+			return n, fmt.Errorf("tsc.WriteTo failed: %w", err)
+		}
+		return n, nil
 	}
 
 	n2, err = writeData(w, defaultHeader(), k0.Bitmap[:], k0.ScreenColor[:], k0.D800Color[:], []byte{bgBorder})
