@@ -104,7 +104,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 				if !c.opt.Quiet {
 					fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
 				}
-			case load < 0x8f00:
+			case load < 0xe000:
 				return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
 			}
 			header = zeroFill(header, BitmapAddress-0x7ff-len(header))
@@ -118,6 +118,10 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 			header = append(header, k1.ScreenColor[:]...)
 			header = zeroFill(header, 0x6000-0x7ff-len(header))
 			header = append(header, k1.Bitmap[:]...)
+			if load >= 0xe000 {
+				header = zeroFill(header, int(load)-0x7ff-len(header))
+				header = append(header, s.RawBytes()...)
+			}
 
 			n, err = writeData(buf, header)
 			if err != nil {

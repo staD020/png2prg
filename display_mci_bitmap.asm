@@ -12,6 +12,7 @@
 .const screenram2 = $5c00
 .const colorram   = $d800
 .const fade_pass_address = $7f40
+
 .const src_screenram = $4000
 .const src_colorram = $4400
 

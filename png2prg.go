@@ -514,7 +514,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 				return n, fmt.Errorf("img.SplitInterlace %q failed: %w", img.sourceFilename, err)
 			}
 			if !c.opt.Quiet {
-				fmt.Printf("interlaced pic was split")
+				fmt.Println("interlaced pic was split")
 			}
 			c.opt.CurrentGraphicsType = multiColorBitmap
 			c.opt.GraphicsMode = multiColorBitmap.String()
