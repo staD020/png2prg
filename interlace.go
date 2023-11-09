@@ -231,7 +231,7 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 			k.ScreenColor[char] = colorIndex2[1] << 4
 		}
 		if _, ok := colorIndex2[2]; ok {
-			k.ScreenColor[char] = k.ScreenColor[char] | colorIndex2[2]
+			k.ScreenColor[char] |= colorIndex2[2]
 		}
 		if _, ok := colorIndex2[3]; ok {
 			k.D800Color[char] = colorIndex2[3]

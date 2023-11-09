@@ -37,6 +37,7 @@ TESTPIC=testdata/madonna/cjam_pure_madonna.png
 #TESTSID=testdata/Laserdance_10.sid
 #TESTSID=testdata/Commando.sid
 #TESTSID=testdata/Commando_Take_Me_to_the_Bridge_Mix.sid
+TESTSID=testdata/madonna/Papa_Dont_Preach_e000.sid
 #TESTANIM=testdata/sander_tankframes.gif
 #TESTANIM=testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband??.png
 #TESTANIM=testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband*.png
@@ -80,10 +81,8 @@ png2prg_win_x86.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=386 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
 
 test: $(TARGET) $(TESTPIC) $(TESTSID)
-	./$(TARGET) $(FLAGS) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGS) -sid $(TESTSID) -o z.prg $(TESTPIC)
 	$(X64) z.prg >/dev/null
-
-#	./$(TARGET) $(FLAGS) -sid $(TESTSID) -o z.prg $(TESTPIC)
 
 testanim: $(TARGET) $(TESTANIM) $(TESTSID)
 	./$(TARGET) $(FLAGSANIM) -sid $(TESTSID) -o z.prg $(TESTANIM)
