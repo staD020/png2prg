@@ -63,120 +63,117 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("img1.InterlaceKoala failed: %w", err)
 	}
 
-	var n2 int64
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
-	if c.opt.Display {
-		buf := &bytes.Buffer{}
-		header := newHeader(multiColorInterlaceBitmap)
-		if c.opt.IncludeSID == "" {
-			header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-			header = append(header, k0.Bitmap[:]...)
-			header = zeroFill(header, 0x4000-0x7ff-len(header))
-			header = append(header, k1.ScreenColor[:]...)
-			header = zeroFill(header, 0x4400-0x7ff-len(header))
-			header = append(header, k1.D800Color[:]...)
-			header = append(header, bgBorder)
-			header = zeroFill(header, 0x5c00-0x7ff-len(header))
-			header = append(header, k1.ScreenColor[:]...)
-			header = zeroFill(header, 0x6000-0x7ff-len(header))
-			header = append(header, k1.Bitmap[:]...)
-			n, err = writeData(buf, header)
-			if err != nil {
-				return n, fmt.Errorf("writeData failed: %w", err)
-			}
-		}
-		if c.opt.IncludeSID != "" {
-			s, err := sid.LoadSID(c.opt.IncludeSID)
-			if err != nil {
-				return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-			}
-			header = injectSIDHeader(header, s)
-			load := s.LoadAddress()
-			switch {
-			case int(load) < len(header)+0x7ff:
-				return n, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
-			case load > 0xcff && load < 0x1fff:
-				header = zeroFill(header, int(load)-0x7ff-len(header))
-				header = append(header, s.RawBytes()...)
-				if len(header) > BitmapAddress-0x7ff {
-					return n, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
-				}
-				if !c.opt.Quiet {
-					fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
-				}
-			case load < 0xe000:
-				return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
-			}
-			header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-			header = append(header, k0.Bitmap[:]...)
-			header = zeroFill(header, 0x4000-0x7ff-len(header))
-			header = append(header, k1.ScreenColor[:]...)
-			header = zeroFill(header, 0x4400-0x7ff-len(header))
-			header = append(header, k1.D800Color[:]...)
-			header = append(header, bgBorder)
-			header = zeroFill(header, 0x5c00-0x7ff-len(header))
-			header = append(header, k1.ScreenColor[:]...)
-			header = zeroFill(header, 0x6000-0x7ff-len(header))
-			header = append(header, k1.Bitmap[:]...)
-			if load >= 0xe000 {
-				header = zeroFill(header, int(load)-0x7ff-len(header))
-				header = append(header, s.RawBytes()...)
-			}
 
-			n, err = writeData(buf, header)
-			if err != nil {
-				return n, fmt.Errorf("writeData failed: %w", err)
+	if !c.opt.Display {
+		const d016offset = 1
+		if c.opt.Symbols {
+			c.Symbols = []c64Symbol{
+				{"colorram1", 0x5800},
+				{"screenram1", 0x5c00},
+				{"bitmap1", 0x6000},
+				{"d021coloraddr", 0x7f40},
+				{"d016offsetaddr", 0x7f42},
+				{"bitmap2", 0x8000},
+				{"d016offset", d016offset},
+				{"d020color", int(img0.borderColor.ColorIndex)},
+				{"d021color", int(img0.backgroundColor.ColorIndex)},
 			}
 		}
-
-		if c.opt.NoCrunch {
-			m, err := w.Write(buf.Bytes())
-			return int64(m), err
-		}
-		tscopt := TSCOptions
-		if c.opt.Verbose {
-			tscopt.QUIET = false
-		}
-		tsc, err := TSCrunch.New(tscopt, buf)
+		const memoffset = 0x57fe
+		header := []byte{0x00, 0x58}
+		header = append(header, k1.D800Color[:]...)
+		header = zeroFill(header, 0x5c00-memoffset-len(header))
+		header = append(header, k1.ScreenColor[:]...)
+		header = zeroFill(header, 0x6000-memoffset-len(header))
+		header = append(header, k0.Bitmap[:]...)
+		header = append(header, bgBorder, 0, d016offset)
+		header = zeroFill(header, 0x8000-memoffset-len(header))
+		header = append(header, k1.Bitmap[:]...)
+		return writeData(w, header)
+	}
+	buf := &bytes.Buffer{}
+	header := newHeader(multiColorInterlaceBitmap)
+	if c.opt.IncludeSID == "" {
+		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
+		header = append(header, k0.Bitmap[:]...)
+		header = zeroFill(header, 0x4000-0x7ff-len(header))
+		header = append(header, k1.ScreenColor[:]...)
+		header = zeroFill(header, 0x4400-0x7ff-len(header))
+		header = append(header, k1.D800Color[:]...)
+		header = append(header, bgBorder)
+		header = zeroFill(header, 0x5c00-0x7ff-len(header))
+		header = append(header, k1.ScreenColor[:]...)
+		header = zeroFill(header, 0x6000-0x7ff-len(header))
+		header = append(header, k1.Bitmap[:]...)
+		n, err = writeData(buf, header)
 		if err != nil {
-			return n, fmt.Errorf("tscrunch.New failed: %w", err)
+			return n, fmt.Errorf("writeData failed: %w", err)
 		}
-		if !c.opt.Quiet {
-			fmt.Println("packing with TSCrunch...")
-		}
-		m, err := tsc.WriteTo(w)
-		n += m
+	}
+	if c.opt.IncludeSID != "" {
+		s, err := sid.LoadSID(c.opt.IncludeSID)
 		if err != nil {
-			return n, fmt.Errorf("tsc.WriteTo failed: %w", err)
+			return n, fmt.Errorf("sid.LoadSID failed: %w", err)
 		}
-		return n, nil
+		header = injectSIDHeader(header, s)
+		load := s.LoadAddress()
+		switch {
+		case int(load) < len(header)+0x7ff:
+			return n, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
+		case load > 0xcff && load < 0x1fff:
+			header = zeroFill(header, int(load)-0x7ff-len(header))
+			header = append(header, s.RawBytes()...)
+			if len(header) > BitmapAddress-0x7ff {
+				return n, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
+			}
+			if !c.opt.Quiet {
+				fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+			}
+		case load < 0xe000:
+			return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
+		}
+		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
+		header = append(header, k0.Bitmap[:]...)
+		header = zeroFill(header, 0x4000-0x7ff-len(header))
+		header = append(header, k1.ScreenColor[:]...)
+		header = zeroFill(header, 0x4400-0x7ff-len(header))
+		header = append(header, k1.D800Color[:]...)
+		header = append(header, bgBorder)
+		header = zeroFill(header, 0x5c00-0x7ff-len(header))
+		header = append(header, k1.ScreenColor[:]...)
+		header = zeroFill(header, 0x6000-0x7ff-len(header))
+		header = append(header, k1.Bitmap[:]...)
+		if load >= 0xe000 {
+			header = zeroFill(header, int(load)-0x7ff-len(header))
+			header = append(header, s.RawBytes()...)
+		}
+
+		n, err = writeData(buf, header)
+		if err != nil {
+			return n, fmt.Errorf("writeData failed: %w", err)
+		}
 	}
 
-	n2, err = writeData(w, defaultHeader(), k0.Bitmap[:], k0.ScreenColor[:], k0.D800Color[:], []byte{bgBorder})
-	n += n2
-	if err != nil {
-		return n, fmt.Errorf("writeData failed: %w", err)
+	if c.opt.NoCrunch {
+		m, err := w.Write(buf.Bytes())
+		return int64(m), err
 	}
-
-	if c.opt.Symbols {
-		bm2 := int(BitmapAddress + n - 2)
-		bs2 := int(bm2 + 0x1f40)
-		bc2 := int(bm2 + 0x1f40 + 1000)
-		c.Symbols = []c64Symbol{
-			{"bitmap1", BitmapAddress},
-			{"screenram1", BitmapScreenRAMAddress},
-			{"colorram1", BitmapColorRAMAddress},
-			{"bitmap2", bm2},
-			{"screenram2", bs2},
-			{"colorram2", bc2},
-			{"d020color", int(img0.borderColor.ColorIndex)},
-			{"d021color", int(img0.backgroundColor.ColorIndex)},
-		}
+	tscopt := TSCOptions
+	if c.opt.Verbose {
+		tscopt.QUIET = false
 	}
-	n2, err = writeData(w, k1.Bitmap[:], k1.ScreenColor[:], k1.D800Color[:])
-	n += n2
+	tsc, err := TSCrunch.New(tscopt, buf)
 	if err != nil {
-		return n, fmt.Errorf("writeData failed: %w", err)
+		return n, fmt.Errorf("tscrunch.New failed: %w", err)
+	}
+	if !c.opt.Quiet {
+		fmt.Println("packing with TSCrunch...")
+	}
+	m, err := tsc.WriteTo(w)
+	n += m
+	if err != nil {
+		return n, fmt.Errorf("tsc.WriteTo failed: %w", err)
 	}
 	return n, nil
 }
