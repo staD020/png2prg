@@ -171,7 +171,7 @@ smc_yval:	ldy #steps-1
 		beq !done+
 		cmp #(steps/2)-1
 		bne fade_loop
-
+/*
 		ldx #0
 	!:
 	.for (var i=0; i<4; i++) {
@@ -180,7 +180,7 @@ smc_yval:	ldy #steps-1
 	}
 		inx
 		bne !-
-
+*/
 interlaceloop:
 	!:	lda $dc01
 		cmp #$ef

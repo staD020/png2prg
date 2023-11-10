@@ -61,7 +61,7 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 		}
 		// fill used
 		for _, ci := range cc {
-			// already set?
+			// already set as preferred?
 			if _, ok := rgb2bitpair[img.palette.RGB(ci.ColorIndex)]; ok {
 				continue
 			}
@@ -69,13 +69,25 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 			if len(bitpairs) == 0 {
 				return nil, nil, fmt.Errorf("too many colors, no bitpairs left")
 			}
-			// take spot
+			// take first spot
 			var bitpair byte
-			bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[:len(bitpairs)-1]
+			bitpair, bitpairs = bitpairs[0], bitpairs[1:]
 			rgb2bitpair[ci.RGB] = bitpair
 			bitpair2c64color[bitpair] = ci.ColorIndex
 		}
 		return rgb2bitpair, bitpair2c64color, nil
+	}
+
+	if false { // img.opt.Interlace {
+		// todo: fix proper sorting of colors above
+		// prefill d800 bitpair
+		if len(img.preferredBitpairColors) == 4 {
+			color := img.preferredBitpairColors[3]
+			var bitpair byte
+			bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[0:len(bitpairs)-1]
+			rgb2bitpair[img.palette.RGB(color)] = bitpair
+			bitpair2c64color[bitpair] = color
+		}
 	}
 
 	// prefill preferred and used colors
@@ -108,7 +120,10 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
 			}
 			var bitpair byte
-			bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[:len(bitpairs)-1]
+			//works for all general cases, but prefers bitpair 11 should be replaced first
+			//bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[:len(bitpairs)-1]
+			//let's shift the first available one, to avoid taking bitpair 11 (d800)
+			bitpair, bitpairs = bitpairs[0], bitpairs[1:]
 			rgb2bitpair[ci.RGB] = bitpair
 			bitpair2c64color[bitpair] = ci.ColorIndex
 		}
