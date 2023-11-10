@@ -66,7 +66,6 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
 
 	if !c.opt.Display {
-		const d016offset = 1
 		if c.opt.Symbols {
 			c.Symbols = []c64Symbol{
 				{"colorram1", 0x5800},
@@ -75,7 +74,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 				{"d021coloraddr", 0x7f40},
 				{"d016offsetaddr", 0x7f42},
 				{"bitmap2", 0x8000},
-				{"d016offset", d016offset},
+				{"d016offset", c.opt.D016Offset},
 				{"d020color", int(img0.borderColor.ColorIndex)},
 				{"d021color", int(img0.backgroundColor.ColorIndex)},
 			}
@@ -87,11 +86,12 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		header = append(header, k1.ScreenColor[:]...)
 		header = zeroFill(header, 0x6000-memoffset-len(header))
 		header = append(header, k0.Bitmap[:]...)
-		header = append(header, bgBorder, 0, d016offset)
+		header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
 		header = zeroFill(header, 0x8000-memoffset-len(header))
 		header = append(header, k1.Bitmap[:]...)
 		return writeData(w, header)
 	}
+
 	buf := &bytes.Buffer{}
 	header := newHeader(multiColorInterlaceBitmap)
 	if c.opt.IncludeSID == "" {
@@ -106,6 +106,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		header = append(header, k1.ScreenColor[:]...)
 		header = zeroFill(header, 0x6000-0x7ff-len(header))
 		header = append(header, k1.Bitmap[:]...)
+		header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
 		n, err = writeData(buf, header)
 		if err != nil {
 			return n, fmt.Errorf("writeData failed: %w", err)
@@ -144,6 +145,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		header = append(header, k1.ScreenColor[:]...)
 		header = zeroFill(header, 0x6000-0x7ff-len(header))
 		header = append(header, k1.Bitmap[:]...)
+		header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
 		if load >= 0xe000 {
 			header = zeroFill(header, int(load)-0x7ff-len(header))
 			header = append(header, s.RawBytes()...)

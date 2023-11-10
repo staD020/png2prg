@@ -40,7 +40,7 @@ def saveNumarrayAsImage(srcArray, destfile):
     im=Image.frombytes(mode,(width,height),data)
     im.save(destfile)
 
-s=loadImageAsNumarray("sd/2118.gif")
+s=loadImageAsNumarray("dirty_madonna.gif")
 
 bc=s[0,0]
 def near(x):

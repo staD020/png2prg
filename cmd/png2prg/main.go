@@ -232,6 +232,8 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.StringVar(&opt.GraphicsMode, "mode", "", "force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites")
 	flag.BoolVar(&opt.Interlace, "i", false, "interlace")
 	flag.BoolVar(&opt.Interlace, "interlace", false, "interlace")
+	flag.IntVar(&opt.D016Offset, "d016", 1, "d016offset")
+	flag.IntVar(&opt.D016Offset, "d016offset", 1, "number of pixels to shift with d016 when using interlace")
 	flag.StringVar(&opt.BitpairColorsString, "bpc", "", "bitpair-colors")
 	flag.StringVar(&opt.BitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
 	flag.IntVar(&opt.ForceBorderColor, "force-border-color", -1, "force border color")

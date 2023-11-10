@@ -60,6 +60,7 @@ type Options struct {
 	NoGuess             bool
 	GraphicsMode        string
 	Interlace           bool
+	D016Offset          int
 	ForceBorderColor    int
 	IncludeSID          string
 	FrameDelay          int

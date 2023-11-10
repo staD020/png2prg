@@ -11,7 +11,8 @@
 .const screenram  = $0400
 .const screenram2 = $5c00
 .const colorram   = $d800
-.const fade_pass_address = $7f40
+.const d016offset = $7f42
+.const fade_pass_address = $7f50
 
 .const src_screenram = $4000
 .const src_colorram = $4400
@@ -189,13 +190,17 @@ interlaceloop:
 		:setBank(bitmap2)
 		lda #toD018(screenram2, bitmap2)
 		sta $d018
-		inc $d016
+		lda $d016
+		eor d016offset
+		sta $d016
 
 		jsr vblank
 		:setBank(bitmap)
 		lda #toD018(screenram, bitmap)
 		sta $d018
-		dec $d016
+		lda $d016
+		eor d016offset
+		sta $d016
 		jmp interlaceloop
 !done:
 	.if (LOOP) {
