@@ -22,16 +22,14 @@ func In[S ~[]E, E comparable](s S, v E) bool {
 	return slices.Index(s, v) >= 0
 }
 
-func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (PaletteMap, map[byte]byte, error) {
-	// rgb to bitpair
-	colorIndex1 := make(PaletteMap)
-	// bitpair to colorindex
-	colorIndex2 := make(map[byte]byte)
+func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (rgb2bitpair PaletteMap, bitpair2c64color map[byte]byte, err error) {
+	rgb2bitpair = make(PaletteMap)
+	bitpair2c64color = make(map[byte]byte)
 
 	// set background
 	if img.graphicsType != singleColorBitmap {
-		colorIndex1[img.backgroundColor.RGB] = 0
-		colorIndex2[0] = img.backgroundColor.ColorIndex
+		rgb2bitpair[img.backgroundColor.RGB] = 0
+		bitpair2c64color[0] = img.backgroundColor.ColorIndex
 	}
 	// which bitpairs do we have left, default is multicolor
 	bitpairs := []byte{1, 2, 3}
@@ -51,8 +49,8 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 			if preferColor > 16 {
 				continue
 			}
-			colorIndex1[img.palette.RGB(preferColor)] = byte(preferBitpair)
-			colorIndex2[byte(preferBitpair)] = preferColor
+			rgb2bitpair[img.palette.RGB(preferColor)] = byte(preferBitpair)
+			bitpair2c64color[byte(preferBitpair)] = preferColor
 			// remove bitpair
 			for i := range bitpairs {
 				if bitpairs[i] == byte(preferBitpair) {
@@ -64,7 +62,7 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 		// fill used
 		for _, ci := range cc {
 			// already set?
-			if _, ok := colorIndex1[img.palette.RGB(ci.ColorIndex)]; ok {
+			if _, ok := rgb2bitpair[img.palette.RGB(ci.ColorIndex)]; ok {
 				continue
 			}
 			// find spot
@@ -74,10 +72,10 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 			// take spot
 			var bitpair byte
 			bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[:len(bitpairs)-1]
-			colorIndex1[ci.RGB] = bitpair
-			colorIndex2[bitpair] = ci.ColorIndex
+			rgb2bitpair[ci.RGB] = bitpair
+			bitpair2c64color[bitpair] = ci.ColorIndex
 		}
-		return colorIndex1, colorIndex2, nil
+		return rgb2bitpair, bitpair2c64color, nil
 	}
 
 	// prefill preferred and used colors
@@ -89,8 +87,8 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 		OUTER:
 			for _, ci := range cc {
 				if preferColor == ci.ColorIndex {
-					colorIndex1[ci.RGB] = byte(preferBitpair)
-					colorIndex2[byte(preferBitpair)] = preferColor
+					rgb2bitpair[ci.RGB] = byte(preferBitpair)
+					bitpair2c64color[byte(preferBitpair)] = preferColor
 
 					for i := range bitpairs {
 						if bitpairs[i] == byte(preferBitpair) {
@@ -105,17 +103,17 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 
 	// fill or replace missing colors
 	for _, ci := range cc {
-		if _, ok := colorIndex1[ci.RGB]; !ok {
+		if _, ok := rgb2bitpair[ci.RGB]; !ok {
 			if len(bitpairs) == 0 {
 				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
 			}
 			var bitpair byte
 			bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[:len(bitpairs)-1]
-			colorIndex1[ci.RGB] = bitpair
-			colorIndex2[bitpair] = ci.ColorIndex
+			rgb2bitpair[ci.RGB] = bitpair
+			bitpair2c64color[bitpair] = ci.ColorIndex
 		}
 	}
-	return colorIndex1, colorIndex2, nil
+	return rgb2bitpair, bitpair2c64color, nil
 }
 
 func (img *sourceImage) Koala() (Koala, error) {
@@ -137,7 +135,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 	}
 
 	for char := 0; char < 1000; char++ {
-		colorIndex1, colorIndex2, err := img.multiColorIndexes(sortColors(img.charColors[char]), false)
+		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(sortColors(img.charColors[char]), false)
 		if err != nil {
 			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 		}
@@ -149,28 +147,28 @@ func (img *sourceImage) Koala() (Koala, error) {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel += 2 {
 				rgb := img.colorAtXY(x+pixel, y+byteIndex)
-				if bmppattern, ok := colorIndex1[rgb]; ok {
+				if bmppattern, ok := rgb2bitpair[rgb]; ok {
 					bmpbyte = bmpbyte | (bmppattern << (6 - byte(pixel)))
 				} else {
 					if img.opt.Verbose {
 						//log.Printf("rgb %v not found in char %d.", rgb, char)
 						//x, y := xyFromChar(char)
 						//log.Printf("x, y = %d, %d", x, y)
-						//log.Printf("colorIndex1: %v", colorIndex1)
+						//log.Printf("rgb2bitpair: %v", rgb2bitpair)
 					}
 				}
 			}
 			k.Bitmap[bitmapIndex+byteIndex] = bmpbyte
 		}
 
-		if _, ok := colorIndex2[1]; ok {
-			k.ScreenColor[char] = colorIndex2[1] << 4
+		if _, ok := bitpair2c64color[1]; ok {
+			k.ScreenColor[char] = bitpair2c64color[1] << 4
 		}
-		if _, ok := colorIndex2[2]; ok {
-			k.ScreenColor[char] = k.ScreenColor[char] | colorIndex2[2]
+		if _, ok := bitpair2c64color[2]; ok {
+			k.ScreenColor[char] = k.ScreenColor[char] | bitpair2c64color[2]
 		}
-		if _, ok := colorIndex2[3]; ok {
-			k.D800Color[char] = colorIndex2[3]
+		if _, ok := bitpair2c64color[3]; ok {
+			k.D800Color[char] = bitpair2c64color[3]
 		}
 	}
 	return k, nil
@@ -189,7 +187,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 			return h, fmt.Errorf("Too many hires colors in char %d", char)
 		}
 
-		colorIndex1, colorIndex2, err := img.multiColorIndexes(cc, false)
+		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(cc, false)
 		if err != nil {
 			return h, fmt.Errorf("multiColorIndexes failed: error in char %d: %v", char, err)
 		}
@@ -201,24 +199,24 @@ func (img *sourceImage) Hires() (Hires, error) {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel++ {
 				rgb := img.colorAtXY(x+pixel, y+byteIndex)
-				if bmppattern, ok := colorIndex1[rgb]; ok {
+				if bmppattern, ok := rgb2bitpair[rgb]; ok {
 					bmpbyte |= bmppattern << (7 - byte(pixel))
 				} else {
 					if img.opt.Verbose {
 						log.Printf("rgb: %v not found in char: %d.", rgb, char)
 						log.Printf("x, y = %d, %d", x, y)
-						log.Printf("colorIndex1: %v", colorIndex1)
+						log.Printf("rgb2bitpair: %v", rgb2bitpair)
 					}
 				}
 			}
 			h.Bitmap[bitmapIndex+byteIndex] = bmpbyte
 		}
 
-		if _, ok := colorIndex2[1]; ok {
-			h.ScreenColor[char] = colorIndex2[1] << 4
+		if _, ok := bitpair2c64color[1]; ok {
+			h.ScreenColor[char] = bitpair2c64color[1] << 4
 		}
-		if _, ok := colorIndex2[0]; ok {
-			h.ScreenColor[char] |= colorIndex2[0]
+		if _, ok := bitpair2c64color[0]; ok {
+			h.ScreenColor[char] |= bitpair2c64color[0]
 		}
 	}
 	return h, nil
@@ -250,22 +248,22 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 		}
 	}
 
-	colorIndex1 := PaletteMap{}
-	colorIndex2 := map[byte]byte{}
+	rgb2bitpair := PaletteMap{}
+	bitpair2c64color := map[byte]byte{}
 	bit := byte(0)
 	for _, ci := range cc {
 		if bit > 1 {
 			return c, fmt.Errorf("Too many colors.")
 		}
-		if _, ok := colorIndex2[bit]; !ok {
-			colorIndex1[ci.RGB] = bit
-			colorIndex2[bit] = ci.ColorIndex
+		if _, ok := bitpair2c64color[bit]; !ok {
+			rgb2bitpair[ci.RGB] = bit
+			bitpair2c64color[bit] = ci.ColorIndex
 		}
 		bit++
 	}
 
-	c.CharColor = colorIndex2[1]
-	c.BackgroundColor = colorIndex2[0]
+	c.CharColor = bitpair2c64color[1]
+	c.BackgroundColor = bitpair2c64color[0]
 
 	if img.opt.NoPackChars {
 		for char := 0; char < 256; char++ {
@@ -275,13 +273,13 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 				bmpbyte := byte(0)
 				for pixel := 0; pixel < 8; pixel++ {
 					rgb := img.colorAtXY(x+pixel, y+byteIndex)
-					if bmppattern, ok := colorIndex1[rgb]; ok {
+					if bmppattern, ok := rgb2bitpair[rgb]; ok {
 						bmpbyte |= bmppattern << (7 - byte(pixel))
 					} else {
 						if img.opt.Verbose {
 							log.Printf("rgb %v not found in char %d.", rgb, char)
 							log.Printf("x, y = %d, %d", x, y)
-							log.Printf("colorIndex1: %v", colorIndex1)
+							log.Printf("rgb2bitpair: %v", rgb2bitpair)
 						}
 					}
 				}
@@ -302,13 +300,13 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel++ {
 				rgb := img.colorAtXY(x+pixel, y+byteIndex)
-				if bmppattern, ok := colorIndex1[rgb]; ok {
+				if bmppattern, ok := rgb2bitpair[rgb]; ok {
 					bmpbyte |= bmppattern << (7 - byte(pixel))
 				} else {
 					if img.opt.Verbose {
 						log.Printf("rgb %v not found in char %d.", rgb, char)
 						log.Printf("x, y = %d, %d", x, y)
-						log.Printf("colorIndex1: %v", colorIndex1)
+						log.Printf("rgb2bitpair: %v", rgb2bitpair)
 					}
 				}
 			}
@@ -361,17 +359,17 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		}
 	}
 
-	colorIndex1, colorIndex2, err := img.multiColorIndexes(cc, false)
+	rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(cc, false)
 	if err != nil {
 		return c, fmt.Errorf("multiColorIndexes failed: %w", err)
 	}
 
 	if img.opt.Verbose {
 		log.Printf("charset colors: %s\n", cc)
-		log.Printf("colorIndex1: %v\n", colorIndex1)
-		log.Printf("colorIndex2: %v\n", colorIndex2)
+		log.Printf("rgb2bitpair: %v\n", rgb2bitpair)
+		log.Printf("bitpair2c64color: %v\n", bitpair2c64color)
 	}
-	if colorIndex2[3] > 7 {
+	if bitpair2c64color[3] > 7 {
 		if !img.opt.Quiet {
 			log.Println("the bitpair 11 can only contain colors 0-7, mixed sc/mc mode is not supported, you may want to consider using -bitpair-colors")
 		}
@@ -380,10 +378,10 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 	type charBytes [8]byte
 	charset := []charBytes{}
 
-	c.CharColor = colorIndex2[3] | 8
-	c.BackgroundColor = colorIndex2[0]
-	c.D022Color = colorIndex2[1]
-	c.D023Color = colorIndex2[2]
+	c.CharColor = bitpair2c64color[3] | 8
+	c.BackgroundColor = bitpair2c64color[0]
+	c.D022Color = bitpair2c64color[1]
+	c.D023Color = bitpair2c64color[2]
 	c.BorderColor = img.borderColor.ColorIndex
 
 	if img.opt.NoPackChars {
@@ -394,13 +392,13 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 				bmpbyte := byte(0)
 				for pixel := 0; pixel < 8; pixel += 2 {
 					rgb := img.colorAtXY(x+pixel, y+byteIndex)
-					if bmppattern, ok := colorIndex1[rgb]; ok {
+					if bmppattern, ok := rgb2bitpair[rgb]; ok {
 						bmpbyte |= bmppattern << (6 - byte(pixel))
 					} else {
 						if img.opt.Verbose {
 							log.Printf("rgb %v not found in char %d.", rgb, char)
 							log.Printf("x, y = %d, %d", x, y)
-							log.Printf("colorIndex1: %v", colorIndex1)
+							log.Printf("rgb2bitpair: %v", rgb2bitpair)
 						}
 					}
 				}
@@ -418,13 +416,13 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel += 2 {
 				rgb := img.colorAtXY(x+pixel, y+byteIndex)
-				if bmppattern, ok := colorIndex1[rgb]; ok {
+				if bmppattern, ok := rgb2bitpair[rgb]; ok {
 					bmpbyte |= bmppattern << (6 - byte(pixel))
 				} else {
 					if img.opt.Verbose {
 						log.Printf("rgb %v not found in char %d.", rgb, char)
 						log.Printf("x, y = %d, %d", x, y)
-						log.Printf("colorIndex1: %v", colorIndex1)
+						log.Printf("rgb2bitpair: %v", rgb2bitpair)
 					}
 				}
 			}
@@ -494,24 +492,24 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 	s.BackgroundColor = cc[0].ColorIndex
 	s.SpriteColor = cc[1].ColorIndex
 
-	colorIndex1 := PaletteMap{}
-	colorIndex2 := map[byte]byte{}
+	rgb2bitpair := PaletteMap{}
+	bitpair2c64color := map[byte]byte{}
 	bit := byte(0)
 	for _, ci := range cc {
 		if bit > 1 {
 			return s, fmt.Errorf("Too many colors.")
 		}
-		if _, ok := colorIndex2[bit]; !ok {
-			colorIndex1[ci.RGB] = bit
-			colorIndex2[bit] = ci.ColorIndex
+		if _, ok := bitpair2c64color[bit]; !ok {
+			rgb2bitpair[ci.RGB] = bit
+			bitpair2c64color[bit] = ci.ColorIndex
 		}
 		bit++
 	}
 
 	if img.opt.Verbose {
 		log.Printf("sprite colors: %v\n", cc)
-		log.Printf("colorIndex1: %v\n", colorIndex1)
-		log.Printf("colorIndex2: %v\n", colorIndex2)
+		log.Printf("rgb2bitpair: %v\n", rgb2bitpair)
+		log.Printf("bitpair2c64color: %v\n", bitpair2c64color)
 	}
 
 	for spriteY := 0; spriteY < maxY; spriteY++ {
@@ -523,7 +521,7 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 					bmpbyte := byte(0)
 					for pixel := 0; pixel < 8; pixel++ {
 						rgb := img.colorAtXY(xOffset+pixel, yOffset)
-						if bmppattern, ok := colorIndex1[rgb]; ok {
+						if bmppattern, ok := rgb2bitpair[rgb]; ok {
 							bmpbyte = bmpbyte | (bmppattern << (7 - byte(pixel)))
 						} else {
 							if img.opt.Verbose {
@@ -557,15 +555,15 @@ func (img *sourceImage) MultiColorSprites() (MultiColorSprites, error) {
 		}
 	}
 
-	colorIndex1, colorIndex2, err := img.multiColorIndexes(cc, false)
+	rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(cc, false)
 	if err != nil {
 		return s, fmt.Errorf("multiColorIndexes failed: %v", err)
 	}
 
 	if img.opt.Verbose {
 		log.Printf("sprite colors: %v\n", cc)
-		log.Printf("colorIndex1: %v\n", colorIndex1)
-		log.Printf("colorIndex2: %v\n", colorIndex2)
+		log.Printf("rgb2bitpair: %v\n", rgb2bitpair)
+		log.Printf("bitpair2c64color: %v\n", bitpair2c64color)
 	}
 
 	switch {
@@ -597,7 +595,7 @@ func (img *sourceImage) MultiColorSprites() (MultiColorSprites, error) {
 					bmpbyte := byte(0)
 					for pixel := 0; pixel < 8; pixel += 2 {
 						rgb := img.colorAtXY(xOffset+pixel, yOffset)
-						if bmppattern, ok := colorIndex1[rgb]; ok {
+						if bmppattern, ok := rgb2bitpair[rgb]; ok {
 							bmpbyte |= bmppattern << (6 - byte(pixel))
 						} else {
 							if img.opt.Verbose {

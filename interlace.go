@@ -192,12 +192,12 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 	}
 
 	for char := 0; char < 1000; char++ {
-		colorIndex1, colorIndex2, err := first.multiColorIndexes(sortColors(first.charColors[char]), false)
+		rgb2bitpair, bitpair2c64color, err := first.multiColorIndexes(sortColors(first.charColors[char]), false)
 		if err != nil {
 			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 		}
 		tempbpc := bitpairColors{255, 255, 255, 255}
-		for k, v := range colorIndex2 {
+		for k, v := range bitpair2c64color {
 			tempbpc[k] = v
 		}
 		img.preferredBitpairColors = tempbpc
@@ -207,9 +207,9 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 		}
 
 		for k, v := range secondIndex1 {
-			if _, ok := colorIndex1[k]; !ok {
-				colorIndex1[k] = v
-				colorIndex2[v] = secondIndex2[v]
+			if _, ok := rgb2bitpair[k]; !ok {
+				rgb2bitpair[k] = v
+				bitpair2c64color[v] = secondIndex2[v]
 			}
 		}
 
@@ -220,21 +220,21 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (Koala, error) {
 			bmpbyte := byte(0)
 			for pixel := 0; pixel < 8; pixel += 2 {
 				rgb := img.colorAtXY(x+pixel, y+byteIndex)
-				if bmppattern, ok := colorIndex1[rgb]; ok {
+				if bmppattern, ok := rgb2bitpair[rgb]; ok {
 					bmpbyte = bmpbyte | (bmppattern << (6 - byte(pixel)))
 				}
 			}
 			k.Bitmap[bitmapIndex+byteIndex] = bmpbyte
 		}
 
-		if _, ok := colorIndex2[1]; ok {
-			k.ScreenColor[char] = colorIndex2[1] << 4
+		if _, ok := bitpair2c64color[1]; ok {
+			k.ScreenColor[char] = bitpair2c64color[1] << 4
 		}
-		if _, ok := colorIndex2[2]; ok {
-			k.ScreenColor[char] |= colorIndex2[2]
+		if _, ok := bitpair2c64color[2]; ok {
+			k.ScreenColor[char] |= bitpair2c64color[2]
 		}
-		if _, ok := colorIndex2[3]; ok {
-			k.D800Color[char] = colorIndex2[3]
+		if _, ok := bitpair2c64color[3]; ok {
+			k.D800Color[char] = bitpair2c64color[3]
 		}
 	}
 	return k, nil
