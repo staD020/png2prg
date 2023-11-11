@@ -33,11 +33,11 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		if !c.opt.Quiet {
 			fmt.Printf("processing %q frame %d\n", img.sourceFilename, i)
 		}
-		if img.graphicsType != wantedGraphicsType {
-			return n, fmt.Errorf("mixed graphicsmodes detected %q != %q", img.graphicsType, wantedGraphicsType)
-		}
 		if err := img.analyze(); err != nil {
 			return n, fmt.Errorf("warning: skipping frame %d, analyze failed: %w", i, err)
+		}
+		if img.graphicsType != wantedGraphicsType {
+			return n, fmt.Errorf("mixed graphicsmodes detected %q != %q", img.graphicsType, wantedGraphicsType)
 		}
 		if len(currentBitpairColors) == 0 {
 			currentBitpairColors = img.preferredBitpairColors

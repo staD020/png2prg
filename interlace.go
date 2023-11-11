@@ -77,18 +77,20 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	if err != nil {
 		return n, fmt.Errorf("img0.Koala failed: %w", err)
 	}
-	k1, sharedscreenram, err := img1.InterlaceKoala(*img0)
+	k1, sharedcolors, err := img1.InterlaceKoala(*img0)
 	if err != nil {
 		return n, fmt.Errorf("img1.InterlaceKoala failed: %w", err)
 	}
-	if sharedscreenram {
+	if sharedcolors {
 		k0.D800Color = k1.D800Color
 		k0.ScreenColor = k1.ScreenColor
 	}
-	if !sharedscreenram {
+	if !sharedcolors {
+		k0, _, err = img0.InterlaceKoala(*img1)
+
 		for i := range k0.D800Color {
 			if k0.D800Color[i] != k1.D800Color[i] {
-				fmt.Printf("%d k0: %d k1: %d\n", i, k0.D800Color[i], k1.D800Color[i])
+				//fmt.Printf("%d k0: %d k1: %d\n", i, k0.D800Color[i], k1.D800Color[i])
 			}
 		}
 		k0.D800Color = k1.D800Color
@@ -96,7 +98,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	sharedd800 := k0.D800Color == k1.D800Color
 	sharedscreen := k0.ScreenColor == k1.ScreenColor
 	if c.opt.Verbose {
-		log.Printf("sharedscreenram: %v sharedd800: %v sharedscreen: %v", sharedscreenram, sharedd800, sharedscreen)
+		log.Printf("sharedcolors: %v sharedd800: %v sharedscreen: %v", sharedcolors, sharedd800, sharedscreen)
 	}
 
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
@@ -218,19 +220,20 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 
 // InterlaceKoala returns the secondary Koala, with as many bitpairs/colors the same as the first image.
 // it also merges possibly missing colors into k.ScreenColor and k.D800Color, use those.
-func (img *sourceImage) InterlaceKoala(first sourceImage) (k Koala, sharedscreenram bool, err error) {
+func (img *sourceImage) InterlaceKoala(first sourceImage) (k Koala, sharedcolors bool, err error) {
 	k = Koala{
 		BackgroundColor: img.backgroundColor.ColorIndex,
 		BorderColor:     img.borderColor.ColorIndex,
 		SourceFilename:  img.sourceFilename,
 		opt:             img.opt,
 	}
-	sharedscreenram = true
+	sharedcolors = true
 	chars := []int{}
+	foundsharedcol := 0
 	for char := 0; char < 1000; char++ {
 		rgb2bitpair, bitpair2c64color, err := first.multiColorIndexes(sortColors(first.charColors[char]), false)
 		if err != nil {
-			return k, sharedscreenram, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
+			return k, sharedcolors, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 		}
 		tempbpc := bitpairColors{255, 255, 255, 255}
 		for k, v := range bitpair2c64color {
@@ -239,11 +242,52 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (k Koala, sharedscreen
 		img.preferredBitpairColors = tempbpc
 		rgb2bitpair2, bitpair2c64color2, err := img.multiColorIndexes(sortColors(img.charColors[char]), true)
 		if err != nil {
-			sharedscreenram = false
+			sharedcolors = false
 			chars = append(chars, char)
+
+			// detected non-shared colors, let's find and force a common d800 color
+		OUTER:
+			for _, col0 := range first.charColors[char] {
+				for _, col1 := range img.charColors[char] {
+					if col0 == col1 {
+						foundsharedcol++
+						//break OUTER
+						fmt.Printf("first.charColors[%d]: %v img.charColors[%d]: %v\n", char, first.charColors[char], char, img.charColors[char])
+						/*
+							if img.preferredBitpairColors[3] > 15 {
+								//img.preferredBitpairColors[3] = col0
+								for bitpair := 1; bitpair < 3; bitpair++ {
+									if img.preferredBitpairColors[bitpair] == col0 {
+										img.preferredBitpairColors[bitpair] = 255
+									}
+								}
+								break OUTER
+							}
+							for bitpair, col := range img.preferredBitpairColors {
+								if col == col0 {
+									_ = bitpair
+
+									//img.preferredBitpairColors[3] = col0
+									for bitpair := 1; bitpair < 3; bitpair++ {
+										if img.preferredBitpairColors[bitpair] == col0 {
+											img.preferredBitpairColors[bitpair] = 255
+										}
+									}
+
+									//prev := img.preferredBitpairColors[3]
+									//img.preferredBitpairColors[3], img.preferredBitpairColors[bitpair] = img.preferredBitpairColors[bitpair], img.preferredBitpairColors[3]
+									break OUTER
+								}
+							}
+						*/
+						break OUTER
+					}
+				}
+			}
+
 			rgb2bitpair2, bitpair2c64color2, err = img.multiColorIndexes(sortColors(img.charColors[char]), false)
 			if err != nil {
-				return k, sharedscreenram, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
+				return k, sharedcolors, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 			}
 		}
 
@@ -279,9 +323,10 @@ func (img *sourceImage) InterlaceKoala(first sourceImage) (k Koala, sharedscreen
 		}
 	}
 	if img.opt.Verbose {
-		if !sharedscreenram {
-			log.Printf("cannot force the same screenram colors chars: %v", chars)
+		if !sharedcolors {
+			log.Printf("cannot force the same screenram colors for %d chars", len(chars))
+			log.Printf("found at least 1 shared col in %d chars", foundsharedcol)
 		}
 	}
-	return k, sharedscreenram, nil
+	return k, sharedcolors, nil
 }
