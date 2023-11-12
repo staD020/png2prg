@@ -78,19 +78,6 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 		return rgb2bitpair, bitpair2c64color, nil
 	}
 
-	if false { // img.opt.Interlace {
-		// todo: fix proper sorting of colors above
-		// prefill d800 bitpair
-
-		if len(img.preferredBitpairColors) == 4 {
-			color := img.preferredBitpairColors[3]
-			var bitpair byte
-			bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[0:len(bitpairs)-1]
-			rgb2bitpair[img.palette.RGB(color)] = bitpair
-			bitpair2c64color[bitpair] = color
-		}
-	}
-
 	// prefill preferred and used colors
 	if len(img.preferredBitpairColors) > 0 {
 		for preferBitpair, preferColor := range img.preferredBitpairColors {

@@ -276,7 +276,10 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 				}
 			}
 			if !foundsharedcolinchar {
-				return k0, k1, sharedcolors, fmt.Errorf("multiColorIndexes failed: no shared color found in char %d", char)
+				if len(img0.charColors[char]) == 4 && len(img1.charColors[char]) == 4 {
+					//fmt.Printf("img0.charColors[%d]: %v img1.charColors[%d]: %v\n", char, img0.charColors[char], char, img1.charColors[char])
+					return k0, k1, sharedcolors, fmt.Errorf("multiColorIndexes failed: no shared color found in char %d", char)
+				}
 			}
 
 			img0.preferredBitpairColors = forcepreferred
