@@ -57,7 +57,11 @@ func main() {
 
 	filenames, err := expandWildcards(filenames)
 	if err != nil {
-		log.Fatalf("expandWildcards failed: %v", err)
+		log.Printf("expandWildcards failed: %v", err)
+	}
+	if len(filenames) == 0 {
+		log.Printf("no files found")
+		return
 	}
 
 	process := processAsOne
@@ -65,7 +69,8 @@ func main() {
 		process = processInParallel
 	}
 	if err = process(&opt, filenames...); err != nil {
-		log.Fatalf("process failed: %v", err)
+		log.Printf("process failed: %v", err)
+		return
 	}
 
 	if !opt.Quiet {
@@ -88,7 +93,6 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 		if n > 0 {
 			return fmt.Errorf("WriteTo failed: %w", err)
 		}
-		return fmt.Errorf("WriteTo failed: %w", err)
 		log.Printf("WriteTo failed: %v", err)
 		log.Printf("attempting alternate x, y offset %d, %d", 32, 36)
 		opt.ForceXOffset, opt.ForceYOffset = 32, 36

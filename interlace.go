@@ -76,10 +76,6 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		}
 	}
 
-	_, err = img0.Koala()
-	if err != nil {
-		return n, fmt.Errorf("img0.Koala failed: %w", err)
-	}
 	k0, k1, sharedcolors, err := img1.InterlaceKoala(*img0)
 	if err != nil {
 		return n, fmt.Errorf("img1.InterlaceKoala failed: %w", err)
@@ -94,12 +90,13 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	sharedd800 := k0.D800Color == k1.D800Color
 	sharedscreen := k0.ScreenColor == k1.ScreenColor
 	if c.opt.Verbose {
-		log.Printf("sharedd800: %v sharedscreen: %v", sharedd800, sharedscreen)
-	}
-
-	for i := range k0.D800Color {
-		if k0.D800Color[i] != k1.D800Color[i] {
-			fmt.Printf("char %d k0.D800Color %d k1.D800Color %d\n", i, k0.D800Color[i], k1.D800Color[i])
+		log.Printf("shared colorram: %v shared screenram: %v", sharedd800, sharedscreen)
+		if !sharedd800 {
+			for i := range k0.D800Color {
+				if k0.D800Color[i] != k1.D800Color[i] {
+					fmt.Printf("char %d k0.D800Color %d k1.D800Color %d\n", i, k0.D800Color[i], k1.D800Color[i])
+				}
+			}
 		}
 	}
 
