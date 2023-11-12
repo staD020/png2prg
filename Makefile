@@ -18,7 +18,8 @@ FLAGSANIM=-d -v -frame-delay 8
 FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,1,8,2
-TESTPIC=testdata/madonna/cjam_pure_madonna.png
+TESTPIC=testdata/mcinterlace/parriot?.png
+#TESTPIC=testdata/madonna/cjam_pure_madonna.png
 #TESTPIC=testdata/ste_ghosts_goblins.gif
 #TESTPIC=testdata/ilesj_orbital_impaler.png
 #TESTPIC=testdata/deev_desolate_hires.png
@@ -81,7 +82,11 @@ png2prg_win_x86.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=386 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
 
 test: $(TARGET) $(TESTPIC) $(TESTSID)
-	./$(TARGET) $(FLAGS) -sid $(TESTSID) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGS) -o z.prg -i $(TESTPIC)
+	$(X64) z.prg >/dev/null
+
+testmadonna: $(TARGET) $(TESTPIC) $(TESTSID)
+	./$(TARGET) $(FLAGS) -o z.prg -i testdata/madonna/cjam_pure_madonna.png
 	$(X64) z.prg >/dev/null
 
 testanim: $(TARGET) $(TESTANIM) $(TESTSID)
