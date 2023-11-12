@@ -88,6 +88,7 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 		if n > 0 {
 			return fmt.Errorf("WriteTo failed: %w", err)
 		}
+		return fmt.Errorf("WriteTo failed: %w", err)
 		log.Printf("WriteTo failed: %v", err)
 		log.Printf("attempting alternate x, y offset %d, %d", 32, 36)
 		opt.ForceXOffset, opt.ForceYOffset = 32, 36

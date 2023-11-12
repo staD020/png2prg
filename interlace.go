@@ -56,7 +56,10 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	img1 := &c.images[1]
 
 	if len(img0.palette) != len(img1.palette) {
-		log.Printf("len(img0.palette): %d len(img1.palette): %d", len(img0.palette), len(img1.palette))
+		// sync both palettes
+		if c.opt.Verbose {
+			log.Printf("len(img0.palette): %d len(img1.palette): %d", len(img0.palette), len(img1.palette))
+		}
 		switch {
 		case len(img0.palette) < len(img1.palette):
 			for k, v := range img1.palette {
@@ -73,11 +76,11 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		}
 	}
 
-	k0, err := img0.Koala()
+	_, err = img0.Koala()
 	if err != nil {
 		return n, fmt.Errorf("img0.Koala failed: %w", err)
 	}
-	_, k1, sharedcolors, err := img1.InterlaceKoala(*img0)
+	k0, k1, sharedcolors, err := img1.InterlaceKoala(*img0)
 	if err != nil {
 		return n, fmt.Errorf("img1.InterlaceKoala failed: %w", err)
 	}
@@ -86,19 +89,18 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		k0.ScreenColor = k1.ScreenColor
 	}
 	if !sharedcolors {
-		_, k1, _, err = img0.InterlaceKoala(*img1)
-
-		for i := range k0.D800Color {
-			if k0.D800Color[i] != k1.D800Color[i] {
-				//fmt.Printf("%d k0: %d k1: %d\n", i, k0.D800Color[i], k1.D800Color[i])
-			}
-		}
-		//k0.D800Color = k1.D800Color
+		k0, k1, _, err = img0.InterlaceKoala(*img1)
 	}
 	sharedd800 := k0.D800Color == k1.D800Color
 	sharedscreen := k0.ScreenColor == k1.ScreenColor
 	if c.opt.Verbose {
-		log.Printf("sharedcolors: %v sharedd800: %v sharedscreen: %v", sharedcolors, sharedd800, sharedscreen)
+		log.Printf("sharedd800: %v sharedscreen: %v", sharedd800, sharedscreen)
+	}
+
+	for i := range k0.D800Color {
+		if k0.D800Color[i] != k1.D800Color[i] {
+			fmt.Printf("char %d k0.D800Color %d k1.D800Color %d\n", i, k0.D800Color[i], k1.D800Color[i])
+		}
 	}
 
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
@@ -221,6 +223,8 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 // InterlaceKoala returns the secondary Koala, with as many bitpairs/colors the same as the first image.
 // it also merges possibly missing colors into k.ScreenColor and k.D800Color, use those.
 func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedcolors bool, err error) {
+	origPreferred0 := img0.preferredBitpairColors
+	origPreferred1 := img1.preferredBitpairColors
 	k0 = Koala{
 		BackgroundColor: img0.backgroundColor.ColorIndex,
 		BorderColor:     img0.borderColor.ColorIndex,
@@ -256,12 +260,14 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 			forcepreferred := bitpairColors{255, 255, 255, 255}
 		OUTER:
 			for _, col0 := range img0.charColors[char] {
+				if col0 == img1.backgroundColor.ColorIndex {
+					continue
+				}
 				for _, col1 := range img1.charColors[char] {
 					if col0 == col1 {
 						foundsharedcol++
 						foundsharedcolinchar = true
-						fmt.Printf("img0.charColors[%d]: %v img1.charColors[%d]: %v\n", char, img0.charColors[char], char, img1.charColors[char])
-
+						//fmt.Printf("img0.charColors[%d]: %v img1.charColors[%d]: %v\n", char, img0.charColors[char], char, img1.charColors[char])
 						if img1.preferredBitpairColors[3] < 16 {
 							forcepreferred = bitpairColors{img1.backgroundColor.ColorIndex, 255, 255, col0}
 						}
@@ -269,40 +275,53 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 					}
 				}
 			}
-			fmt.Printf("forcepreferred: %v\n", forcepreferred)
-			_ = forcepreferred
-
 			if !foundsharedcolinchar {
 				return k0, k1, sharedcolors, fmt.Errorf("multiColorIndexes failed: no shared color found in char %d", char)
 			}
 
+			img0.preferredBitpairColors = forcepreferred
+			img1.preferredBitpairColors = forcepreferred
+			rgb2bitpair0, bitpair2c64color0, err = img0.multiColorIndexes(sortColors(img0.charColors[char]), false)
+			if err != nil {
+				return k0, k1, sharedcolors, fmt.Errorf("img0.multiColorIndexes failed: error in char %d: %w", char, err)
+			}
 			rgb2bitpair1, bitpair2c64color1, err = img1.multiColorIndexes(sortColors(img1.charColors[char]), false)
 			if err != nil {
-				return k0, k1, sharedcolors, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
+				return k0, k1, sharedcolors, fmt.Errorf("img1.multiColorIndexes failed: error in char %d: %w", char, err)
 			}
-		}
-
-		for k, v := range rgb2bitpair1 {
-			if _, ok := rgb2bitpair0[k]; !ok {
-				rgb2bitpair0[k] = v
-				bitpair2c64color0[v] = bitpair2c64color1[v]
-			}
+			img1.preferredBitpairColors = origPreferred1
+			img0.preferredBitpairColors = origPreferred0
 		}
 
 		bitmapIndex := char * 8
 		x, y := xyFromChar(char)
 
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
-			bmpbyte := byte(0)
+			bmpbyte0 := byte(0)
+			bmpbyte1 := byte(0)
 			for pixel := 0; pixel < 8; pixel += 2 {
-				rgb := img1.colorAtXY(x+pixel, y+byteIndex)
-				if bmppattern, ok := rgb2bitpair1[rgb]; ok {
-					bmpbyte = bmpbyte | (bmppattern << (6 - byte(pixel)))
+				rgb0 := img0.colorAtXY(x+pixel, y+byteIndex)
+				if bmppattern, ok := rgb2bitpair0[rgb0]; ok {
+					bmpbyte0 = bmpbyte0 | (bmppattern << (6 - byte(pixel)))
+				}
+				rgb1 := img1.colorAtXY(x+pixel, y+byteIndex)
+				if bmppattern, ok := rgb2bitpair1[rgb1]; ok {
+					bmpbyte1 = bmpbyte1 | (bmppattern << (6 - byte(pixel)))
 				}
 			}
-			k1.Bitmap[bitmapIndex+byteIndex] = bmpbyte
+			k0.Bitmap[bitmapIndex+byteIndex] = bmpbyte0
+			k1.Bitmap[bitmapIndex+byteIndex] = bmpbyte1
 		}
 
+		if _, ok := bitpair2c64color0[1]; ok {
+			k0.ScreenColor[char] = bitpair2c64color0[1] << 4
+		}
+		if _, ok := bitpair2c64color0[2]; ok {
+			k0.ScreenColor[char] |= bitpair2c64color0[2]
+		}
+		if _, ok := bitpair2c64color0[3]; ok {
+			k0.D800Color[char] = bitpair2c64color0[3]
+		}
 		if _, ok := bitpair2c64color1[1]; ok {
 			k1.ScreenColor[char] = bitpair2c64color1[1] << 4
 		}
@@ -311,6 +330,14 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 		}
 		if _, ok := bitpair2c64color1[3]; ok {
 			k1.D800Color[char] = bitpair2c64color1[3]
+		}
+
+		// sync d800
+		if k0.D800Color[char] == k0.BackgroundColor {
+			k0.D800Color[char] = k1.D800Color[char]
+		}
+		if k1.D800Color[char] == k1.BackgroundColor {
+			k1.D800Color[char] = k0.D800Color[char]
 		}
 	}
 	if !sharedcolors && img1.opt.Verbose {
