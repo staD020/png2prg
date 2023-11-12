@@ -103,29 +103,59 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
 
 	if !c.opt.Display {
-		if c.opt.Symbols {
-			c.Symbols = []c64Symbol{
-				{"colorram1", 0x5800},
-				{"screenram1", 0x5c00},
-				{"bitmap1", 0x6000},
-				{"d021coloraddr", 0x7f40},
-				{"d016offsetaddr", 0x7f42},
-				{"bitmap2", 0x8000},
-				{"d016offset", c.opt.D016Offset},
-				{"d020color", int(img0.borderColor.ColorIndex)},
-				{"d021color", int(img0.backgroundColor.ColorIndex)},
+		if sharedscreen {
+			// drazlace
+			if c.opt.Symbols {
+				c.Symbols = []c64Symbol{
+					{"colorram1", 0x5800},
+					{"screenram1", 0x5c00},
+					{"bitmap1", 0x6000},
+					{"d021coloraddr", 0x7f40},
+					{"d016offsetaddr", 0x7f42},
+					{"bitmap2", 0x8000},
+					{"d016offset", c.opt.D016Offset},
+					{"d020color", int(img0.borderColor.ColorIndex)},
+					{"d021color", int(img0.backgroundColor.ColorIndex)},
+				}
+				const memoffset = 0x57fe
+				header := []byte{0x00, 0x58}
+				header = append(header, k1.D800Color[:]...)
+				header = zeroFill(header, 0x5c00-memoffset-len(header))
+				header = append(header, k1.ScreenColor[:]...)
+				header = zeroFill(header, 0x6000-memoffset-len(header))
+				header = append(header, k0.Bitmap[:]...)
+				header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
+				header = zeroFill(header, 0x8000-memoffset-len(header))
+				header = append(header, k1.Bitmap[:]...)
+				return writeData(w, header)
 			}
 		}
-		const memoffset = 0x57fe
-		header := []byte{0x00, 0x58}
-		header = append(header, k1.D800Color[:]...)
-		header = zeroFill(header, 0x5c00-memoffset-len(header))
-		header = append(header, k1.ScreenColor[:]...)
-		header = zeroFill(header, 0x6000-memoffset-len(header))
+		// true paint .mci format
+		c.Symbols = []c64Symbol{
+			{"screenram1", 0x9c00},
+			{"d021coloraddr", 0x9fe8},
+			{"d016offsetaddr", 0x9fe9},
+			{"bitmap1", 0xa000},
+			{"bitmap2", 0xc000},
+			{"screenram2", 0xe000},
+			{"colorram", 0xe400},
+			{"d016offset", c.opt.D016Offset},
+			{"d020color", int(k0.BorderColor)},
+			{"d021color", int(k0.BackgroundColor)},
+		}
+		const memoffset = 0x9bfe
+		header := []byte{0x00, 0x9c}
+		header = append(header, k0.ScreenColor[:]...)
+		header = append(header, bgBorder, byte(c.opt.D016Offset))
+		header = zeroFill(header, 0xa000-memoffset-len(header))
 		header = append(header, k0.Bitmap[:]...)
-		header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
-		header = zeroFill(header, 0x8000-memoffset-len(header))
+		header = zeroFill(header, 0xc000-memoffset-len(header))
 		header = append(header, k1.Bitmap[:]...)
+		header = zeroFill(header, 0xe000-memoffset-len(header))
+		header = append(header, k1.ScreenColor[:]...)
+		header = zeroFill(header, 0xe400-memoffset-len(header))
+		header = append(header, k1.D800Color[:]...)
+		header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
 		return writeData(w, header)
 	}
 
@@ -220,8 +250,6 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 // InterlaceKoala returns the secondary Koala, with as many bitpairs/colors the same as the first image.
 // it also merges possibly missing colors into k.ScreenColor and k.D800Color, use those.
 func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedcolors bool, err error) {
-	origPreferred0 := img0.preferredBitpairColors
-	origPreferred1 := img1.preferredBitpairColors
 	k0 = Koala{
 		BackgroundColor: img0.backgroundColor.ColorIndex,
 		BorderColor:     img0.borderColor.ColorIndex,
@@ -281,16 +309,14 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 
 			img0.preferredBitpairColors = forcepreferred
 			img1.preferredBitpairColors = forcepreferred
-			rgb2bitpair0, bitpair2c64color0, err = img0.multiColorIndexes(sortColors(img0.charColors[char]), false)
+			rgb2bitpair0, bitpair2c64color0, err = img0.multiColorIndexes(sortColors(img0.charColors[char]), true)
 			if err != nil {
 				return k0, k1, sharedcolors, fmt.Errorf("img0.multiColorIndexes failed: error in char %d: %w", char, err)
 			}
-			rgb2bitpair1, bitpair2c64color1, err = img1.multiColorIndexes(sortColors(img1.charColors[char]), false)
+			rgb2bitpair1, bitpair2c64color1, err = img1.multiColorIndexes(sortColors(img1.charColors[char]), true)
 			if err != nil {
 				return k0, k1, sharedcolors, fmt.Errorf("img1.multiColorIndexes failed: error in char %d: %w", char, err)
 			}
-			img1.preferredBitpairColors = origPreferred1
-			img0.preferredBitpairColors = origPreferred0
 		}
 
 		bitmapIndex := char * 8
