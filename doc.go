@@ -63,7 +63,7 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println("Experimental interlace support, you can supply one 320x200 multicolor")
 	fmt.Println("image with max 4 colors per 8x8 pixel char per frame of which at least")
-	fmt.Println("2 are shared (D021 and D800 color).")
+	fmt.Println("2 are shared (the D021 and D800 colors).")
 	fmt.Println()
 	fmt.Println("Or supply both frames in regular koala specs (-interlace required).")
 	fmt.Println("When making screenshots in vice, please disable the d016 pixel shift manually.")
