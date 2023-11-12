@@ -17,7 +17,7 @@ FLAGS=-d -v -i
 FLAGSANIM=-d -v -frame-delay 8
 FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
-FLAGSFORCE=-d -v -bitpair-colors 0,1,8,2
+FLAGSFORCE=-d -v -bitpair-colors 0,8,10,2
 TESTPIC=testdata/mcinterlace/parriot?.png
 #TESTPIC=testdata/madonna/cjam_pure_madonna.png
 #TESTPIC=testdata/ste_ghosts_goblins.gif
@@ -29,7 +29,7 @@ TESTPIC=testdata/mcinterlace/parriot?.png
 #TESTPIC=testdata/mirage_parrot.png
 #TESTPIC=testdata/sander_ld.png
 #TESTPIC=testdata/sander_sander.png
-#TESTSID=testdata/Rivalry_tune_5.sid
+TESTSID=testdata/Rivalry_tune_5.sid
 #TESTSID=testdata/jasonpage_eighth_90.sid
 #TESTSID=testdata/Nightbreed_-_Dalezy_TRIAD.sid
 #TESTSID=testdata/Yie_Ar_Kung_Fu_60.sid
@@ -38,7 +38,7 @@ TESTPIC=testdata/mcinterlace/parriot?.png
 #TESTSID=testdata/Laserdance_10.sid
 #TESTSID=testdata/Commando.sid
 #TESTSID=testdata/Commando_Take_Me_to_the_Bridge_Mix.sid
-TESTSID=testdata/madonna/Papa_Dont_Preach.sid
+#TESTSID=testdata/madonna/Papa_Dont_Preach.sid
 #TESTANIM=testdata/sander_tankframes.gif
 #TESTANIM=testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband02.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband03.png testdata/jamesband??.png
 #TESTANIM=testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband03.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband01.png testdata/jamesband*.png
@@ -98,19 +98,19 @@ evoluer: $(TARGET)
 	$(X64) z.prg >/dev/null
 
 testpack: $(TARGET)
-	./$(TARGET) $(FLAGS) -nc -np -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGS) -nc -np -i -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_guess.sfx.exo z.prg
 	dali --sfx 2082 -o zz_guess.sfx.dali z.prg
-	./$(TARGET) $(FLAGSNG) -nc -np -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGSNG) -nc -np -i -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_noguess.sfx.exo z.prg
 	dali --sfx 2082 -o zz_noguess.sfx.dali z.prg
-	./$(TARGET) $(FLAGSNG2) -nc -np -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGSNG2) -nc -np -i -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_noguess2.sfx.exo z.prg
 	dali --sfx 2082 -o zz_noguess2.sfx.dali z.prg
-	./$(TARGET) $(FLAGSFORCE) -nc -np -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGSFORCE) -nc -np -i -o z.prg $(TESTPIC)
 	exomizer sfx basic -q -o zz_force_manual_colors.sfx.exo z.prg
 	dali --sfx 2082 -o zz_force_manual_colors.sfx.dali z.prg
-	./$(TARGET) $(FLAGS) -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGS) -i -o z.prg $(TESTPIC)
 	$(X64) zz_guess.sfx.exo >/dev/null
 
 clean:
