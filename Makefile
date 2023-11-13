@@ -5,7 +5,7 @@ ASM=java -jar ./tools/KickAss-5.24.jar
 ASMFLAGS=-showmem -time
 X64=x64sc
 UPX=upx
-UPXFLAGS=
+UPXFLAGS=--best
 
 LDFLAGS=-s -w
 CGO=1

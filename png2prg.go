@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	Version              = "1.3.13-dev"
+	Version              = "1.3.14-dev"
 	displayerJumpTo      = "$0822"
 	maxColors            = 16
 	FullScreenWidth      = 320
