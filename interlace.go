@@ -90,9 +90,9 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	sharedd800 := k0.D800Color == k1.D800Color
 	sharedscreen := k0.ScreenColor == k1.ScreenColor
 	sharedbitmap := k0.Bitmap == k1.Bitmap
-	if c.opt.Verbose {
-		log.Printf("shared colorram: %v shared screenram: %v shared bitmap: %v", sharedd800, sharedscreen, sharedbitmap)
-		if !sharedd800 {
+	if !c.opt.Quiet {
+		fmt.Printf("shared colorram: %v shared screenram: %v shared bitmap: %v\n", sharedd800, sharedscreen, sharedbitmap)
+		if !sharedd800 && c.opt.Verbose {
 			for i := range k0.D800Color {
 				if k0.D800Color[i] != k1.D800Color[i] {
 					fmt.Printf("char %d k0.D800Color %d k1.D800Color %d\n", i, k0.D800Color[i], k1.D800Color[i])

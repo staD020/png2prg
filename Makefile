@@ -82,35 +82,35 @@ png2prg_win_x86.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=386 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
 
 test: $(TARGET) $(TESTPIC) $(TESTSID)
-	./$(TARGET) $(FLAGS) -o z.prg -i $(TESTPIC)
-	$(X64) z.prg >/dev/null
+	./$(TARGET) $(FLAGS) -o q.prg -i $(TESTPIC)
+	$(X64) q.prg >/dev/null
 
 testmadonna: $(TARGET) $(TESTPIC) $(TESTSID)
-	./$(TARGET) $(FLAGS) -o z.prg -i testdata/madonna/cjam_pure_madonna.png
-	$(X64) z.prg >/dev/null
+	./$(TARGET) $(FLAGS) -o q.prg -i testdata/madonna/cjam_pure_madonna.png
+	$(X64) q.prg >/dev/null
 
 testanim: $(TARGET) $(TESTANIM) $(TESTSID)
-	./$(TARGET) $(FLAGSANIM) -sid $(TESTSID) -o z.prg $(TESTANIM)
-	$(X64) z.prg >/dev/null
+	./$(TARGET) $(FLAGSANIM) -sid $(TESTSID) -o q.prg $(TESTANIM)
+	$(X64) q.prg >/dev/null
 
 evoluer: $(TARGET)
-	./$(TARGET) -d -frame-delay 4 -o z.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
-	$(X64) z.prg >/dev/null
+	./$(TARGET) -d -frame-delay 4 -o q.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
+	$(X64) q.prg >/dev/null
 
 testpack: $(TARGET)
-	./$(TARGET) $(FLAGS) -nc -np -i -o z.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_guess.sfx.exo z.prg
-	dali --sfx 2082 -o zz_guess.sfx.dali z.prg
-	./$(TARGET) $(FLAGSNG) -nc -np -i -o z.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_noguess.sfx.exo z.prg
-	dali --sfx 2082 -o zz_noguess.sfx.dali z.prg
-	./$(TARGET) $(FLAGSNG2) -nc -np -i -o z.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_noguess2.sfx.exo z.prg
-	dali --sfx 2082 -o zz_noguess2.sfx.dali z.prg
-	./$(TARGET) $(FLAGSFORCE) -nc -np -i -o z.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_force_manual_colors.sfx.exo z.prg
-	dali --sfx 2082 -o zz_force_manual_colors.sfx.dali z.prg
-	./$(TARGET) $(FLAGS) -i -o z.prg $(TESTPIC)
+	./$(TARGET) $(FLAGS) -nc -np -i -o q.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_guess.sfx.exo q.prg
+	dali --sfx 2082 -o zz_guess.sfx.dali q.prg
+	./$(TARGET) $(FLAGSNG) -nc -np -i -o q.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_noguess.sfx.exo q.prg
+	dali --sfx 2082 -o zz_noguess.sfx.dali q.prg
+	./$(TARGET) $(FLAGSNG2) -nc -np -i -o q.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_noguess2.sfx.exo q.prg
+	dali --sfx 2082 -o zz_noguess2.sfx.dali q.prg
+	./$(TARGET) $(FLAGSFORCE) -nc -np -i -o q.prg $(TESTPIC)
+	exomizer sfx basic -q -o zz_force_manual_colors.sfx.exo q.prg
+	dali --sfx 2082 -o zz_force_manual_colors.sfx.dali q.prg
+	./$(TARGET) $(FLAGS) -i -o q.prg $(TESTPIC)
 	$(X64) zz_guess.sfx.exo >/dev/null
 
 clean:
