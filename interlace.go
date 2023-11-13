@@ -309,11 +309,11 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 			}
 
 			img0.preferredBitpairColors = forcepreferred
-			img1.preferredBitpairColors = forcepreferred
 			rgb2bitpair0, bitpair2c64color0, err = img0.multiColorIndexes(sortColors(img0.charColors[char]), true)
 			if err != nil {
 				return k0, k1, sharedcolors, fmt.Errorf("img0.multiColorIndexes failed: error in char %d: %w", char, err)
 			}
+			img1.preferredBitpairColors = forcepreferred
 			rgb2bitpair1, bitpair2c64color1, err = img1.multiColorIndexes(sortColors(img1.charColors[char]), true)
 			if err != nil {
 				return k0, k1, sharedcolors, fmt.Errorf("img1.multiColorIndexes failed: error in char %d: %w", char, err)

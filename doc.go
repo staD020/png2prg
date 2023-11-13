@@ -65,7 +65,7 @@ func PrintHelp() {
 	fmt.Println("image with max 4 colors per 8x8 pixel char per frame of which at least")
 	fmt.Println("2 are shared (the D021 and D800 colors).")
 	fmt.Println()
-	fmt.Println("Or supply both frames in regular koala specs (-interlace required).")
+	fmt.Println("Or supply both frames in regular koala specs (-interlace flag required).")
 	fmt.Println("When making screenshots in vice, please disable the d016 pixel shift manually.")
 	fmt.Println()
 	fmt.Println("    ./png2prg -i testdata/madonna/frame_0.png testdata/madonna/frame_1.png")

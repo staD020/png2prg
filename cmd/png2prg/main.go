@@ -69,7 +69,7 @@ func main() {
 		process = processInParallel
 	}
 	if err = process(&opt, filenames...); err != nil {
-		log.Printf("process failed: %v", err)
+		log.Fatalf("process failed: %v", err)
 		return
 	}
 
