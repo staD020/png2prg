@@ -89,8 +89,9 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	}
 	sharedd800 := k0.D800Color == k1.D800Color
 	sharedscreen := k0.ScreenColor == k1.ScreenColor
+	sharedbitmap := k0.Bitmap == k1.Bitmap
 	if c.opt.Verbose {
-		log.Printf("shared colorram: %v shared screenram: %v", sharedd800, sharedscreen)
+		log.Printf("shared colorram: %v shared screenram: %v shared bitmap: %v", sharedd800, sharedscreen, sharedbitmap)
 		if !sharedd800 {
 			for i := range k0.D800Color {
 				if k0.D800Color[i] != k1.D800Color[i] {
@@ -103,7 +104,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
 
 	if !c.opt.Display {
-		if sharedscreen {
+		if sharedcolors {
 			// drazlace
 			if c.opt.Symbols {
 				c.Symbols = []c64Symbol{
@@ -117,18 +118,18 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 					{"d020color", int(img0.borderColor.ColorIndex)},
 					{"d021color", int(img0.backgroundColor.ColorIndex)},
 				}
-				const memoffset = 0x57fe
-				header := []byte{0x00, 0x58}
-				header = append(header, k1.D800Color[:]...)
-				header = zeroFill(header, 0x5c00-memoffset-len(header))
-				header = append(header, k1.ScreenColor[:]...)
-				header = zeroFill(header, 0x6000-memoffset-len(header))
-				header = append(header, k0.Bitmap[:]...)
-				header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
-				header = zeroFill(header, 0x8000-memoffset-len(header))
-				header = append(header, k1.Bitmap[:]...)
-				return writeData(w, header)
 			}
+			const memoffset = 0x57fe
+			header := []byte{0x00, 0x58}
+			header = append(header, k1.D800Color[:]...)
+			header = zeroFill(header, 0x5c00-memoffset-len(header))
+			header = append(header, k1.ScreenColor[:]...)
+			header = zeroFill(header, 0x6000-memoffset-len(header))
+			header = append(header, k0.Bitmap[:]...)
+			header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
+			header = zeroFill(header, 0x8000-memoffset-len(header))
+			header = append(header, k1.Bitmap[:]...)
+			return writeData(w, header)
 		}
 		// true paint .mci format
 		c.Symbols = []c64Symbol{
