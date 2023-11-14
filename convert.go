@@ -493,7 +493,9 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 	}
 
 	s.BackgroundColor = cc[0].ColorIndex
-	s.SpriteColor = cc[1].ColorIndex
+	if len(cc) > 1 {
+		s.SpriteColor = cc[1].ColorIndex
+	}
 
 	rgb2bitpair := PaletteMap{}
 	bitpair2c64color := map[byte]byte{}
