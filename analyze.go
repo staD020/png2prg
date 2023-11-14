@@ -103,11 +103,9 @@ func (img *sourceImage) analyze() (err error) {
 	}
 
 	switch {
-	case max < 2:
-		return fmt.Errorf("max colors per char %q < 2, is this a blank image?", max)
 	case numColors == 2:
 		img.graphicsType = singleColorCharset
-	case max == 2:
+	case max <= 2:
 		img.graphicsType = singleColorBitmap
 	case numColors == 3 || numColors == 4:
 		img.graphicsType = multiColorCharset
