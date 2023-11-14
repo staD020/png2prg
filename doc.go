@@ -218,6 +218,7 @@ func PrintHelp() {
 	fmt.Println("   png2prg also tries common wrong offset 32, 36, used by multiple graphicians.")
 	fmt.Println(" - Add -symbols flag to write symbols to a .sym file.")
 	fmt.Println(" - Interlace support, mcibitmap (drazlace and truepaint).")
+	fmt.Println(" - Bugfix: allow blank input (thanks for the report Spider-J).")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.2")
 	fmt.Println()
