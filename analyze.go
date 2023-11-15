@@ -221,8 +221,8 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [ma
 	if len(img.preferredBitpairColors) == 4 {
 		img.preferredBitpairColors[1], img.preferredBitpairColors[3] = img.preferredBitpairColors[3], img.preferredBitpairColors[1]
 	}
-	if img.opt.Verbose {
-		log.Printf("guessed some -bitpair-colors %s", img.preferredBitpairColors)
+	if !img.opt.Quiet {
+		fmt.Printf("guessed some -bitpair-colors %s\n", img.preferredBitpairColors)
 	}
 
 	if img.graphicsType == multiColorCharset && len(img.preferredBitpairColors) == 4 {
