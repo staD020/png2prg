@@ -89,8 +89,7 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 	}
 	buf := new(bytes.Buffer)
 	if n, err := p.WriteTo(buf); err != nil {
-		// w can only be reused if 0 bytes have been written so far
-		if n > 0 {
+		if n > 0 || len(filenames) > 1 {
 			return fmt.Errorf("WriteTo failed: %w", err)
 		}
 		log.Printf("WriteTo failed: %v", err)
