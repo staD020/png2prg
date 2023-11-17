@@ -711,49 +711,42 @@ func injectSIDLinker(l *Linker, s *sid.SID) {
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
+	link := NewLinker(BitmapAddress)
+	if _, err = link.Write(k.Bitmap[:]); err != nil {
+		return n, fmt.Errorf("link.Write failed: %w", err)
+	}
+	if _, err = link.Write(k.ScreenColor[:]); err != nil {
+		return n, fmt.Errorf("link.Write failed: %w", err)
+	}
+	if _, err = link.Write(k.D800Color[:]); err != nil {
+		return n, fmt.Errorf("link.Write failed: %w", err)
+	}
+	if _, err = link.Write([]byte{bgBorder}); err != nil {
+		return n, fmt.Errorf("link.Write failed: %w", err)
+	}
 	if !k.opt.Display {
-		return writeData(w, defaultHeader(), k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder})
+		return link.WriteTo(w)
 	}
-	header := newHeader(multiColorBitmap)
-	if k.opt.IncludeSID == "" {
-		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-		return writeData(w, header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder})
-	}
+	link.Block(0x4800, 0x8e50)
 
+	if _, err = link.WritePrg(newHeader(multiColorBitmap)); err != nil {
+		return n, fmt.Errorf("link.WritePrg failed: %w", err)
+	}
+	if k.opt.IncludeSID == "" {
+		return link.WriteTo(w)
+	}
 	s, err := sid.LoadSID(k.opt.IncludeSID)
 	if err != nil {
 		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
 	}
-	header = injectSIDHeader(header, s)
-	load := s.LoadAddress()
-	switch {
-	case int(load) < len(header)+0x7ff:
-		return 0, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
-	case load > 0xcff && load < BitmapAddress:
-		header = zeroFill(header, int(load)-0x7ff-len(header))
-		header = append(header, s.RawBytes()...)
-		if len(header) > BitmapAddress-0x7ff {
-			return 0, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
-		}
-		if !k.opt.Quiet {
-			fmt.Printf("injected %q: %s\n", k.opt.IncludeSID, s)
-		}
-		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-		return writeData(w, header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder})
-	case load < 0x8f00:
-		return 0, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
+	if _, err = link.WritePrg(s.Bytes()); err != nil {
+		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-
-	header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-	buf := make([]byte, load-0x4711)
-	n, err = writeData(w, header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], []byte{bgBorder}, buf, s.RawBytes())
-	if err != nil {
-		return n, err
-	}
+	injectSIDLinker(link, s)
 	if !k.opt.Quiet {
 		fmt.Printf("injected %q: %s\n", k.opt.IncludeSID, s)
 	}
-	return n, nil
+	return link.WriteTo(w)
 }
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {

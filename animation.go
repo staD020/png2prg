@@ -396,10 +396,10 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		if err != nil {
 			return n, fmt.Errorf("sid.LoadSID failed: %w", err)
 		}
-		injectSIDLinker(link, s)
 		if _, err = link.WritePrg(s.Bytes()); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
+		injectSIDLinker(link, s)
 	}
 	m, err := link.WriteTo(w)
 	n += int64(m)
@@ -468,11 +468,10 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		if err != nil {
 			return n, fmt.Errorf("sid.LoadSID failed: %w", err)
 		}
-		injectSIDLinker(link, s)
-		//load := Word(s.LoadAddress())
 		if _, err = link.WritePrg(s.Bytes()); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
+		injectSIDLinker(link, s)
 	}
 	m, err := link.WriteTo(w)
 	n += int64(m)

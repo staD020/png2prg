@@ -86,6 +86,7 @@ func (l *Linker) Write(b []byte) (n int, err error) {
 	return n, nil
 }
 
+// WritePrg writes the contents of the prg to the startaddress (first 2 bytes) in the Linker.
 func (l *Linker) WritePrg(prg []byte) (n int, err error) {
 	if len(prg) < 3 {
 		return 0, fmt.Errorf("prg too short to write. length: %d", len(prg))
