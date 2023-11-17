@@ -137,7 +137,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 		}
 	}
 
-	for char := 0; char < 1000; char++ {
+	for char := 0; char < FullScreenChars; char++ {
 		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(sortColors(img.charColors[char]), false)
 		if err != nil {
 			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
@@ -184,7 +184,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 		opt:            img.opt,
 	}
 
-	for char := 0; char < 1000; char++ {
+	for char := 0; char < FullScreenChars; char++ {
 		cc := sortColors(img.charColors[char])
 		if len(cc) > 2 {
 			return h, fmt.Errorf("Too many hires colors in char %d", char)
@@ -269,7 +269,7 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 	c.BackgroundColor = bitpair2c64color[0]
 
 	if img.opt.NoPackChars {
-		for char := 0; char < 256; char++ {
+		for char := 0; char < MaxChars; char++ {
 			bitmapIndex := char * 8
 			x, y := xyFromChar(char)
 			for byteIndex := 0; byteIndex < 8; byteIndex++ {
@@ -296,7 +296,7 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 	type charBytes [8]byte
 	charMap := []charBytes{}
 
-	for char := 0; char < 1000; char++ {
+	for char := 0; char < FullScreenChars; char++ {
 		cbuf := charBytes{}
 		x, y := xyFromChar(char)
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
@@ -331,8 +331,8 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 		c.Screen[char] = byte(curChar)
 	}
 
-	if len(charMap) > 256 {
-		return c, fmt.Errorf("image packs to %d unique chars, the max is 256.", len(charMap))
+	if len(charMap) > MaxChars {
+		return c, fmt.Errorf("image packs to %d unique chars, the max is %d.", len(charMap), MaxChars)
 	}
 
 	for i := range charMap {
@@ -388,7 +388,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 	c.BorderColor = img.borderColor.ColorIndex
 
 	if img.opt.NoPackChars {
-		for char := 0; char < 256; char++ {
+		for char := 0; char < MaxChars; char++ {
 			bitmapIndex := char * 8
 			x, y := xyFromChar(char)
 			for byteIndex := 0; byteIndex < 8; byteIndex++ {
@@ -412,7 +412,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		return c, nil
 	}
 
-	for char := 0; char < 1000; char++ {
+	for char := 0; char < FullScreenChars; char++ {
 		x, y := xyFromChar(char)
 		cbuf := charBytes{}
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
@@ -447,8 +447,8 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		c.Screen[char] = byte(curChar)
 	}
 
-	if len(charset) > 256 {
-		return c, fmt.Errorf("image packs to %d unique chars, the max is 256.", len(charset))
+	if len(charset) > MaxChars {
+		return c, fmt.Errorf("image packs to %d unique chars, the max is %d.", len(charset), MaxChars)
 	}
 
 	for i, bytes := range charset {
@@ -463,8 +463,8 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 }
 
 func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
-	maxX := img.width / 24
-	maxY := img.height / 21
+	maxX := img.width / SpriteWidth
+	maxY := img.height / SpriteHeight
 	s := SingleColorSprites{
 		SourceFilename: img.sourceFilename,
 		Columns:        byte(maxX),
@@ -519,10 +519,10 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 
 	for spriteY := 0; spriteY < maxY; spriteY++ {
 		for spriteX := 0; spriteX < maxX; spriteX++ {
-			for y := 0; y < 21; y++ {
-				yOffset := y + spriteY*21
+			for y := 0; y < SpriteHeight; y++ {
+				yOffset := y + spriteY*SpriteHeight
 				for x := 0; x < 3; x++ {
-					xOffset := x*8 + spriteX*24
+					xOffset := x*8 + spriteX*SpriteWidth
 					bmpbyte := byte(0)
 					for pixel := 0; pixel < 8; pixel++ {
 						rgb := img.colorAtXY(xOffset+pixel, yOffset)
@@ -585,18 +585,18 @@ func (img *sourceImage) MultiColorSprites() (MultiColorSprites, error) {
 		s.BackgroundColor = img.preferredBitpairColors[0]
 	}
 
-	s.Columns = byte(img.width / 24)
-	s.Rows = byte(img.height / 21)
+	s.Columns = byte(img.width / SpriteWidth)
+	s.Rows = byte(img.height / SpriteHeight)
 	if s.Columns == 0 || s.Rows == 0 {
 		return s, fmt.Errorf("%d Xsprites x %d Ysprites: cant have 0 sprites", s.Columns, s.Rows)
 	}
 
 	for spriteY := 0; spriteY < int(s.Rows); spriteY++ {
 		for spriteX := 0; spriteX < int(s.Columns); spriteX++ {
-			for y := 0; y < 21; y++ {
-				yOffset := y + spriteY*21
+			for y := 0; y < SpriteHeight; y++ {
+				yOffset := y + spriteY*SpriteHeight
 				for x := 0; x < 3; x++ {
-					xOffset := x*8 + spriteX*24
+					xOffset := x*8 + spriteX*SpriteWidth
 					bmpbyte := byte(0)
 					for pixel := 0; pixel < 8; pixel += 2 {
 						rgb := img.colorAtXY(xOffset+pixel, yOffset)

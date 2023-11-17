@@ -139,11 +139,12 @@ func (l *Linker) WriteTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("linker: Write failed %s >= %s: %w", start, end, err)
 	}
 	m, err := w.Write(start.Bytes())
-	n += int64(m)
+	n = int64(m)
 	if err != nil {
 		return n, fmt.Errorf("linker: Write failed start address %s: %w", start, err)
 	}
 	m, err = w.Write(l.payload[start:end])
+	n += int64(m)
 	if err != nil {
 		return n, fmt.Errorf("linker: Write failed %s - %s: %w", start, end, err)
 	}

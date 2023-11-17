@@ -24,6 +24,8 @@ const (
 	Version              = "1.3.14-dev"
 	displayerJumpTo      = "$0822"
 	maxColors            = 16
+	MaxChars             = 256
+	FullScreenChars      = 1000
 	FullScreenWidth      = 320
 	FullScreenHeight     = 200
 	ViceFullScreenWidth  = 384
