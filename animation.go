@@ -339,13 +339,7 @@ func processAnimation(opt Options, imgs []Charer) ([][]byte, error) {
 
 func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	bgBorder := kk[0].BackgroundColor | kk[0].BorderColor<<4
-	header := append([]byte{}, koalaDisplayAnim...)
 	opt := kk[0].opt
-	if opt.AlternativeFade {
-		header = append([]byte{}, koalaDisplayAnimAlternative...)
-	}
-	header[0x820-0x7ff] = byte(opt.FrameDelay)
-	header[0x821-0x7ff] = byte(opt.WaitSeconds)
 
 	frames := make([]Charer, len(kk))
 	for i := range kk {
@@ -355,95 +349,61 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	if err != nil {
 		return n, err
 	}
-	if !opt.Quiet {
-		fmt.Printf("memory usage for displayer code: 0x%04x - 0x%04x\n", 0x0801, len(header)+0x7ff)
+
+	displayer := koalaDisplayAnim
+	if opt.AlternativeFade {
+		displayer = koalaDisplayAnimAlternative
 	}
-
-	if opt.IncludeSID == "" {
-		buf := make([]byte, 0, 64*1024)
-
-		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-		k := kk[0]
-		out := [][]byte{header, k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}}
-		for _, bin := range out {
-			buf = append(buf, bin...)
-		}
-		if !opt.Quiet {
-			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", BitmapAddress, len(buf)+0x7ff)
-		}
-		buf = zeroFill(buf, koalaAnimationStart-0x7ff-len(buf))
-		t1 := len(buf)
-		for _, bin := range framePrgs {
-			buf = append(buf, bin...)
-		}
-		buf = append(buf, 0xff)
-		if !opt.Quiet {
-			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", t1+0x7ff, len(buf)+0x7ff)
-			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", koalaFadePassStart, 0xcfff)
-		}
-		m, err := w.Write(buf)
-		n += int64(m)
+	link := &Linker{}
+	if _, err = link.WritePrg(displayer); err != nil {
 		return n, err
 	}
-
-	s, err := sid.LoadSID(opt.IncludeSID)
-	if err != nil {
-		return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-	}
-	header = injectSIDHeader(header, s)
-	load := s.LoadAddress()
-	switch {
-	case int(load) < len(header)+0x7ff:
-		return n, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
-	case load > 0xdff && load < 0x1fff:
-		header = zeroFill(header, int(load)-0x7ff-len(header))
-		header = append(header, s.RawBytes()...)
-		if len(header) > BitmapAddress-0x7ff {
-			return n, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
-		}
-		if !opt.Quiet {
-			fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
-		}
-		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-		if !opt.Quiet {
-			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", BitmapAddress, 0x4711)
-		}
-		buf := make([]byte, koalaAnimationStart-0x4711)
-		for _, bin := range framePrgs {
-			buf = append(buf, bin...)
-		}
-		buf = append(buf, 0xff)
-		if !opt.Quiet {
-			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", koalaAnimationStart, len(buf)+0x4711)
-			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", koalaFadePassStart, 0xcfff)
-		}
-		return writeData(w, header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], []byte{bgBorder}, buf)
-	case (load > koalaFadePassStart && load < 0xe000) || load < koalaAnimationStart+0x100:
-		return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
-	}
-
-	header = zeroFill(header, BitmapAddress-0x7ff-len(header))
+	link.Block(koalaFadePassStart, 0xd000)
+	link.SetByte(0x820, byte(opt.FrameDelay))
+	link.SetByte(0x821, byte(opt.WaitSeconds))
 	if !opt.Quiet {
-		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", BitmapAddress, 0x4711)
+		fmt.Printf("memory usage for displayer code: %s - %s\n", link.StartAddress(), link.EndAddress())
 	}
 
-	framebuf := make([]byte, koalaAnimationStart-0x4711)
+	link.SetCursor(BitmapAddress)
+	k := kk[0]
+	for _, b := range [][]byte{k.Bitmap[:], k.ScreenColor[:], k.D800Color[:], {bgBorder}} {
+		if _, err = link.Write(b); err != nil {
+			return n, fmt.Errorf("link.Write error: %w", err)
+		}
+	}
+	if !opt.Quiet {
+		fmt.Printf("memory usage for picture: 0x%04x - %s\n", BitmapAddress, link.EndAddress())
+	}
+
+	link.SetCursor(koalaAnimationStart)
 	for _, bin := range framePrgs {
-		framebuf = append(framebuf, bin...)
+		if _, err = link.Write(bin); err != nil {
+			return n, fmt.Errorf("link.Write error: %w", err)
+		}
 	}
-	framebuf = append(framebuf, 0xff)
-	if !opt.Quiet {
-		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", koalaAnimationStart, len(framebuf)+0x4711)
-		fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
-		fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", koalaFadePassStart, 0xcfff)
+	if _, err = link.Write([]byte{0xff}); err != nil {
+		return n, fmt.Errorf("link.Write error: %w", err)
 	}
 
-	buf := make([]byte, int(load)-0x4711-len(framebuf))
-	n, err = writeData(w, header, kk[0].Bitmap[:], kk[0].ScreenColor[:], kk[0].D800Color[:], []byte{bgBorder}, framebuf, buf, s.RawBytes())
-	if err != nil {
-		return n, err
+	if !opt.Quiet {
+		fmt.Printf("memory usage for animations: %s - %s\n", Word(koalaAnimationStart), link.EndAddress())
+		fmt.Printf("memory usage for generated fadecode: %s - %s\n", Word(koalaFadePassStart), Word(0xcfff))
 	}
-	return n, nil
+
+	if opt.IncludeSID != "" {
+		s, err := sid.LoadSID(opt.IncludeSID)
+		if err != nil {
+			return n, fmt.Errorf("sid.LoadSID failed: %w", err)
+		}
+		injectSIDLinker(link, s)
+		if _, err = link.WritePrg(s.Bytes()); err != nil {
+			return n, fmt.Errorf("link.WritePrg failed: %w", err)
+		}
+	}
+	m, err := link.WriteTo(w)
+	n += int64(m)
+	return n, err
 }
 
 // exportAnims format:
@@ -457,109 +417,66 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 
 func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	opt := hh[0].opt
-	header := append([]byte{}, hiresDisplayAnim...)
-	header[0x820-0x7ff] = byte(opt.FrameDelay)
-	header[0x821-0x7ff] = byte(opt.WaitSeconds)
-
 	frames := make([]Charer, len(hh))
 	for i := range hh {
 		frames[i] = hh[i]
 	}
 	framePrgs, err := processAnimation(opt, frames)
 	if err != nil {
-		return n, err
+		return n, fmt.Errorf("processAnimation error: %w", err)
+	}
+
+	link := &Linker{}
+	if _, err = link.WritePrg(hiresDisplayAnim); err != nil {
+		return n, fmt.Errorf("link.WritePrg error: %w", err)
+	}
+	link.Block(hiresFadePassStart, 0xd000)
+	link.SetByte(0x820, byte(opt.FrameDelay))
+	link.SetByte(0x821, byte(opt.WaitSeconds))
+	if !opt.Quiet {
+		fmt.Printf("memory usage for displayer code: %s - %s\n", link.StartAddress(), link.EndAddress())
+	}
+
+	link.SetCursor(BitmapAddress)
+	h := hh[0]
+	for _, b := range [][]byte{h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}} {
+		if _, err = link.Write(b); err != nil {
+			return n, fmt.Errorf("link.Write error: %w", err)
+		}
 	}
 	if !opt.Quiet {
-		fmt.Printf("memory usage for displayer code: 0x%04x - 0x%04x\n", 0x0801, len(header)+0x7ff)
+		fmt.Printf("memory usage for picture: 0x%04x - %s\n", BitmapAddress, link.EndAddress())
 	}
 
-	if opt.IncludeSID == "" {
-		buf := make([]byte, 0, 64*1024)
-
-		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-		h := hh[0]
-		out := [][]byte{header, h.Bitmap[:], h.ScreenColor[:], {h.BorderColor}}
-
-		for _, bin := range out {
-			buf = append(buf, bin...)
-		}
-		if !opt.Quiet {
-			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", BitmapAddress, 0x4329)
-		}
-
-		buf = zeroFill(buf, hiresAnimationStart-0x7ff-len(buf))
-		for _, bin := range framePrgs {
-			buf = append(buf, bin...)
-		}
-		buf = append(buf, 0xff)
-
-		if !opt.Quiet {
-			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(buf)+0x7ff)
-			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)
-		}
-
-		m, err := w.Write(buf)
-		n += int64(m)
-		return n, err
-	}
-
-	s, err := sid.LoadSID(opt.IncludeSID)
-	if err != nil {
-		return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-	}
-	header = injectSIDHeader(header, s)
-	load := s.LoadAddress()
-	switch {
-	case int(load) < len(header)+0x7ff:
-		return n, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
-	case load > 0xdff && load < 0x1fff:
-		header = zeroFill(header, int(load)-0x7ff-len(header))
-		header = append(header, s.RawBytes()...)
-		if len(header) > BitmapAddress-0x7ff {
-			return n, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
-		}
-		if !opt.Quiet {
-			fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
-		}
-		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-		if !opt.Quiet {
-			fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", BitmapAddress, 0x4329)
-		}
-		framebuf := make([]byte, hiresAnimationStart-0x4329)
-		for _, bin := range framePrgs {
-			framebuf = append(framebuf, bin...)
-		}
-		framebuf = append(framebuf, 0xff)
-		if !opt.Quiet {
-			fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(framebuf)+0x4328)
-			fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)
-		}
-		return writeData(w, header, hh[0].Bitmap[:], hh[0].ScreenColor[:], []byte{hh[0].BorderColor}, framebuf)
-	case (load > hiresFadePassStart && load < 0xe000) || load < hiresAnimationStart+0x100:
-		return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
-	}
-
-	header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-	if !opt.Quiet {
-		fmt.Printf("memory usage for picture: 0x%04x - 0x%04x\n", BitmapAddress, 0x4329)
-	}
-	framebuf := make([]byte, hiresAnimationStart-0x4329)
+	link.SetCursor(hiresAnimationStart)
 	for _, bin := range framePrgs {
-		framebuf = append(framebuf, bin...)
+		if _, err = link.Write(bin); err != nil {
+			return n, fmt.Errorf("link.Write error: %w", err)
+		}
 	}
-	framebuf = append(framebuf, 0xff)
+	if _, err = link.Write([]byte{0xff}); err != nil {
+		return n, fmt.Errorf("link.Write error: %w", err)
+	}
+
 	if !opt.Quiet {
-		fmt.Printf("memory usage for animations: 0x%04x - 0x%04x\n", hiresAnimationStart, len(framebuf)+0x4328)
-		fmt.Printf("memory usage for sid: %s - %s (%q by %s)\n", s.LoadAddress(), s.LoadAddress()+sid.Word(len(s.RawBytes())), s.Name(), s.Author())
+		fmt.Printf("memory usage for animations: 0x%04x - %s\n", hiresAnimationStart, link.EndAddress())
 		fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)
 	}
 
-	buf := make([]byte, int(load)-0x4329-len(framebuf))
-	n, err = writeData(w, header, hh[0].Bitmap[:], hh[0].ScreenColor[:], []byte{hh[0].BorderColor}, framebuf, buf, s.RawBytes())
-	if err != nil {
-		return n, err
+	if opt.IncludeSID != "" {
+		s, err := sid.LoadSID(opt.IncludeSID)
+		if err != nil {
+			return n, fmt.Errorf("sid.LoadSID failed: %w", err)
+		}
+		injectSIDLinker(link, s)
+		//load := Word(s.LoadAddress())
+		if _, err = link.WritePrg(s.Bytes()); err != nil {
+			return n, fmt.Errorf("link.WritePrg failed: %w", err)
+		}
 	}
-	return n, nil
+	m, err := link.WriteTo(w)
+	n += int64(m)
+	return n, err
 }
 
 type chunk struct {

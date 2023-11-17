@@ -695,6 +695,20 @@ func injectSIDHeader(header []byte, s *sid.SID) []byte {
 	return header
 }
 
+func injectSIDLinker(l *Linker, s *sid.SID) {
+	startSong := s.StartSong().LowByte()
+	if startSong > 0 {
+		startSong--
+	}
+	l.SetByte(0x819, startSong)
+	init := s.InitAddress()
+	l.SetByte(0x81b, init.LowByte())
+	l.SetByte(0x81c, init.HighByte())
+	play := s.PlayAddress()
+	l.SetByte(0x81e, play.LowByte())
+	l.SetByte(0x81f, play.HighByte())
+}
+
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
 	if !k.opt.Display {
