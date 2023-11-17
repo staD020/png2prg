@@ -394,7 +394,7 @@ var koalaDisplayAnimAlternative []byte
 var hiresDisplayAnim []byte
 
 //go:embed "display_mci_bitmap.prg"
-var koalaDisplayMCIBitmap []byte
+var mciBitmapDisplay []byte
 
 func init() {
 	displayers[multiColorBitmap] = koalaDisplay
@@ -403,7 +403,7 @@ func init() {
 	displayers[singleColorCharset] = scCharsetDisplay
 	displayers[multiColorSprites] = mcSpritesDisplay
 	displayers[singleColorSprites] = scSpritesDisplay
-	displayers[multiColorInterlaceBitmap] = koalaDisplayMCIBitmap
+	displayers[multiColorInterlaceBitmap] = mciBitmapDisplay
 }
 
 type converter struct {
@@ -514,6 +514,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 			if err != nil {
 				return n, fmt.Errorf("img.SplitInterlace %q failed: %w", img.sourceFilename, err)
 			}
+			c.opt.ForceBorderColor = int(img.borderColor.ColorIndex)
 			if !c.opt.Quiet {
 				fmt.Println("interlaced pic was split")
 			}
@@ -558,8 +559,6 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		if wt, err = img.Koala(); err != nil {
 			return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
 		}
-	case multiColorInterlaceBitmap:
-		panic("should be unreachable")
 	case singleColorBitmap:
 		if wt, err = img.Hires(); err != nil {
 			return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
