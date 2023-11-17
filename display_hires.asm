@@ -1,4 +1,3 @@
-
 .const DEBUG = false
 .const GENDEBUG = false
 .const MUSICDEBUG = false
