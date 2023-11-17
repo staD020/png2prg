@@ -36,28 +36,34 @@ type Linker struct {
 	used    [MaxMemory + 1]bool
 }
 
+// NewLinker returns an empty linker with cursor set to start.
 func NewLinker(start Word) *Linker {
 	return &Linker{cursor: start}
 }
 
+// Used returns true if the current byte is already used.
 func (l *Linker) Used() bool {
 	return l.used[l.cursor] || l.block[l.cursor]
 }
 
+// Block blocks the memory area from start to end that must be kept free.
 func (l *Linker) Block(start, end Word) {
 	for i := start; i < end; i++ {
 		l.block[i] = true
 	}
 }
 
+// Cursor returns the current cursor or memory address where the next Write will be stored.
 func (l *Linker) Cursor() Word {
 	return l.cursor
 }
 
+// SetCursor sets the current memory address where the next Write will be stored.
 func (l *Linker) SetCursor(v Word) {
 	l.cursor = v
 }
 
+// SetByte writes v at addr, regardless if it's in use or not. Useful for patching bytes.
 func (l *Linker) SetByte(addr Word, v byte) {
 	l.payload[addr] = v
 	l.used[addr] = true
@@ -72,7 +78,7 @@ func (l *Linker) CursorWrite(cursor Word, b []byte) (n int, err error) {
 // Write writes b to payload at cursor address and increases the cursor with amount of bytes written.
 func (l *Linker) Write(b []byte) (n int, err error) {
 	if int(l.cursor)+len(b) > MaxMemory {
-		return 0, fmt.Errorf("linker: out of memory error, cursor %s, length 0x%04x", l.cursor, len(b))
+		return n, fmt.Errorf("linker: out of memory error, cursor %s, length 0x%04x", l.cursor, len(b))
 	}
 	for i := 0; i < len(b); i++ {
 		if l.Used() {
@@ -95,6 +101,7 @@ func (l *Linker) WritePrg(prg []byte) (n int, err error) {
 	return l.Write(prg[2:])
 }
 
+// EndAddress returns the memory location of the first used byte.
 func (l *Linker) StartAddress() Word {
 	for i := Word(0); i <= MaxMemory; i++ {
 		if l.used[i] {
@@ -104,6 +111,7 @@ func (l *Linker) StartAddress() Word {
 	return MaxMemory
 }
 
+// EndAddress returns the memory location of the last used byte + 1.
 func (l *Linker) EndAddress() Word {
 	for i := Word(MaxMemory); i >= 0; i-- {
 		if l.used[i] {

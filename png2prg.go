@@ -8,7 +8,6 @@ import (
 	"image/gif"
 	_ "image/gif"
 	_ "image/jpeg"
-	"image/png"
 	_ "image/png"
 	"io"
 	"log"
@@ -479,6 +478,21 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 	return imgs, nil
 }
 
+func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, err error) {
+	img = sourceImage{
+		sourceFilename: fmt.Sprintf("png2prg_%02d", index),
+		opt:            opt,
+		image:          in,
+	}
+	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
+		return img, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
+	}
+	if err = img.checkBounds(); err != nil {
+		return img, fmt.Errorf("img.checkBounds failed: %w", err)
+	}
+	return img, nil
+}
+
 func NewFromPath(opt Options, filenames ...string) (*converter, error) {
 	in := make([]io.Reader, 0, len(filenames))
 	for _, path := range filenames {
@@ -521,24 +535,15 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 			c.opt.CurrentGraphicsType = multiColorBitmap
 			c.opt.GraphicsMode = multiColorBitmap.String()
 
-			png0 := new(bytes.Buffer)
-			if err = png.Encode(png0, rgba0); err != nil {
-				return n, fmt.Errorf("png.Encode rgba0 %q failed: %w", img.sourceFilename, err)
-			}
-			ii0, err := NewSourceImages(c.opt, 0, png0)
+			i0, err := NewSourceImage(c.opt, 0, rgba0)
 			if err != nil {
 				return n, fmt.Errorf("NewSourceImages %q failed: %w", img.sourceFilename, err)
 			}
-
-			png1 := new(bytes.Buffer)
-			if err = png.Encode(png1, rgba1); err != nil {
-				return n, fmt.Errorf("png.Encode rgba0 %q failed: %w", img.sourceFilename, err)
-			}
-			ii1, err := NewSourceImages(c.opt, 1, png1)
+			i1, err := NewSourceImage(c.opt, 1, rgba1)
 			if err != nil {
 				return n, fmt.Errorf("NewSourceImages %q failed: %w", img.sourceFilename, err)
 			}
-			c.images = []sourceImage{ii0[0], ii1[0]}
+			c.images = []sourceImage{i0, i1}
 		}
 
 		if err = c.images[0].analyze(); err != nil {
