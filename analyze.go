@@ -428,7 +428,7 @@ func (img *sourceImage) findBorderColor() error {
 		return nil
 	}
 	if img.xOffset == 0 || img.yOffset == 0 {
-		return fmt.Errorf("border color not found")
+		return fmt.Errorf("border color not found, no border in image")
 	}
 	rgb := img.colorAtXY(-10, -10)
 	if ci, ok := img.palette[rgb]; ok {
