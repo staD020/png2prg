@@ -217,10 +217,6 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [ma
 		sumColors[colorIndex] = 0
 	}
 
-	// swap bitpair 01 with bitpair 11, it generally improves packing
-	if len(img.preferredBitpairColors) == 4 {
-		img.preferredBitpairColors[1], img.preferredBitpairColors[3] = img.preferredBitpairColors[3], img.preferredBitpairColors[1]
-	}
 	if !img.opt.Quiet {
 		fmt.Printf("guessed some -bitpair-colors %s\n", img.preferredBitpairColors)
 	}
