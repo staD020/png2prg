@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"github.com/staD020/TSCrunch"
 	"github.com/staD020/sid"
@@ -226,10 +227,15 @@ func (c *converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 	if !c.opt.Quiet {
 		fmt.Println("packing with TSCrunch...")
 	}
+	t1 := time.Now()
 	m, err := tsc.WriteTo(w)
 	n += m
 	if err != nil {
 		return n, fmt.Errorf("tsc.WriteTo failed: %w", err)
+	}
+	if !c.opt.Quiet {
+		fmt.Printf("crunched in %s\n", time.Since(t1))
+		fmt.Println("packing with TSCrunch...")
 	}
 	return n, nil
 }

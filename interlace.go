@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"io"
 	"log"
+	"time"
 
 	"github.com/staD020/sid"
 )
@@ -192,11 +193,24 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	if c.opt.NoCrunch {
 		return link.WriteTo(w)
 	}
+
+	t1 := time.Now()
 	wt, err := injectCrunch(link, c.opt.Verbose)
 	if err != nil {
 		return n, fmt.Errorf("injectCrunch failed: %w", err)
 	}
-	return wt.WriteTo(w)
+	if !c.opt.Quiet {
+		fmt.Println("packing with TSCrunch")
+	}
+	n, err = wt.WriteTo(w)
+	if err != nil {
+		return n, err
+	}
+	if !c.opt.Quiet && c.opt.Display && !c.opt.NoCrunch {
+		fmt.Printf("crunched in %s\n", time.Since(t1))
+	}
+
+	return n, err
 }
 
 // InterlaceKoala returns the secondary Koala, with as many bitpairs/colors the same as the first image.

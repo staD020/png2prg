@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/staD020/TSCrunch"
 	"github.com/staD020/sid"
@@ -163,7 +164,7 @@ func (m PaletteMap) RGB(c64Color byte) RGB {
 			return rgb
 		}
 	}
-	panic(fmt.Sprintf("c64Color %v not found in palette %v", c64Color, m))
+	log.Printf("c64Color %v not found in palette %v", c64Color, m)
 	return RGB{}
 }
 
@@ -622,18 +623,22 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		}
 	}
 
+	t1 := time.Now()
 	if c.opt.Display && !c.opt.NoCrunch {
 		wt, err = injectCrunch(wt, c.opt.Verbose)
 		if err != nil {
 			return 0, fmt.Errorf("injectCrunch failed: %w", err)
 		}
 		if !c.opt.Quiet {
-			fmt.Println("packing with TSCrunch...")
+			fmt.Println("packing with TSCrunch")
 		}
 	}
 	n, err = wt.WriteTo(w)
 	if err != nil {
 		return n, fmt.Errorf("WriteTo failed: %w", err)
+	}
+	if !c.opt.Quiet && c.opt.Display && !c.opt.NoCrunch {
+		fmt.Printf("crunched in %s\n", time.Since(t1))
 	}
 	return n, nil
 }
@@ -718,17 +723,14 @@ func injectSIDLinker(l *Linker, s *sid.SID) {
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
 	link := NewLinker(BitmapAddress, k.opt.Verbose)
-	if _, err = link.Write(k.Bitmap[:]); err != nil {
-		return n, fmt.Errorf("link.Write failed: %w", err)
-	}
-	if _, err = link.Write(k.ScreenColor[:]); err != nil {
-		return n, fmt.Errorf("link.Write failed: %w", err)
-	}
-	if _, err = link.Write(k.D800Color[:]); err != nil {
-		return n, fmt.Errorf("link.Write failed: %w", err)
-	}
-	if _, err = link.Write([]byte{bgBorder}); err != nil {
-		return n, fmt.Errorf("link.Write failed: %w", err)
+	_, err = link.MapWrite(LinkMap{
+		BitmapAddress: k.Bitmap[:],
+		0x3f40:        k.ScreenColor[:],
+		0x4328:        k.D800Color[:],
+		0x4710:        []byte{bgBorder},
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.MapWrite failed: %w", err)
 	}
 	if !k.opt.Display {
 		return link.WriteTo(w)
@@ -757,14 +759,13 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	link := NewLinker(BitmapAddress, h.opt.Verbose)
-	if _, err = link.Write(h.Bitmap[:]); err != nil {
-		return n, fmt.Errorf("link.Write failed: %w", err)
-	}
-	if _, err = link.Write(h.ScreenColor[:]); err != nil {
-		return n, fmt.Errorf("link.Write failed: %w", err)
-	}
-	if _, err = link.Write([]byte{h.BorderColor}); err != nil {
-		return n, fmt.Errorf("link.Write failed: %w", err)
+	_, err = link.MapWrite(LinkMap{
+		BitmapAddress: h.Bitmap[:],
+		0x3f40:        h.ScreenColor[:],
+		0x4328:        []byte{h.BorderColor},
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.MapWrite failed: %w", err)
 	}
 	if !h.opt.Display {
 		return link.WriteTo(w)

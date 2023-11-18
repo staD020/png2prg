@@ -86,8 +86,10 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 
 	if altOffset {
 		opt.ForceXOffset, opt.ForceYOffset = 32, 36
-		fmt.Printf("using alternate x, y offset %d, %d", 32, 36)
-		fmt.Printf("proper vice screenshot offset is %d, %d. please fix your images to convert without the -alt-offset flag.\n", 32, 35)
+		if !opt.Quiet {
+			fmt.Printf("using alternate x, y offset %d, %d\n", 32, 36)
+			fmt.Printf("proper vice screenshot offset is %d, %d. please fix your images to convert without the -alt-offset flag.\n", 32, 35)
+		}
 	}
 
 	p, err := png2prg.NewFromPath(*opt, filenames...)

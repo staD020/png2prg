@@ -474,14 +474,16 @@ func (img *sourceImage) makeCharColors() error {
 			}
 			if len(count) > 4 {
 				x, y := xyFromChar(i)
-				log.Printf("amount of colors in char %v (x=%d, y=%d) %d > 4 : %v", i, x, y, len(count), count)
+				if img.opt.Verbose {
+					log.Printf("amount of colors in char %v (x=%d, y=%d) %d > 4 : %v", i, x, y, len(count), count)
+				}
 				fatalError = true
 			}
 		}
 		img.charColors[i] = charColors
 	}
 	if fatalError {
-		return fmt.Errorf("fatal error: unable to convert %q", img.sourceFilename)
+		return fmt.Errorf("fatal error: unable to convert %q, too many colors required per char", img.sourceFilename)
 	}
 	return nil
 }
