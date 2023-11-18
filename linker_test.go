@@ -11,7 +11,7 @@ func TestLinker(t *testing.T) {
 	start := Word(0x801)
 	bin := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 	t.Parallel()
-	l := NewLinker(start)
+	l := NewLinker(start, false)
 	assert.NotNil(t, l)
 	n, err := l.Write(bin)
 	assert.Nil(t, err)
