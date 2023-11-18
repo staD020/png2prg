@@ -1,14 +1,12 @@
 package png2prg
 
 import (
-	"bytes"
 	"fmt"
 	"image"
 	"image/color"
 	"io"
 	"log"
 
-	"github.com/staD020/TSCrunch"
 	"github.com/staD020/sid"
 )
 
@@ -102,7 +100,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	}
 
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
-
+	link := &Linker{}
 	if !c.opt.Display {
 		if sharedcolors {
 			// drazlace
@@ -119,17 +117,22 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 					{"d021color", int(img0.backgroundColor.ColorIndex)},
 				}
 			}
-			const memoffset = 0x57fe
-			header := []byte{0x00, 0x58}
-			header = append(header, k1.D800Color[:]...)
-			header = zeroFill(header, 0x5c00-memoffset-len(header))
-			header = append(header, k1.ScreenColor[:]...)
-			header = zeroFill(header, 0x6000-memoffset-len(header))
-			header = append(header, k0.Bitmap[:]...)
-			header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
-			header = zeroFill(header, 0x8000-memoffset-len(header))
-			header = append(header, k1.Bitmap[:]...)
-			return writeData(w, header)
+			if _, err = link.CursorWrite(0x5800, k1.D800Color[:]); err != nil {
+				return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+			}
+			if _, err = link.CursorWrite(0x5c00, k1.ScreenColor[:]); err != nil {
+				return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+			}
+			if _, err = link.CursorWrite(0x6000, k0.Bitmap[:]); err != nil {
+				return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+			}
+			if _, err = link.Write([]byte{bgBorder, 0, byte(c.opt.D016Offset)}); err != nil {
+				return n, fmt.Errorf("link.Write failed: %w", err)
+			}
+			if _, err = link.CursorWrite(0x8000, k1.Bitmap[:]); err != nil {
+				return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+			}
+			return link.WriteTo(w)
 		}
 		// true paint .mci format
 		c.Symbols = []c64Symbol{
@@ -144,108 +147,71 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 			{"d020color", int(k0.BorderColor)},
 			{"d021color", int(k0.BackgroundColor)},
 		}
-		const memoffset = 0x9bfe
-		header := []byte{0x00, 0x9c}
-		header = append(header, k0.ScreenColor[:]...)
-		header = append(header, bgBorder, byte(c.opt.D016Offset))
-		header = zeroFill(header, 0xa000-memoffset-len(header))
-		header = append(header, k0.Bitmap[:]...)
-		header = zeroFill(header, 0xc000-memoffset-len(header))
-		header = append(header, k1.Bitmap[:]...)
-		header = zeroFill(header, 0xe000-memoffset-len(header))
-		header = append(header, k1.ScreenColor[:]...)
-		header = zeroFill(header, 0xe400-memoffset-len(header))
-		header = append(header, k1.D800Color[:]...)
-		header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
-		return writeData(w, header)
+		if _, err = link.CursorWrite(0x9c00, k0.ScreenColor[:]); err != nil {
+			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+		}
+		if _, err = link.Write([]byte{bgBorder, byte(c.opt.D016Offset)}); err != nil {
+			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+		}
+		if _, err = link.CursorWrite(0xa000, k0.Bitmap[:]); err != nil {
+			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+		}
+		if _, err = link.CursorWrite(0xc000, k1.Bitmap[:]); err != nil {
+			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+		}
+		if _, err = link.CursorWrite(0xe000, k1.ScreenColor[:]); err != nil {
+			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+		}
+		if _, err = link.CursorWrite(0xe400, k1.D800Color[:]); err != nil {
+			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+		}
+		return link.WriteTo(w)
 	}
 
-	buf := &bytes.Buffer{}
-	header := newHeader(multiColorInterlaceBitmap)
-	if c.opt.IncludeSID == "" {
-		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-		header = append(header, k0.Bitmap[:]...)
-		header = zeroFill(header, 0x4000-0x7ff-len(header))
-		header = append(header, k0.ScreenColor[:]...)
-		header = zeroFill(header, 0x4400-0x7ff-len(header))
-		header = append(header, k1.D800Color[:]...)
-		header = append(header, bgBorder)
-		header = zeroFill(header, 0x5c00-0x7ff-len(header))
-		header = append(header, k1.ScreenColor[:]...)
-		header = zeroFill(header, 0x6000-0x7ff-len(header))
-		header = append(header, k1.Bitmap[:]...)
-		header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
-		n, err = writeData(buf, header)
-		if err != nil {
-			return n, fmt.Errorf("writeData failed: %w", err)
-		}
+	if _, err = link.WritePrg(newHeader(multiColorInterlaceBitmap)); err != nil {
+		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
+	if _, err = link.CursorWrite(BitmapAddress, k0.Bitmap[:]); err != nil {
+		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+	}
+	if _, err = link.CursorWrite(0x4000, k0.ScreenColor[:]); err != nil {
+		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+	}
+	if _, err = link.CursorWrite(0x4400, k1.D800Color[:]); err != nil {
+		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+	}
+	if _, err = link.CursorWrite(0x5c00, k1.ScreenColor[:]); err != nil {
+		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+	}
+	if _, err = link.CursorWrite(0x6000, k1.Bitmap[:]); err != nil {
+		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+	}
+	if _, err = link.Write([]byte{bgBorder, 0, byte(c.opt.D016Offset)}); err != nil {
+		return n, fmt.Errorf("link.Write failed: %w", err)
+	}
+
 	if c.opt.IncludeSID != "" {
 		s, err := sid.LoadSID(c.opt.IncludeSID)
 		if err != nil {
 			return n, fmt.Errorf("sid.LoadSID failed: %w", err)
 		}
-		header = injectSIDHeader(header, s)
-		load := s.LoadAddress()
-		switch {
-		case int(load) < len(header)+0x7ff:
-			return n, fmt.Errorf("sid LoadAddress %s is too low for sid %s", load, s)
-		case load > 0xcff && load < 0x1fff:
-			header = zeroFill(header, int(load)-0x7ff-len(header))
-			header = append(header, s.RawBytes()...)
-			if len(header) > BitmapAddress-0x7ff {
-				return n, fmt.Errorf("sid memory overflow 0x%04x for sid %s", len(header)+0x7ff, s)
-			}
-			if !c.opt.Quiet {
-				fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
-			}
-		case load < 0xe000:
-			return n, fmt.Errorf("sid LoadAddress %s is causing memory overlap for sid %s", load, s)
+		if _, err = link.WritePrg(s.Bytes()); err != nil {
+			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		header = zeroFill(header, BitmapAddress-0x7ff-len(header))
-		header = append(header, k0.Bitmap[:]...)
-		header = zeroFill(header, 0x4000-0x7ff-len(header))
-		header = append(header, k0.ScreenColor[:]...)
-		header = zeroFill(header, 0x4400-0x7ff-len(header))
-		header = append(header, k1.D800Color[:]...)
-		header = append(header, bgBorder)
-		header = zeroFill(header, 0x5c00-0x7ff-len(header))
-		header = append(header, k1.ScreenColor[:]...)
-		header = zeroFill(header, 0x6000-0x7ff-len(header))
-		header = append(header, k1.Bitmap[:]...)
-		header = append(header, bgBorder, 0, byte(c.opt.D016Offset))
-		if load >= 0xe000 {
-			header = zeroFill(header, int(load)-0x7ff-len(header))
-			header = append(header, s.RawBytes()...)
-		}
-
-		n, err = writeData(buf, header)
-		if err != nil {
-			return n, fmt.Errorf("writeData failed: %w", err)
+		injectSIDLinker(link, s)
+		if !c.opt.Quiet {
+			fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
 		}
 	}
 
 	if c.opt.NoCrunch {
-		m, err := w.Write(buf.Bytes())
-		return int64(m), err
+		return link.WriteTo(w)
 	}
-	tscopt := TSCOptions
-	if c.opt.Verbose {
-		tscopt.QUIET = false
-	}
-	tsc, err := TSCrunch.New(tscopt, buf)
+	wt, err := injectCrunch(link, c.opt.Verbose)
 	if err != nil {
-		return n, fmt.Errorf("tscrunch.New failed: %w", err)
+		return n, fmt.Errorf("injectCrunch failed: %w", err)
 	}
-	if !c.opt.Quiet {
-		fmt.Println("packing with TSCrunch...")
-	}
-	m, err := tsc.WriteTo(w)
-	n += m
-	if err != nil {
-		return n, fmt.Errorf("tsc.WriteTo failed: %w", err)
-	}
-	return n, nil
+	return wt.WriteTo(w)
 }
 
 // InterlaceKoala returns the secondary Koala, with as many bitpairs/colors the same as the first image.

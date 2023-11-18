@@ -451,7 +451,7 @@ func (img *sourceImage) makeCharColors() error {
 		forceBgCol = int(img.preferredBitpairColors[0])
 	}
 	fatalError := false
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < FullScreenChars; i++ {
 		charColors := img.colorMapFromChar(i)
 		if forceBgCol >= 0 && len(charColors) == 4 {
 			found := false
