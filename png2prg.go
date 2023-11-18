@@ -717,7 +717,7 @@ func injectSIDLinker(l *Linker, s *sid.SID) {
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
-	link := NewLinker(BitmapAddress)
+	link := NewLinker(BitmapAddress, k.opt.Verbose)
 	if _, err = link.Write(k.Bitmap[:]); err != nil {
 		return n, fmt.Errorf("link.Write failed: %w", err)
 	}
@@ -756,7 +756,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
-	link := NewLinker(BitmapAddress)
+	link := NewLinker(BitmapAddress, h.opt.Verbose)
 	if _, err = link.Write(h.Bitmap[:]); err != nil {
 		return n, fmt.Errorf("link.Write failed: %w", err)
 	}

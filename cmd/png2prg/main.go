@@ -22,6 +22,7 @@ var (
 	help       bool
 	parallel   bool
 	numWorkers int
+	altOffset  bool
 )
 
 func main() {
@@ -83,26 +84,19 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 	opt.OutFile = png2prg.DestinationFilename(filenames[0], *opt)
 	opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
 
+	if altOffset {
+		opt.ForceXOffset, opt.ForceYOffset = 32, 36
+		fmt.Printf("using alternate x, y offset %d, %d", 32, 36)
+		fmt.Printf("proper vice screenshot offset is %d, %d. please fix your images to convert without the -alt-offset flag.\n", 32, 35)
+	}
+
 	p, err := png2prg.NewFromPath(*opt, filenames...)
 	if err != nil {
 		return fmt.Errorf("NewFromPath failed: %w", err)
 	}
 	buf := new(bytes.Buffer)
-	if n, err := p.WriteTo(buf); err != nil {
-		if n > 0 || len(filenames) > 1 {
-			return fmt.Errorf("WriteTo failed: %w", err)
-		}
-		log.Printf("WriteTo failed: %v", err)
-		log.Printf("attempting alternate x, y offset %d, %d", 32, 36)
-		opt.ForceXOffset, opt.ForceYOffset = 32, 36
-		if p, err = png2prg.NewFromPath(*opt, filenames...); err != nil {
-			return fmt.Errorf("NewFromPath failed: %w", err)
-		}
-		if _, err = p.WriteTo(buf); err != nil {
-			return fmt.Errorf("WriteTo failed: %w", err)
-		}
-		fmt.Printf("alternate x, y offset %d, %d succeeded for file %q\n", opt.ForceXOffset, opt.ForceYOffset, opt.OutFile)
-		fmt.Printf("proper vice screenshot offset is %d, %d. please fix your images to convert without error messages.\n", 32, 35)
+	if _, err := p.WriteTo(buf); err != nil {
+		return fmt.Errorf("WriteTo failed: %w", err)
 	}
 	w, err := os.Create(opt.OutFile)
 	if err != nil {
@@ -260,6 +254,9 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.IntVar(&numWorkers, "workers", w, "number of concurrent workers in parallel mode")
 	flag.BoolVar(&parallel, "p", false, "parallel")
 	flag.BoolVar(&parallel, "parallel", false, "run number of workers in parallel for fast conversion, treat each image as a standalone, not to be used for animations")
+	flag.BoolVar(&altOffset, "ao", false, "alt-offset")
+	flag.BoolVar(&altOffset, "alt-offset", false, "use alternate screenshot offset with x,y = 32,36")
+
 	flag.Parse()
 	return opt
 }

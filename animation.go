@@ -354,7 +354,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	if opt.AlternativeFade {
 		displayer = koalaDisplayAnimAlternative
 	}
-	link := &Linker{}
+	link := NewLinker(0, opt.Verbose)
 	if _, err = link.WritePrg(displayer); err != nil {
 		return n, err
 	}
@@ -426,7 +426,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		return n, fmt.Errorf("processAnimation error: %w", err)
 	}
 
-	link := &Linker{}
+	link := NewLinker(0, opt.Verbose)
 	if _, err = link.WritePrg(hiresDisplayAnim); err != nil {
 		return n, fmt.Errorf("link.WritePrg error: %w", err)
 	}

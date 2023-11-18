@@ -334,7 +334,7 @@ t_fadepercol:
 :colorfade_table()
 // ------------------------------
 .align $100
-.pc = * "t_color_fade" virtual
+.pc = * "t_color_fade"
 t_color_fade:
 		.fill $100, 0
 // ------------------------------

@@ -3,6 +3,7 @@ package png2prg
 import (
 	"fmt"
 	"io"
+	"os"
 )
 
 type Word uint16
@@ -30,15 +31,16 @@ func BytesToWord(bLo, bHi byte) Word {
 const MaxMemory = 0xffff
 
 type Linker struct {
+	Verbose bool
 	cursor  Word
 	payload [MaxMemory + 1]byte
 	block   [MaxMemory + 1]bool
 	used    [MaxMemory + 1]bool
 }
 
-// NewLinker returns an empty linker with cursor set to start.
-func NewLinker(start Word) *Linker {
-	return &Linker{cursor: start}
+// NewLinker returns an empty linker with cursor set to start. When verbose is true, WriteTo also writes the memory map to os.Stdout.
+func NewLinker(start Word, verbose bool) *Linker {
+	return &Linker{cursor: start, Verbose: verbose}
 }
 
 // Used returns true if the current byte is already used.
@@ -147,6 +149,45 @@ func (l *Linker) WriteTo(w io.Writer) (n int64, err error) {
 	n += int64(m)
 	if err != nil {
 		return n, fmt.Errorf("linker: Write failed %s - %s: %w", start, end, err)
+	}
+	if l.Verbose {
+		if _, err = l.WriteMemoryUsage(os.Stdout); err != nil {
+			return n, fmt.Errorf("linker: MemoryMap failed: %w", err)
+		}
+	}
+	return n, nil
+}
+
+func (l *Linker) WriteMemoryUsage(w io.Writer) (n int, err error) {
+	for k := 0; k < 16; k++ {
+		s := ""
+		for p := 0; p < 16; p++ {
+			used := false
+			blocked := false
+			for i := 0; i < 0x100; i++ {
+				if l.used[k*0x1000+p*0x100+i] {
+					used = true
+					break
+				}
+				if l.block[k*0x1000+p*0x100+i] {
+					blocked = true
+					break
+				}
+			}
+			switch {
+			case used:
+				s += "+"
+			case blocked:
+				s += "x"
+			default:
+				s += "."
+			}
+		}
+		m, err := fmt.Fprintf(w, "0x%04x: %s\n", k*0x1000, s)
+		n += m
+		if err != nil {
+			return n, err
+		}
 	}
 	return n, nil
 }
