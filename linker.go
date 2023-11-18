@@ -80,11 +80,12 @@ func (l *Linker) CursorWrite(cursor Word, b []byte) (n int, err error) {
 // Write writes b to payload at cursor address and increases the cursor with amount of bytes written.
 func (l *Linker) Write(b []byte) (n int, err error) {
 	if int(l.cursor)+len(b) > MaxMemory {
-		return n, fmt.Errorf("linker: out of memory error, cursor %s, length 0x%04x", l.cursor, len(b))
+		return n, fmt.Errorf("linker.Write: out of memory error, cursor %s, length 0x%04x", l.cursor, len(b))
 	}
 	for i := 0; i < len(b); i++ {
 		if l.Used() {
-			return n, fmt.Errorf("linker: memory overlap error, cursor %s, length 0x%04x", l.cursor, len(b)-i)
+			l.WriteMemoryUsage(os.Stdout)
+			return n, fmt.Errorf("linker.Write: memory overlap error, cursor %s, length 0x%04x", l.cursor, len(b)-i)
 		}
 		l.payload[l.cursor] = b[i]
 		l.used[l.cursor] = true
@@ -152,7 +153,7 @@ func (l *Linker) WriteTo(w io.Writer) (n int64, err error) {
 	}
 	if l.Verbose {
 		if _, err = l.WriteMemoryUsage(os.Stdout); err != nil {
-			return n, fmt.Errorf("linker: MemoryMap failed: %w", err)
+			return n, fmt.Errorf("linker: WriteMemoryUsage failed: %w", err)
 		}
 	}
 	return n, nil

@@ -168,6 +168,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return link.WriteTo(w)
 	}
 
+	link.Block(0x7f50, 0xc5b0)
 	if _, err = link.WritePrg(newHeader(multiColorInterlaceBitmap)); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}

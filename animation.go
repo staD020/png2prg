@@ -457,7 +457,6 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	if _, err = link.Write([]byte{0xff}); err != nil {
 		return n, fmt.Errorf("link.Write error: %w", err)
 	}
-
 	if !opt.Quiet {
 		fmt.Printf("memory usage for animations: 0x%04x - %s\n", hiresAnimationStart, link.EndAddress())
 		fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)
@@ -473,6 +472,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		}
 		injectSIDLinker(link, s)
 	}
+
 	m, err := link.WriteTo(w)
 	n += int64(m)
 	return n, err
