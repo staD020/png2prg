@@ -174,6 +174,7 @@ func (l *Linker) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (l *Linker) WriteMemoryUsage(w io.Writer) (n int, err error) {
+	fmt.Fprintln(w, "memory usage:")
 	for k := 0; k < 16; k++ {
 		s := ""
 		for p := 0; p < 16; p++ {
