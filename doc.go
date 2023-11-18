@@ -220,6 +220,7 @@ func PrintHelp() {
 	fmt.Println(" - Add -symbols flag to write symbols to a .sym file.")
 	fmt.Println(" - Interlace support, mcibitmap (drazlace and truepaint).")
 	fmt.Println(" - Bugfix: allow blank images input (thanks Spider-J).")
+	fmt.Println(" - Allow colors not present in the image as -bitpair-colors (thanks map).")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.2")
 	fmt.Println()

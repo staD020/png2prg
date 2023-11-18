@@ -543,6 +543,20 @@ func (img *sourceImage) analyzePalette() error {
 		m[ci] = true
 	}
 
+	// sometimes people want to reserve a specific bitpair
+OUTER:
+	for _, prefCol := range img.preferredBitpairColors {
+		if prefCol > 15 {
+			continue
+		}
+		for _, col := range paletteMap {
+			if prefCol == col {
+				continue OUTER
+			}
+		}
+		paletteMap[C64Palettes["pepto"][prefCol].RGB] = prefCol
+	}
+
 	if !img.opt.Quiet {
 		fmt.Printf("file %q palette found: %s distance: %d\n", img.sourceFilename, paletteName, minDistance)
 	}
