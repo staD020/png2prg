@@ -554,7 +554,7 @@ OUTER:
 				continue OUTER
 			}
 		}
-		paletteMap[C64Palettes["pepto"][prefCol].RGB] = prefCol
+		paletteMap[C64Palettes[paletteName][prefCol].RGB] = prefCol
 	}
 
 	if !img.opt.Quiet {
