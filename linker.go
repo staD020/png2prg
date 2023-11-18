@@ -77,6 +77,20 @@ func (l *Linker) CursorWrite(cursor Word, b []byte) (n int, err error) {
 	return l.Write(b)
 }
 
+type LinkMap map[Word][]byte
+
+// MapWrite writes all byteslices to the linker at their respective addresses.
+func (l *Linker) MapWrite(m LinkMap) (n int, err error) {
+	for c, bin := range m {
+		p, err := l.CursorWrite(c, bin)
+		n += p
+		if err != nil {
+			return n, err
+		}
+	}
+	return n, nil
+}
+
 // Write writes b to payload at cursor address and increases the cursor with amount of bytes written.
 func (l *Linker) Write(b []byte) (n int, err error) {
 	if int(l.cursor)+len(b) > MaxMemory {

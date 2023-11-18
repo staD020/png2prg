@@ -117,20 +117,16 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 					{"d021color", int(img0.backgroundColor.ColorIndex)},
 				}
 			}
-			if _, err = link.CursorWrite(0x5800, k1.D800Color[:]); err != nil {
-				return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+			m := LinkMap{
+				0x5800: k1.D800Color[:],
+				0x5c00: k1.ScreenColor[:],
+				0x6000: k0.Bitmap[:],
+				0x7f40: []byte{bgBorder, 0, byte(c.opt.D016Offset)},
+				0x8000: k1.Bitmap[:],
 			}
-			if _, err = link.CursorWrite(0x5c00, k1.ScreenColor[:]); err != nil {
-				return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-			}
-			if _, err = link.CursorWrite(0x6000, k0.Bitmap[:]); err != nil {
-				return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-			}
-			if _, err = link.Write([]byte{bgBorder, 0, byte(c.opt.D016Offset)}); err != nil {
-				return n, fmt.Errorf("link.Write failed: %w", err)
-			}
-			if _, err = link.CursorWrite(0x8000, k1.Bitmap[:]); err != nil {
-				return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+			_, err = link.MapWrite(m)
+			if err != nil {
+				return n, fmt.Errorf("link.MapWrite failed: %w", err)
 			}
 			return link.WriteTo(w)
 		}
@@ -147,23 +143,17 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 			{"d020color", int(k0.BorderColor)},
 			{"d021color", int(k0.BackgroundColor)},
 		}
-		if _, err = link.CursorWrite(0x9c00, k0.ScreenColor[:]); err != nil {
-			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+		m := LinkMap{
+			0x9c00: k0.ScreenColor[:],
+			0x9fe8: []byte{bgBorder, byte(c.opt.D016Offset)},
+			0xa000: k0.Bitmap[:],
+			0xc000: k1.Bitmap[:],
+			0xe000: k1.ScreenColor[:],
+			0xe400: k1.D800Color[:],
 		}
-		if _, err = link.Write([]byte{bgBorder, byte(c.opt.D016Offset)}); err != nil {
-			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-		}
-		if _, err = link.CursorWrite(0xa000, k0.Bitmap[:]); err != nil {
-			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-		}
-		if _, err = link.CursorWrite(0xc000, k1.Bitmap[:]); err != nil {
-			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-		}
-		if _, err = link.CursorWrite(0xe000, k1.ScreenColor[:]); err != nil {
-			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-		}
-		if _, err = link.CursorWrite(0xe400, k1.D800Color[:]); err != nil {
-			return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+		_, err = link.MapWrite(m)
+		if err != nil {
+			return n, fmt.Errorf("link.MapWrite failed: %w", err)
 		}
 		return link.WriteTo(w)
 	}
@@ -172,23 +162,18 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(newHeader(multiColorInterlaceBitmap)); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if _, err = link.CursorWrite(BitmapAddress, k0.Bitmap[:]); err != nil {
-		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
+
+	m := LinkMap{
+		BitmapAddress: k0.Bitmap[:],
+		0x4000:        k0.ScreenColor[:],
+		0x4400:        k1.D800Color[:],
+		0x5c00:        k1.ScreenColor[:],
+		0x6000:        k1.Bitmap[:],
+		0x7f40:        []byte{bgBorder, 0, byte(c.opt.D016Offset)},
 	}
-	if _, err = link.CursorWrite(0x4000, k0.ScreenColor[:]); err != nil {
-		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-	}
-	if _, err = link.CursorWrite(0x4400, k1.D800Color[:]); err != nil {
-		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-	}
-	if _, err = link.CursorWrite(0x5c00, k1.ScreenColor[:]); err != nil {
-		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-	}
-	if _, err = link.CursorWrite(0x6000, k1.Bitmap[:]); err != nil {
-		return n, fmt.Errorf("link.CursorWrite failed: %w", err)
-	}
-	if _, err = link.Write([]byte{bgBorder, 0, byte(c.opt.D016Offset)}); err != nil {
-		return n, fmt.Errorf("link.Write failed: %w", err)
+	_, err = link.MapWrite(m)
+	if err != nil {
+		return n, fmt.Errorf("link.MapWrite failed: %w", err)
 	}
 
 	if c.opt.IncludeSID != "" {
@@ -204,7 +189,6 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 			fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
 		}
 	}
-
 	if c.opt.NoCrunch {
 		return link.WriteTo(w)
 	}
