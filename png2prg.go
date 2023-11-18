@@ -629,16 +629,13 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		if err != nil {
 			return 0, fmt.Errorf("injectCrunch failed: %w", err)
 		}
-		if !c.opt.Quiet {
-			fmt.Println("packing with TSCrunch")
-		}
 	}
 	n, err = wt.WriteTo(w)
 	if err != nil {
 		return n, fmt.Errorf("WriteTo failed: %w", err)
 	}
 	if !c.opt.Quiet && c.opt.Display && !c.opt.NoCrunch {
-		fmt.Printf("crunched in %s\n", time.Since(t1))
+		fmt.Printf("TSCrunched in %s\n", time.Since(t1))
 	}
 	return n, nil
 }
@@ -665,11 +662,7 @@ func injectCrunch(c io.WriterTo, verbose bool) (io.WriterTo, error) {
 	if _, err := c.WriteTo(buf); err != nil {
 		return nil, fmt.Errorf("WriteTo buffer failed: %w", err)
 	}
-	opt := TSCOptions
-	if verbose {
-		opt.QUIET = false
-	}
-	c, err := TSCrunch.New(opt, buf)
+	c, err := TSCrunch.New(TSCOptions, buf)
 	if err != nil {
 		return nil, fmt.Errorf("tscrunch.New failed: %w", err)
 	}

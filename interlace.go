@@ -199,15 +199,12 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	if err != nil {
 		return n, fmt.Errorf("injectCrunch failed: %w", err)
 	}
-	if !c.opt.Quiet {
-		fmt.Println("packing with TSCrunch")
-	}
 	n, err = wt.WriteTo(w)
 	if err != nil {
 		return n, err
 	}
 	if !c.opt.Quiet && c.opt.Display && !c.opt.NoCrunch {
-		fmt.Printf("crunched in %s\n", time.Since(t1))
+		fmt.Printf("TSCrunched in %s\n", time.Since(t1))
 	}
 
 	return n, err

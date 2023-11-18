@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -96,17 +95,13 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 	if err != nil {
 		return fmt.Errorf("NewFromPath failed: %w", err)
 	}
-	buf := new(bytes.Buffer)
-	if _, err := p.WriteTo(buf); err != nil {
-		return fmt.Errorf("WriteTo failed: %w", err)
-	}
 	w, err := os.Create(opt.OutFile)
 	if err != nil {
 		return fmt.Errorf("os.Create failed: %w", err)
 	}
 	defer w.Close()
-	if _, err = w.Write(buf.Bytes()); err != nil {
-		return fmt.Errorf("w.Write failed: %w", err)
+	if _, err := p.WriteTo(w); err != nil {
+		return fmt.Errorf("WriteTo failed: %w", err)
 	}
 	if !opt.Quiet {
 		fmt.Printf("write %q\n", opt.OutFile)

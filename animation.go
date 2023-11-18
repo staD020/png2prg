@@ -216,16 +216,9 @@ func (c *converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 		return n, fmt.Errorf("animation displayers do not support %q", imgs[0].graphicsType)
 	}
 
-	tscopt := TSCOptions
-	if c.opt.Verbose {
-		tscopt.QUIET = false
-	}
-	tsc, err := TSCrunch.New(tscopt, buf)
+	tsc, err := TSCrunch.New(TSCOptions, buf)
 	if err != nil {
 		return n, fmt.Errorf("tscrunch.New failed: %w", err)
-	}
-	if !c.opt.Quiet {
-		fmt.Println("packing with TSCrunch...")
 	}
 	t1 := time.Now()
 	m, err := tsc.WriteTo(w)
@@ -234,8 +227,7 @@ func (c *converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 		return n, fmt.Errorf("tsc.WriteTo failed: %w", err)
 	}
 	if !c.opt.Quiet {
-		fmt.Printf("crunched in %s\n", time.Since(t1))
-		fmt.Println("packing with TSCrunch...")
+		fmt.Printf("TSCrunched in %s\n", time.Since(t1))
 	}
 	return n, nil
 }
