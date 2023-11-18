@@ -118,14 +118,13 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 					{"d021color", int(img0.backgroundColor.ColorIndex)},
 				}
 			}
-			m := LinkMap{
+			_, err = link.MapWrite(LinkMap{
 				0x5800: k1.D800Color[:],
 				0x5c00: k1.ScreenColor[:],
 				0x6000: k0.Bitmap[:],
 				0x7f40: []byte{bgBorder, 0, byte(c.opt.D016Offset)},
 				0x8000: k1.Bitmap[:],
-			}
-			_, err = link.MapWrite(m)
+			})
 			if err != nil {
 				return n, fmt.Errorf("link.MapWrite failed: %w", err)
 			}
@@ -144,15 +143,14 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 			{"d020color", int(k0.BorderColor)},
 			{"d021color", int(k0.BackgroundColor)},
 		}
-		m := LinkMap{
+		_, err = link.MapWrite(LinkMap{
 			0x9c00: k0.ScreenColor[:],
 			0x9fe8: []byte{bgBorder, byte(c.opt.D016Offset)},
 			0xa000: k0.Bitmap[:],
 			0xc000: k1.Bitmap[:],
 			0xe000: k1.ScreenColor[:],
 			0xe400: k1.D800Color[:],
-		}
-		_, err = link.MapWrite(m)
+		})
 		if err != nil {
 			return n, fmt.Errorf("link.MapWrite failed: %w", err)
 		}
@@ -164,15 +162,14 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
 
-	m := LinkMap{
+	_, err = link.MapWrite(LinkMap{
 		BitmapAddress: k0.Bitmap[:],
 		0x4000:        k0.ScreenColor[:],
 		0x4400:        k1.D800Color[:],
 		0x5c00:        k1.ScreenColor[:],
 		0x6000:        k1.Bitmap[:],
 		0x7f40:        []byte{bgBorder, 0, byte(c.opt.D016Offset)},
-	}
-	_, err = link.MapWrite(m)
+	})
 	if err != nil {
 		return n, fmt.Errorf("link.MapWrite failed: %w", err)
 	}
