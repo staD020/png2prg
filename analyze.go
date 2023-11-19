@@ -420,7 +420,8 @@ func (img *sourceImage) findBorderColor() error {
 				return nil
 			}
 		}
-		img.borderColor = ColorInfo{RGB: RGB{0x12, 0x34, 0x56}, ColorIndex: byte(img.opt.ForceBorderColor)}
+		rgb := C64Palettes["pepto"][img.opt.ForceBorderColor].RGB
+		img.borderColor = ColorInfo{RGB: rgb, ColorIndex: byte(img.opt.ForceBorderColor)}
 		if img.opt.Verbose {
 			log.Printf("BorderColor %d not found in palette: %s", img.opt.ForceBorderColor, img.palette)
 			log.Printf("forcing BorderColor %d anyway: %v", img.opt.ForceBorderColor, img.borderColor)
