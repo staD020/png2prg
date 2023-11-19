@@ -11,7 +11,7 @@ LDFLAGS=-s -w
 CGO=1
 GOBUILDFLAGS=-v -trimpath
 TARGET=png2prg_linux_amd64
-ALLTARGETS=$(TARGET) png2prg_linux_arm64 png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_arm64 png2prg_win_x86.exe
+ALLTARGETS=$(TARGET) png2prg_linux_arm64 png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_arm64.exe png2prg_win_x86.exe
 
 FLAGS=-d -v -i
 FLAGSANIM=-d -v -frame-delay 8
