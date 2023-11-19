@@ -1,4 +1,6 @@
-# PNG2PRG 1.2 by Burglar
+png2prg 1.3.14-dev by burg
+
+# PNG2PRG 1.3.14-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset or sprites. It will find the best matching palette
@@ -9,8 +11,8 @@ Vice's main screen's offset is at x=32, y=35.
 Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
-The displayers for koala and hires include fullscreen fade-in/out and
-optionally a .sid tune.
+The displayers for koala, hires, mcibitmap and animations include fullscreen
+fade-in/out and optionally a .sid tune.
 
 This tool can be used in all buildchains on most platforms.
 
@@ -20,6 +22,8 @@ Png2prg is not a tool to wire fullcolor images. It needs input images to
 already be compliant with c64 color and size restrictions.
 In verbose mode (-v) it outputs locations of color clashes, if any.
 
+If you do need to wire fullcolor images, check out Youth's [Retropixels](https://www.micheldebree.nl/retropixels/).
+
 ## Supported Graphics Modes
 
     koala:     multicolor bitmap (max 4 colors per char)
@@ -28,6 +32,7 @@ In verbose mode (-v) it outputs locations of color clashes, if any.
     sccharset: singlecolor charset (max 2 colors)
     mcsprites: multicolor sprites (max 4 colors)
     scsprites: singlecolor sprites (max 2 colors)
+    mcibitmap: 320x200 multicolor interlace bitmap (max 4 colors per char/frame)
 
 Png2prg is mostly able to autodetect the correct graphics mode, but you can
 also force a specific graphics mode with the -mode flag:
@@ -43,13 +48,49 @@ also force a specific graphics mode with the -mode flag:
     D021:   $4710         (multicolor only, low-nibble)
     D020:   $4710         (multicolor only, high-nibble)
 
+## Multicolor Interlace Bitmap
+
+Experimental interlace support, you can supply one 320x200 multicolor
+image with max 4 colors per 8x8 pixel char per frame of which at least
+2 are shared (the D021 and D800 colors).
+
+Or supply both frames in regular koala specs (-interlace flag required).
+When making screenshots in vice, please disable the d016 pixel shift manually.
+
+    ./png2prg -i testdata/madonna/frame_0.png testdata/madonna/frame_1.png
+
+### Drazlace (shared screenram and colorram for both frames
+
+    ./png2prg testdata/madonna/cjam_pure_madonna.png
+
+    D800:    $5800 - $5be7
+    Screen:  $5c00 - $5fe7
+    Bitmap1: $6000 - $7f3f
+    D021:    $7f40         (low-nibble)
+    D020:    $7f40         (high-nibble)
+    D016Offset: $7f42
+    Bitmap2: $8000 - $9f3f
+
+### Multicolor Interlace (shared colorram, true paint .mci format)
+
+    ./png2prg -i -d016 1 testdata/mcinterlace/parriot?.png
+
+    Screen1: $9c00 - $9fe7
+    D021:    $9fe8         (low-nibble)
+    D020:    $9fe8         (high-nibble)
+    D016Offset: $9fe9
+    Bitmap1: $a000 - $bf3f
+    Bitmap2: $c000 - $df3f
+    Screen2: $e000 - $e3e7
+    D800:    $e400 - $e7e7
+
 ## Single or Multicolor Charset
 
 Currently only images with max 4 colors can be converted into a charset.
 Support for individual d800 colors and mixed single/multicolor chars may be
 added in a future release, if the need arises.
 
-By default charsets are packed, they only contain unique characaters.
+By default charsets are packed, they only contain unique characters.
 If you do not want charpacking, eg for a 1x1 charset, please use -no-pack
 
     Charset:   $2000-$27ff
@@ -98,8 +139,8 @@ You can supply an animated .gif or multiple image files.
 
 If multiple files are added, they are treated as animation frames.
 You can also supply an animated .gif.
-The first image will be exported and each frame as a separate .prg,
-containing the modified characters.
+The first image will be exported with all framedata appended.
+Koala animation frames start at $4711, hires at $4329.
 
 The frame files are following this format.
 Each frame consists of 1 or more chunks. A chunk looks like this:
@@ -132,14 +173,11 @@ For hires, koala and koala-anim the displayer also supports adding a .sid.
 Multispeed sids are supported as long as the .sid initializes the CIA timers
 correctly.
 
-You can use sids located from $0d00-$1fff or $9000+ in hires/koala displayers.
-For animation displayers use $0e00-$1fff, $4900-$88ff and >$e000-$fff9.
-Note that animation frames will be loaded to $4800 and up and could overload
-the sid.
+You can use sids located from $0e00-$1fff or $e000+ in the displayers.
+More areas may be free depending on graphics type.
+A memory usage map is shown on error and in -verbose mode.
 
-NB: For hires anims, $4500-$abff is free and anim is loaded to $4400.
 If needed, you can relocate most sids using lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).
-In general $0e00-$1fff and $6000-$88ff are pretty safe.
 
 Zeropages $08-$0f are used in the animation displayers, while none are used
 in hires/koala displayers, increasing sid compatibility.
@@ -147,7 +185,26 @@ in hires/koala displayers, increasing sid compatibility.
 ## Examples
 
 This release contains examples with all assets included for you to test with.
-Also included is [Évoluer](https://csdb.dk/release/?id=220170) by The Sarge and Flotsam.
+Also included are the assets of [Évoluer](https://csdb.dk/release/?id=220170) by The Sarge and Flotsam.
+
+## Changes for version 1.3
+
+ - Support for even more far-out palette ranges (thanks Perplex).
+ - Now throws an error if the palette can't be detected properly, this should
+   never happen. Please let me know if you run into this error.
+ - Separated library and cli tool.
+ - Library supports the standard [io.Reader](https://pkg.go.dev/io#Reader) and [io.Writer](https://pkg.go.dev/io#Writer) interfaces.
+ - Patched [TSCrunch](https://github.com/staD020/TSCrunch/) further to increase crunch speed and use less memory.
+ - Added -parallel and -worker flags to treat each input file as standalone
+   and convert all files in parallel. Gifs with multiple frames are still
+   treated as animations.
+ - Stop relying on .gif filename extension, detect it.
+ - Add -alt-offset flag to force screenshot offset 32, 36), used by a few
+   graphicians. Though, please switch to the correct 32, 35.
+ - Add -symbols flag to write symbols to a .sym file.
+ - Interlace support, mcibitmap (drazlace and truepaint).
+ - Bugfix: allow blank images input (thanks Spider-J).
+ - Allow colors not present in the image as -bitpair-colors (thanks Map).
 
 ## Changes for version 1.2
 
@@ -182,52 +239,79 @@ tables used in the koala and hires displayers.
 ## Options
 
 ```
+  -alt-offset
+    	use alternate screenshot offset with x,y = 32,36
+  -ao
+    	alt-offset
   -bitpair-colors string
-      prefer these colors in 2bit space, eg 0,6,14,3
+    	prefer these colors in 2bit space, eg 0,6,14,3
   -bpc string
-      bitpair-colors
-  -d  display
+    	bitpair-colors
+  -cpuprofile file
+    	write cpu profile to file
+  -d	display
+  -d016 int
+    	d016offset (default 1)
+  -d016offset int
+    	number of pixels to shift with d016 when using interlace (default 1)
   -display
-      include displayer
+    	include displayer
   -force-border-color int
-      force border color (default -1)
+    	force border color (default -1)
   -frame-delay int
-      frames to wait before displaying next animation frame (default 6)
-  -h  help
+    	frames to wait before displaying next animation frame (default 6)
+  -h	help
   -help
-      help
+    	help
+  -i	interlace
+  -interlace
+    	interlace
   -m string
-      mode
+    	mode
+  -memprofile file
+    	write memory profile to file (only in -parallel mode)
   -mode string
-      force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites
+    	force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites
   -nc
-      no-crunch
+    	no-crunch
   -ng
-      no-guess
+    	no-guess
   -no-crunch
-      do not TSCrunch koala/hires displayer
+    	do not TSCrunch displayer
   -no-guess
-      do not guess preferred bitpair-colors
+    	do not guess preferred bitpair-colors
   -no-pack
-      do not pack chars (only for sc/mc charset)
+    	do not pack chars (only for sc/mc charset)
   -np
-      no-pack
+    	no-pack
   -o string
-      out
+    	out
   -out string
-      specify outfile.prg, by default it changes extension to .prg
-  -q  quiet
+    	specify outfile.prg, by default it changes extension to .prg
+  -p	parallel
+  -parallel
+    	run number of workers in parallel for fast conversion, treat each image as a standalone, not to be used for animations
+  -q	quiet
   -quiet
-      quiet, only display errors
+    	quiet, only display errors
   -sid string
-      include .sid in displayer (see -help for free memory locations)
+    	include .sid in displayer (see -help for free memory locations)
+  -sym
+    	symbols
+  -symbols
+    	export symbols to .sym
   -targetdir string
-      specify targetdir
+    	specify targetdir
   -td string
-      targetdir
-  -v  verbose
+    	targetdir
+  -v	verbose
   -verbose
-      verbose output
+    	verbose output
+  -w int
+    	workers (default 12)
   -wait-seconds int
-      seconds to wait before animation starts
+    	seconds to wait before animation starts
+  -workers int
+    	number of concurrent workers in parallel mode (default 12)
 ```
+

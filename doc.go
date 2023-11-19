@@ -11,7 +11,7 @@ func PrintUsage() {
 
 func PrintHelp() {
 	fmt.Println()
-	fmt.Printf("# PNG2PRG %v by Burglar\n", Version)
+	fmt.Printf("# PNG2PRG %v by burg\n", Version)
 	fmt.Println()
 	fmt.Println("Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or")
 	fmt.Println("multicolor bitmap, charset or sprites. It will find the best matching palette")

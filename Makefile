@@ -62,6 +62,9 @@ png2prg_win_arm64.exe: $(SRC) $(DISPLAYERS)
 png2prg_win_x86.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=386 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
 
+readme: $(TARGET)
+	./$(TARGET) -h >readme.md 2>&1
+
 test: $(TARGET) $(TESTPIC) $(TESTSID)
 	./$(TARGET) $(FLAGS) -o q.prg -i $(TESTPIC)
 	$(X64) q.prg >/dev/null
