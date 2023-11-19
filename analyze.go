@@ -459,7 +459,9 @@ func (img *sourceImage) makeCharColors() error {
 			}
 			if !found {
 				x, y := xyFromChar(i)
-				log.Printf("forced BackgroundColor %d not possible in char %v (x=%d, y=%d)", forceBgCol, i, x, y)
+				if img.opt.Verbose {
+					log.Printf("forced BackgroundColor %d not possible in char %v (x=%d, y=%d)", forceBgCol, i, x, y)
+				}
 				fatalError = true
 			}
 		}
