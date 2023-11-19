@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	Version              = "1.3.14-dev"
+	Version              = "1.3.15-dev"
 	displayerJumpTo      = "$0822"
 	maxColors            = 16
 	MaxChars             = 256
