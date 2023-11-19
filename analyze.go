@@ -532,10 +532,11 @@ func (img *sourceImage) analyzePalette() error {
 	}
 
 	m := [maxColors]bool{}
-	for _, ci := range paletteMap {
+	for rgb, ci := range paletteMap {
 		if m[ci] {
-			log.Printf("file %q source colors: %s", img.sourceFilename, img.colors)
-			log.Printf("file %q palette: %s", img.sourceFilename, paletteMap)
+			log.Printf("source colors: %s", img.colors)
+			log.Printf("palette: %s", paletteMap)
+			log.Printf("rgb: %s", rgb)
 			return fmt.Errorf("unable to properly detect palette")
 		}
 		m[ci] = true
