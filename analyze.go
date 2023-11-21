@@ -202,7 +202,8 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 		sumcol[img.backgroundColor.ColorIndex] = 0
 	}
 
-	// first calc allBitpairColors
+	// first calc allBitpairColors, first experiment failed.
+	// todo: allow for more bitpair preferences, not just 4
 	j := 0
 	count := 0
 	for i := len(img.allBitpairColors); i < MaxColors; i++ {
@@ -239,33 +240,7 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 	if img.opt.Verbose {
 		log.Printf("allBitpairColors: %v", img.allBitpairColors)
 	}
-
-	// now calc just the max 4 preferredBitpairColors ()
-	if img.graphicsType == multiColorBitmap && len(img.preferredBitpairColors) == 0 {
-		img.preferredBitpairColors = append(img.preferredBitpairColors, img.backgroundColor.ColorIndex)
-	}
-	for i := len(img.preferredBitpairColors); i < wantedMaxColors; i++ {
-		max := 0
-		var colorIndex byte
-	NEXTCOLOR:
-		for col, sum := range sumColors {
-			if sum == 0 {
-				continue
-			}
-			for _, exists := range img.preferredBitpairColors {
-				if col == int(exists) {
-					continue NEXTCOLOR
-				}
-			}
-			if sum > max {
-				max = sum
-				colorIndex = byte(col)
-			}
-		}
-		img.preferredBitpairColors = append(img.preferredBitpairColors, colorIndex)
-		sumColors[colorIndex] = 0
-	}
-
+	img.preferredBitpairColors = img.allBitpairColors[0][0:wantedMaxColors]
 	if !img.opt.Quiet {
 		fmt.Printf("guessed some -bitpair-colors %s\n", img.preferredBitpairColors)
 	}
@@ -293,13 +268,6 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 				}
 			}
 		}
-	}
-
-	if img.graphicsType == multiColorBitmap {
-		//for col, sum := range sumColors {
-
-		//}
-		//fmt.Printf("guessed some -all-bitpair-colors %s\n", img.allBitpairColors)
 	}
 }
 
