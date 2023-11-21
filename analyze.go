@@ -193,33 +193,20 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 		log.Printf("sumColors: %v", sumColors)
 	}
 
-	img.allBitpairColors = []bitpairColors{}
-	sumcol := sumColors
 	if img.graphicsType == multiColorBitmap && len(img.preferredBitpairColors) == 0 {
-		// bgcol must be forced
 		img.preferredBitpairColors = append(img.preferredBitpairColors, img.backgroundColor.ColorIndex)
-		img.allBitpairColors = []bitpairColors{{img.backgroundColor.ColorIndex}}
-		sumcol[img.backgroundColor.ColorIndex] = 0
 	}
-
-	// first calc allBitpairColors, first experiment failed.
-	// todo: allow for more bitpair preferences, not just 4
-	j := 0
-	count := 0
-	for i := len(img.allBitpairColors); i < MaxColors; i++ {
+	for i := len(img.preferredBitpairColors); i < wantedMaxColors; i++ {
 		max := 0
 		var colorIndex byte
-		if j >= len(img.allBitpairColors) {
-			img.allBitpairColors = append(img.allBitpairColors, bitpairColors{})
-		}
-	NEXT:
-		for col, sum := range sumcol {
+	NEXTCOLOR:
+		for col, sum := range sumColors {
 			if sum == 0 {
 				continue
 			}
-			for _, v := range img.allBitpairColors[j] {
-				if col == int(v) {
-					continue NEXT
+			for _, exists := range img.preferredBitpairColors {
+				if col == int(exists) {
+					continue NEXTCOLOR
 				}
 			}
 			if sum > max {
@@ -227,20 +214,10 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 				colorIndex = byte(col)
 			}
 		}
-		if sumcol[colorIndex] > 0 {
-			img.allBitpairColors[j] = append(img.allBitpairColors[j], colorIndex)
-			sumcol[colorIndex] = 0
-			count++
-			if count == 3 {
-				j++
-				count = 0
-			}
-		}
+		img.preferredBitpairColors = append(img.preferredBitpairColors, colorIndex)
+		sumColors[colorIndex] = 0
 	}
-	if img.opt.Verbose {
-		log.Printf("allBitpairColors: %v", img.allBitpairColors)
-	}
-	img.preferredBitpairColors = img.allBitpairColors[0][0:wantedMaxColors]
+
 	if !img.opt.Quiet {
 		fmt.Printf("guessed some -bitpair-colors %s\n", img.preferredBitpairColors)
 	}

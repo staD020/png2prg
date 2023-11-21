@@ -216,7 +216,6 @@ type sourceImage struct {
 	backgroundColor        ColorInfo
 	borderColor            ColorInfo
 	preferredBitpairColors bitpairColors
-	allBitpairColors       []bitpairColors
 	graphicsType           GraphicsType
 }
 
