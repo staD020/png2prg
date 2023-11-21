@@ -217,6 +217,7 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.BoolVar(&opt.Quiet, "quiet", false, "quiet, only display errors")
 	flag.BoolVar(&opt.Verbose, "v", false, "verbose")
 	flag.BoolVar(&opt.Verbose, "verbose", false, "verbose output")
+	flag.BoolVar(&opt.VeryVerbose, "vv", false, "very verbose, includes memory usage map in most cases and implies -verbose")
 	flag.BoolVar(&opt.Display, "d", false, "display")
 	flag.BoolVar(&opt.Display, "display", false, "include displayer")
 	flag.StringVar(&opt.OutFile, "o", "", "out")
@@ -255,5 +256,8 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.BoolVar(&altOffset, "alt-offset", false, "use alternate screenshot offset with x,y = 32,36")
 
 	flag.Parse()
+	if opt.VeryVerbose {
+		opt.Verbose = true
+	}
 	return opt
 }

@@ -101,7 +101,7 @@ func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	}
 
 	bgBorder := k0.BackgroundColor | k0.BorderColor<<4
-	link := NewLinker(0, c.opt.Verbose)
+	link := NewLinker(0, c.opt.VeryVerbose)
 	if !c.opt.Display {
 		if sharedcolors {
 			// drazlace

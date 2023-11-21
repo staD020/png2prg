@@ -24,7 +24,7 @@ import (
 const (
 	Version              = "1.3.15-dev"
 	displayerJumpTo      = "$0822"
-	maxColors            = 16
+	MaxColors            = 16
 	MaxChars             = 256
 	FullScreenChars      = 1000
 	FullScreenWidth      = 320
@@ -52,6 +52,7 @@ type Options struct {
 	OutFile             string
 	TargetDir           string
 	Verbose             bool
+	VeryVerbose         bool
 	Quiet               bool
 	Display             bool
 	NoPackChars         bool
@@ -169,7 +170,7 @@ func (m PaletteMap) RGB(c64Color byte) RGB {
 }
 
 func (m PaletteMap) devString() string {
-	reverse := [maxColors]*RGB{}
+	reverse := [MaxColors]*RGB{}
 	for r, c := range m {
 		r := r
 		reverse[c] = &r
@@ -185,7 +186,7 @@ func (m PaletteMap) devString() string {
 }
 
 func (m PaletteMap) String() string {
-	reverse := [maxColors]*RGB{}
+	reverse := [MaxColors]*RGB{}
 	for r, c := range m {
 		r := r
 		reverse[c] = &r
@@ -215,6 +216,7 @@ type sourceImage struct {
 	backgroundColor        ColorInfo
 	borderColor            ColorInfo
 	preferredBitpairColors bitpairColors
+	allBitpairColors       []bitpairColors
 	graphicsType           GraphicsType
 }
 
@@ -715,7 +717,7 @@ func injectSIDLinker(l *Linker, s *sid.SID) {
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	bgBorder := k.BackgroundColor | k.BorderColor<<4
-	link := NewLinker(BitmapAddress, k.opt.Verbose)
+	link := NewLinker(BitmapAddress, k.opt.VeryVerbose)
 	_, err = link.MapWrite(LinkMap{
 		BitmapAddress: k.Bitmap[:],
 		0x3f40:        k.ScreenColor[:],
@@ -751,7 +753,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
-	link := NewLinker(BitmapAddress, h.opt.Verbose)
+	link := NewLinker(BitmapAddress, h.opt.VeryVerbose)
 	_, err = link.MapWrite(LinkMap{
 		BitmapAddress: h.Bitmap[:],
 		0x3f40:        h.ScreenColor[:],

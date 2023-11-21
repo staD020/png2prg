@@ -1,6 +1,6 @@
 package png2prg
 
-var C64Palettes = map[string][maxColors]ColorInfo{
+var C64Palettes = map[string][MaxColors]ColorInfo{
 	"vice": {
 		{0, RGB{0x00, 0x00, 0x00}},
 		{1, RGB{0xff, 0xff, 0xff}},

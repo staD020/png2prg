@@ -29,7 +29,7 @@ func parseBitPairColors(bp string) ([]byte, error) {
 		if err != nil {
 			return result, fmt.Errorf("strconv.Atoi conversion of %q to integers failed: %w", bp, err)
 		}
-		if i < -1 || i >= maxColors {
+		if i < -1 || i >= MaxColors {
 			return result, fmt.Errorf("incorrect c64 color %d", i)
 		}
 		result = append(result, byte(i))
@@ -140,7 +140,7 @@ func (img *sourceImage) analyze() (err error) {
 		}
 	}
 	if !img.opt.NoGuess {
-		if img.graphicsType == multiColorBitmap && max < 4 {
+		if img.graphicsType == multiColorBitmap {
 			max = 4
 		}
 		img.guessPreferredBitpairColors(max, sumColors)
@@ -185,32 +185,81 @@ func (img *sourceImage) analyzeSprites() error {
 	return nil
 }
 
-func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [maxColors]int) {
-	if len(img.preferredBitpairColors) >= maxColors {
+func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColors [MaxColors]int) {
+	if len(img.preferredBitpairColors) >= wantedMaxColors {
 		return
 	}
 	if img.opt.Verbose {
 		log.Printf("sumColors: %v", sumColors)
 	}
+
+	img.allBitpairColors = []bitpairColors{}
+	sumcol := sumColors
+	if img.graphicsType == multiColorBitmap && len(img.preferredBitpairColors) == 0 {
+		// bgcol must be forced
+		img.preferredBitpairColors = append(img.preferredBitpairColors, img.backgroundColor.ColorIndex)
+		img.allBitpairColors = []bitpairColors{{img.backgroundColor.ColorIndex}}
+		sumcol[img.backgroundColor.ColorIndex] = 0
+	}
+
+	// first calc allBitpairColors
+	j := 0
+	count := 0
+	for i := len(img.allBitpairColors); i < MaxColors; i++ {
+		max := 0
+		var colorIndex byte
+		if j >= len(img.allBitpairColors) {
+			img.allBitpairColors = append(img.allBitpairColors, bitpairColors{})
+		}
+	NEXT:
+		for col, sum := range sumcol {
+			if sum == 0 {
+				continue
+			}
+			for _, v := range img.allBitpairColors[j] {
+				if col == int(v) {
+					continue NEXT
+				}
+			}
+			if sum > max {
+				max = sum
+				colorIndex = byte(col)
+			}
+		}
+		if sumcol[colorIndex] > 0 {
+			img.allBitpairColors[j] = append(img.allBitpairColors[j], colorIndex)
+			sumcol[colorIndex] = 0
+			count++
+			if count == 3 {
+				j++
+				count = 0
+			}
+		}
+	}
+	if img.opt.Verbose {
+		log.Printf("allBitpairColors: %v", img.allBitpairColors)
+	}
+
+	// now calc just the max 4 preferredBitpairColors ()
 	if img.graphicsType == multiColorBitmap && len(img.preferredBitpairColors) == 0 {
 		img.preferredBitpairColors = append(img.preferredBitpairColors, img.backgroundColor.ColorIndex)
 	}
-	for i := len(img.preferredBitpairColors); i < maxColors; i++ {
+	for i := len(img.preferredBitpairColors); i < wantedMaxColors; i++ {
 		max := 0
 		var colorIndex byte
 	NEXTCOLOR:
-		for j, sum := range sumColors {
+		for col, sum := range sumColors {
 			if sum == 0 {
 				continue
 			}
 			for _, exists := range img.preferredBitpairColors {
-				if j == int(exists) {
+				if col == int(exists) {
 					continue NEXTCOLOR
 				}
 			}
 			if sum > max {
 				max = sum
-				colorIndex = byte(j)
+				colorIndex = byte(col)
 			}
 		}
 		img.preferredBitpairColors = append(img.preferredBitpairColors, colorIndex)
@@ -227,7 +276,7 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [ma
 				continue
 			}
 			if img.opt.Verbose {
-				log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %v", maxColors, img.preferredBitpairColors)
+				log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %v", wantedMaxColors, img.preferredBitpairColors)
 			}
 			img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
 			if img.opt.Verbose {
@@ -245,11 +294,18 @@ func (img *sourceImage) guessPreferredBitpairColors(maxColors int, sumColors [ma
 			}
 		}
 	}
+
+	if img.graphicsType == multiColorBitmap {
+		//for col, sum := range sumColors {
+
+		//}
+		//fmt.Printf("guessed some -all-bitpair-colors %s\n", img.allBitpairColors)
+	}
 }
 
-func (img *sourceImage) countSpriteColors() (int, []byte, [maxColors]int) {
+func (img *sourceImage) countSpriteColors() (int, []byte, [MaxColors]int) {
 	m := img.palette
-	sum := [maxColors]int{}
+	sum := [MaxColors]int{}
 
 	for y := 0; y < img.height; y++ {
 		for x := 0; x < img.width; x++ {
@@ -271,9 +327,9 @@ func (img *sourceImage) countSpriteColors() (int, []byte, [maxColors]int) {
 	return len(m), ci, sum
 }
 
-func (img *sourceImage) countColors() (int, []byte, [maxColors]int) {
-	m := make(PaletteMap, maxColors)
-	var sum [maxColors]int
+func (img *sourceImage) countColors() (int, []byte, [MaxColors]int) {
+	m := make(PaletteMap, MaxColors)
+	var sum [MaxColors]int
 	for i := range img.charColors {
 		for rgb, colorIndex := range img.charColors[i] {
 			m[rgb] = colorIndex
@@ -309,7 +365,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 	}
 
 	// need to copy the map, as we delete false candidates
-	candidates := make(PaletteMap, maxColors)
+	candidates := make(PaletteMap, MaxColors)
 	switch {
 	case len(backgroundCharColors) > 0:
 		for k, v := range backgroundCharColors[0] {
@@ -339,7 +395,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 }
 
 func (img *sourceImage) findBackgroundColor() error {
-	var sumColors [maxColors]int
+	var sumColors [MaxColors]int
 	isSprites := img.graphicsType == singleColorSprites || img.graphicsType == multiColorSprites
 	if isSprites {
 		_, _, sumColors = img.countSpriteColors()
@@ -410,7 +466,7 @@ func (img *sourceImage) findBackgroundColor() error {
 }
 
 func (img *sourceImage) findBorderColor() error {
-	if img.opt.ForceBorderColor >= 0 && img.opt.ForceBorderColor < maxColors {
+	if img.opt.ForceBorderColor >= 0 && img.opt.ForceBorderColor < MaxColors {
 		for rgb, ci := range img.palette {
 			if ci == byte(img.opt.ForceBorderColor) {
 				img.borderColor = ColorInfo{RGB: rgb, ColorIndex: ci}
@@ -467,7 +523,7 @@ func (img *sourceImage) makeCharColors() error {
 			}
 		}
 		if len(charColors) > 4 {
-			count := make(map[byte]byte, maxColors)
+			count := make(map[byte]byte, MaxColors)
 			for _, indexcolor := range charColors {
 				count[indexcolor] = 1
 			}
@@ -488,7 +544,7 @@ func (img *sourceImage) makeCharColors() error {
 }
 
 func (img *sourceImage) colorMapFromChar(char int) PaletteMap {
-	charColors := make(PaletteMap, maxColors)
+	charColors := make(PaletteMap, MaxColors)
 	x, y := xyFromChar(char)
 	for pixely := y; pixely < y+8; pixely++ {
 		for pixelx := x; pixelx < x+8; pixelx++ {
@@ -532,7 +588,7 @@ func (img *sourceImage) analyzePalette() error {
 		}
 	}
 
-	m := [maxColors]bool{}
+	m := [MaxColors]bool{}
 	for rgb, ci := range paletteMap {
 		if m[ci] {
 			log.Printf("source colors: %s", img.colors)
@@ -568,7 +624,7 @@ OUTER:
 }
 
 func (img *sourceImage) setSourceColors() error {
-	m := make(map[RGB]bool, maxColors)
+	m := make(map[RGB]bool, MaxColors)
 	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x++ {
 		for y := 0; y < img.image.Bounds().Max.Y-img.yOffset; y++ {
 			rgb := img.colorAtXY(x, y)
@@ -577,19 +633,19 @@ func (img *sourceImage) setSourceColors() error {
 			}
 		}
 	}
-	cc := make([]RGB, 0, maxColors)
+	cc := make([]RGB, 0, MaxColors)
 	for rgb := range m {
 		cc = append(cc, rgb)
 	}
 	img.colors = cc
-	if len(m) > maxColors {
-		return fmt.Errorf("image %q uses %d colors, the maximum is %d.", img.sourceFilename, len(m), maxColors)
+	if len(m) > MaxColors {
+		return fmt.Errorf("image %q uses %d colors, the maximum is %d.", img.sourceFilename, len(m), MaxColors)
 	}
 	return nil
 }
 
-func (img *sourceImage) distanceAndMap(palette [maxColors]ColorInfo) (int, PaletteMap) {
-	m := make(PaletteMap, maxColors)
+func (img *sourceImage) distanceAndMap(palette [MaxColors]ColorInfo) (int, PaletteMap) {
+	m := make(PaletteMap, MaxColors)
 	totalDistance := 0
 	for _, rgb := range img.colors {
 		if _, ok := m[rgb]; !ok {
@@ -601,7 +657,7 @@ func (img *sourceImage) distanceAndMap(palette [maxColors]ColorInfo) (int, Palet
 	return totalDistance, m
 }
 
-func (r RGB) colorIndexAndDistance(palette [maxColors]ColorInfo) (byte, int) {
+func (r RGB) colorIndexAndDistance(palette [MaxColors]ColorInfo) (byte, int) {
 	distance := r.distanceTo(palette[0].RGB)
 	closestColorIndex := 0
 	for i := 0; i < len(palette); i++ {
