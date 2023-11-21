@@ -186,7 +186,7 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println("You can use sids located from $0e00-$1fff or $e000+ in the displayers.")
 	fmt.Println("More areas may be free depending on graphics type.")
-	fmt.Println("A memory usage map is shown on error and in -verbose mode.")
+	fmt.Println("A memory usage map is shown on error and in -vv (very verbose) mode.")
 	fmt.Println()
 	fmt.Println("If needed, you can relocate most sids using lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).")
 	fmt.Println()

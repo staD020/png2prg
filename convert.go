@@ -22,8 +22,6 @@ func In[S ~[]E, E comparable](s S, v E) bool {
 	return slices.Index(s, v) >= 0
 }
 
-var matchCounter int
-
 func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (rgb2bitpair PaletteMap, bitpair2c64color map[byte]byte, err error) {
 	rgb2bitpair = make(PaletteMap)
 	bitpair2c64color = make(map[byte]byte)
@@ -106,12 +104,6 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 	if len(bitpair2c64color) > len(cc) {
 		return rgb2bitpair, bitpair2c64color, nil
 	}
-
-	if img.graphicsType == multiColorBitmap && len(bitpair2c64color) < 3 {
-		// here we have at least 2 bitpairs available, it makes sense to check for allBitpairColors
-		matchCounter++
-	}
-	//	return rgb2bitpair, bitpair2c64color, nil
 
 	// fill or replace missing colors
 	for _, ci := range cc {
