@@ -1,6 +1,6 @@
-png2prg 1.3.14-dev by burg
+png2prg 1.3.15-dev by burg
 
-# PNG2PRG 1.3.14-dev by burg
+# PNG2PRG 1.3.15-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset or sprites. It will find the best matching palette
@@ -175,7 +175,7 @@ correctly.
 
 You can use sids located from $0e00-$1fff or $e000+ in the displayers.
 More areas may be free depending on graphics type.
-A memory usage map is shown on error and in -verbose mode.
+A memory usage map is shown on error and in -vv (very verbose) mode.
 
 If needed, you can relocate most sids using lft's [sidreloc](http://www.linusakesson.net/software/sidreloc/index.php).
 
@@ -265,7 +265,7 @@ tables used in the koala and hires displayers.
     	help
   -i	interlace
   -interlace
-    	interlace
+    	when you supply 2 frames, specify -interlace to treat the images as such
   -m string
     	mode
   -memprofile file
@@ -307,6 +307,8 @@ tables used in the koala and hires displayers.
   -v	verbose
   -verbose
     	verbose output
+  -vv
+    	very verbose, show memory usage map in most cases and implies -verbose
   -w int
     	workers (default 12)
   -wait-seconds int
