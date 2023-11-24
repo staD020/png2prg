@@ -522,7 +522,7 @@ func (img *sourceImage) analyzePalette() error {
 	}
 	for name, palette := range C64Palettes {
 		distance, curMap := img.distanceAndMap(palette)
-		if img.opt.Verbose {
+		if img.opt.VeryVerbose {
 			log.Printf("%q distance: %v\n", name, distance)
 		}
 		if distance < minDistance {
