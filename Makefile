@@ -18,7 +18,8 @@ FLAGSANIM=-d -v -frame-delay 8
 FLAGSNG=-d -v -no-guess
 FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,8,10,2
-TESTPIC=testdata/mcinterlace/parriot?.png
+TESTPIC=testdata/mirage_parrot.png
+TESTMCI=testdata/mcinterlace/parriot?.png
 TESTSID=testdata/Rivalry_tune_5.sid
 TESTANIM=testdata/jamesband*.png
 
@@ -66,11 +67,15 @@ readme: $(TARGET)
 	./$(TARGET) -h >readme.md 2>&1
 
 test: $(TARGET) $(TESTPIC) $(TESTSID)
-	./$(TARGET) $(FLAGS) -o q.prg -i $(TESTPIC)
+	./$(TARGET) $(FLAGS) -o q.prg -i -sid $(TESTSID) $(TESTPIC)
+	$(X64) q.prg >/dev/null
+
+testmci: $(TARGET) $(TESTMCI) $(TESTSID)
+	./$(TARGET) $(FLAGS) -o q.prg -i -sid $(TESTSID) $(TESTMCI)
 	$(X64) q.prg >/dev/null
 
 testmadonna: $(TARGET) $(TESTPIC) $(TESTSID)
-	./$(TARGET) $(FLAGS) -o q.prg -i testdata/madonna/cjam_pure_madonna.png
+	./$(TARGET) $(FLAGS) -o q.prg -i -sid testdata/madonna/holiday.sid testdata/madonna/cjam_pure_madonna.png
 	$(X64) q.prg >/dev/null
 
 testanim: $(TARGET) $(TESTANIM) $(TESTSID)
