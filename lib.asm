@@ -5,7 +5,7 @@
 }
 
 .function year() {
-	.return 2022
+	.return 2023
 }
 
 .macro vblank() {
