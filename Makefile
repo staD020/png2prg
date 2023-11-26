@@ -10,8 +10,8 @@ UPXFLAGS=--best
 LDFLAGS=-s -w
 CGO=0
 GOBUILDFLAGS=-v -trimpath
-TARGET=png2prg_linux_amd64
-ALLTARGETS=$(TARGET) png2prg_linux_arm64 png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_arm64.exe png2prg_win_x86.exe
+TARGET=png2prg
+ALLTARGETS=$(TARGET) png2prg_linux_amd64 png2prg_linux_arm64 png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_arm64.exe png2prg_win_x86.exe
 
 FLAGS=-d
 FLAGSANIM=-d -v -frame-delay 8
@@ -24,7 +24,7 @@ TESTSID=testdata/Rivalry_tune_5.sid
 TESTANIM=testdata/jamesband*.png
 
 png2prg: $(SRC) $(DISPLAYERS)
-	CGO_ENABLED=$(CGO) go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
+	CGO_ENABLED=$(CGO) go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg
 
 all: $(ALLTARGETS)
 
@@ -36,7 +36,7 @@ install: $(TARGET)
 
 displayers: $(DISPLAYERS)
 
-compress: $(TARGET).upx png2prg_darwin_amd64.upx png2prg_darwin_arm64.upx png2prg_win_amd64.exe.upx png2prg_win_x86.exe.upx
+compress: png2prg_linux_amd64.upx png2prg_linux_arm64.upx png2prg_darwin_amd64.upx png2prg_darwin_arm64.upx png2prg_win_amd64.exe.upx png2prg_win_x86.exe.upx
 
 %.prg: %.asm $(ASMLIB)
 	$(ASM) $(ASMFLAGS) $< -o $@
@@ -45,7 +45,7 @@ compress: $(TARGET).upx png2prg_darwin_amd64.upx png2prg_darwin_arm64.upx png2pr
 	$(UPX) $(UPXFLAGS) -o $@ $<
 	touch $@
 
-$(TARGET): $(SRC) $(DISPLAYERS)
+png2prg_linux_amd64: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=linux GOARCH=amd64 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
 
 png2prg_linux_arm64: $(SRC) $(DISPLAYERS)

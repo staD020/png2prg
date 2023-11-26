@@ -206,6 +206,10 @@ the displayers with KickAssembler (included in the repo).
 
     make -j
 
+Build for all common targets:
+
+    make all -j
+
 ### Compiling without Make
 
     go build ./cmd/png2prg
