@@ -216,7 +216,8 @@ In your Go project's path, go get the library:
 
     go get github.com/staD020/png2prg
 
-Typical usage could look like this. A more complex example can be found
+In essence png2prg implements the [io.WriterTo](https://pkg.go.dev/io#WriterTo) interface.
+Typical usage could look like below. A more complex example can be found
 in the [source](https://github.com/staD020/png2prg/blob/master/cmd/png2prg/main.go) of the cli tool.
 
 ```go
