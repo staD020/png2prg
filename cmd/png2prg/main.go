@@ -248,6 +248,9 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.IntVar(&opt.FrameDelay, "frame-delay", 6, "frames to wait before displaying next animation frame")
 	flag.IntVar(&opt.WaitSeconds, "wait-seconds", 0, "seconds to wait before animation starts")
 	w := int(runtime.NumCPU() / 2)
+	if w < 1 {
+		w = 1
+	}
 	flag.IntVar(&numWorkers, "w", w, "workers")
 	flag.IntVar(&numWorkers, "workers", w, "number of concurrent workers in parallel mode")
 	flag.BoolVar(&parallel, "p", false, "parallel")

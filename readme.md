@@ -1,6 +1,6 @@
-png2prg 1.3.15-dev by burg
+png2prg 1.3.16-rc1 by burg
 
-# PNG2PRG 1.3.15-dev by burg
+# PNG2PRG 1.3.16-rc1 by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset or sprites. It will find the best matching palette
@@ -187,7 +187,54 @@ in hires/koala displayers, increasing sid compatibility.
 This release contains examples with all assets included for you to test with.
 Also included are the assets of [Évoluer](https://csdb.dk/release/?id=220170) by The Sarge and Flotsam.
 
-## Changes for version 1.3
+## Install from source
+
+First [install Go 1.20 or higher](https://go.dev/dl/) and the Java Runtime Environment to
+compile the displayers and png2prg. KickAss.jar is included in this repo.
+
+Png2prg was built on Linux, building on Mac should work out of the box.
+For Windows, try out Windows Subsystem Linux (WSL), works pretty well.
+However, natively building on Windows should be easy enough, look at
+Compiling without Make below.
+
+The compiled displayer prgs are included in the repo to ease building
+and importing png2prg as a library. Java is only required to build
+the displayers with KickAssembler.
+
+### Compiling with Make (recommended)
+
+    make -j
+
+### Compiling without Make
+
+    go build ./cmd/png2prg
+
+## Install and use as library
+
+In your Go project's path, go get the library:
+
+    go get github.com/staD020/png2prg
+
+Typical usage could look like this. A more complex example can be found
+in the [source](https://github.com/staD020/png2prg/blob/master/cmd/png2prg/main.go) of the cli tool.
+
+```go
+import (
+	"fmt"
+	"io"
+	"github.com/staD020/png2prg"
+)
+
+func convertPNG(w io.Writer, png io.Reader) (int64, error) {
+	p, err := png2prg.New(png2prg.Options{}, png)
+	if err != nil {
+		return 0, fmt.Errorf("png2prg.New failed: %w", err)
+	}
+	return p.WriteTo(w)
+}
+```
+
+## Changes for version 1.4
 
  - Support for even more far-out palette ranges (thanks Perplex).
  - Now throws an error if the palette can't be detected properly, this should
@@ -202,7 +249,7 @@ Also included are the assets of [Évoluer](https://csdb.dk/release/?id=220170) b
  - Add -alt-offset flag to force screenshot offset 32, 36), used by a few
    graphicians. Though, please switch to the correct 32, 35.
  - Add -symbols flag to write symbols to a .sym file.
- - Interlace support, mcibitmap (drazlace and truepaint).
+ - Interlace support for mcibitmap (drazlace and truepaint).
  - Bugfix: allow blank images input (thanks Spider-J).
  - Allow colors not present in the image as -bitpair-colors (thanks Map).
 
