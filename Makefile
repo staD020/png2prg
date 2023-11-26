@@ -11,7 +11,7 @@ LDFLAGS=-s -w
 CGO=0
 GOBUILDFLAGS=-v -trimpath
 TARGET=png2prg
-ALLTARGETS=$(TARGET) png2prg_linux_amd64 png2prg_linux_arm64 png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_arm64.exe png2prg_win_x86.exe
+ALLTARGETS=png2prg_linux_amd64 png2prg_linux_arm64 png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_arm64.exe png2prg_win_x86.exe
 
 FLAGS=-d
 FLAGSANIM=-d -v -frame-delay 8
@@ -30,6 +30,30 @@ all: $(ALLTARGETS)
 
 bench: $(DISPLAYERS)
 	go test -bench Benchmark. -benchmem ./...
+
+dist: $(ALLTARGETS) $(TARGET) readme
+	mkdir -p dist/testdata
+	cp readme.md dist/
+	cp $(ALLTARGETS) dist/
+	cp testdata/jamesband*.png dist/testdata/
+	cp $(TESTPIC) dist/testdata/
+	cp $(TESTSID) dist/testdata/
+	cp -r testdata/evoluer dist/testdata/
+	cp -r testdata/mcinterlace dist/testdata/
+	cp -r testdata/drazlace dist/testdata/
+	cp -r testdata/madonna dist/testdata/
+	./$(TARGET) -d -q -o dist/madonna.prg -sid testdata/madonna/holiday.sid testdata/madonna/cjam_pure_madonna.png
+	./$(TARGET) -d -q -o dist/jamesband.prg -sid $(TESTSID) testdata/jamesband*.png
+	./$(TARGET) -d -q -o dist/parrot.prg -sid $(TESTSID) testdata/mirage_parrot.png
+	./$(TARGET) -d -q -o dist/evoluer.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
+	./$(TARGET) -d -q -i -o dist/stoned.prg -sid $(TESTSID) testdata/drazlace/amn_stoned_frame*.png
+	./$(TARGET) -d -q -i -o dist/zootrope.prg -sid $(TESTSID) testdata/drazlace/clone_zootrope.png
+	./$(TARGET) -d -q -i -o dist/parriot.prg -sid $(TESTSID) testdata/mcinterlace/parriot*.png
+	./$(TARGET) -d -q -i -o dist/tete.prg -sid $(TESTSID) testdata/mcinterlace/tete*.png
+	d64 -add dist/examples.d64 dist/*.prg
+	rm -f dist/*.prg
+
+.PHONY: dist readme
 
 install: $(TARGET)
 	sudo cp $(TARGET) /usr/local/bin/png2prg
@@ -107,3 +131,4 @@ testpack: $(TARGET)
 
 clean:
 	rm -f $(ALLTARGETS) png2prg q*.prg display*.prg *.exo *.dali *.upx *.sym
+	rm -rf dist
