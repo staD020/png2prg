@@ -8,7 +8,7 @@ UPX=upx
 UPXFLAGS=--best
 
 LDFLAGS=-s -w
-CGO=1
+CGO=0
 GOBUILDFLAGS=-v -trimpath
 TARGET=png2prg_linux_amd64
 ALLTARGETS=$(TARGET) png2prg_linux_arm64 png2prg_darwin_amd64 png2prg_darwin_arm64 png2prg_win_amd64.exe png2prg_win_arm64.exe png2prg_win_x86.exe
@@ -23,7 +23,8 @@ TESTMCI=testdata/mcinterlace/parriot?.png
 TESTSID=testdata/Rivalry_tune_5.sid
 TESTANIM=testdata/jamesband*.png
 
-png2prg: $(TARGET)
+png2prg: $(SRC) $(DISPLAYERS)
+	CGO_ENABLED=$(CGO) go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
 
 all: $(ALLTARGETS)
 
@@ -32,6 +33,8 @@ bench: $(DISPLAYERS)
 
 install: $(TARGET)
 	sudo cp $(TARGET) /usr/local/bin/png2prg
+
+displayers: $(DISPLAYERS)
 
 compress: $(TARGET).upx png2prg_darwin_amd64.upx png2prg_darwin_arm64.upx png2prg_win_amd64.exe.upx png2prg_win_x86.exe.upx
 
@@ -103,4 +106,4 @@ testpack: $(TARGET)
 	$(X64) zz_guess.sfx.exo >/dev/null
 
 clean:
-	rm -f $(ALLTARGETS) GEN_*.go *.prg *.exo *.dali *.upx *.sym
+	rm -f $(ALLTARGETS) png2prg q*.prg display*.prg *.exo *.dali *.upx *.sym
