@@ -189,8 +189,9 @@ Also included are the assets of [Évoluer](https://csdb.dk/release/?id=220170) b
 
 ## Install from source
 
-First [install Go 1.20 or higher](https://go.dev/dl/) and the Java Runtime Environment to
-compile the displayers and png2prg. KickAss.jar is included in this repo.
+First [install Go 1.20 or higher](https://go.dev/dl/), then:
+
+    go install github.com/staD020/png2prg/cmd/png2prg@latest
 
 Png2prg was built on Linux, building on Mac should work out of the box.
 For Windows, try out Windows Subsystem Linux (WSL), works pretty well.
@@ -199,7 +200,7 @@ Compiling without Make below.
 
 The compiled displayer prgs are included in the repo to ease building
 and importing png2prg as a library. Java is only required to build
-the displayers with KickAssembler.
+the displayers with KickAssembler (included in the repo).
 
 ### Compiling with Make (recommended)
 
