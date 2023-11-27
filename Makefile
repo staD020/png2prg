@@ -50,7 +50,8 @@ dist: $(ALLTARGETS) $(TARGET) readme
 	./$(TARGET) -d -q -i -o dist/zootrope.prg -sid $(TESTSID) testdata/drazlace/clone_zootrope.png
 	./$(TARGET) -d -q -i -o dist/parriot.prg -sid $(TESTSID) testdata/mcinterlace/parriot*.png
 	./$(TARGET) -d -q -i -o dist/tete.prg -sid $(TESTSID) testdata/mcinterlace/tete*.png
-	d64 -q -add dist/examples.d64 dist/*.prg
+	rm -f dist/examples.d64
+	d64 -add dist/examples.d64 dist/*.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
