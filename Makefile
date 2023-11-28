@@ -42,6 +42,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID) $(TESTSIDANIM)
 	cp $(TESTSID) dist/testdata/
 	cp $(TESTSID) $(TESTSIDANIM) dist/testdata/
 	cp testdata/Dutch_Breeze_Soft_and_Wet.sid dist/testdata/
+	cp testdata/Max_Headroom_preview_v2.sid dist/testdata/
 	cp -r testdata/evoluer dist/testdata/
 	cp -r testdata/mcinterlace dist/testdata/
 	cp -r testdata/drazlace dist/testdata/
@@ -53,7 +54,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID) $(TESTSIDANIM)
 	./$(TARGET) -d -q -i -o dist/1.stoned.prg -sid $(TESTSID) testdata/drazlace/amn_stoned_frame*.png
 	./$(TARGET) -d -q -i -o dist/2.zootrope.prg -sid testdata/Dutch_Breeze_Soft_and_Wet.sid testdata/drazlace/clone_zootrope.png
 	./$(TARGET) -d -q -i -o dist/3.parriot.prg -sid $(TESTSID) testdata/mcinterlace/parriot*.png
-	./$(TARGET) -d -q -i -o dist/4.tete.prg -sid $(TESTSID) testdata/mcinterlace/tete*.png
+	./$(TARGET) -d -q -i -o dist/4.tete.prg -sid testdata/Max_Headroom_preview_v2.sid testdata/mcinterlace/tete*.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/*.prg
 	rm -f dist/*.prg
