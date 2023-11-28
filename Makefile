@@ -116,20 +116,20 @@ evoluer: $(TARGET)
 
 testpack: $(TARGET)
 	./$(TARGET) $(FLAGS) -nc -np -i -o q.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_guess.sfx.exo q.prg
-	dali --sfx 2082 -o zz_guess.sfx.dali q.prg
+	exomizer sfx basic -q -o qq_guess.sfx.exo q.prg
+	dali --sfx 2082 -o qq_guess.sfx.dali q.prg
 	./$(TARGET) $(FLAGSNG) -nc -np -i -o q.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_noguess.sfx.exo q.prg
-	dali --sfx 2082 -o zz_noguess.sfx.dali q.prg
+	exomizer sfx basic -q -o qq_noguess.sfx.exo q.prg
+	dali --sfx 2082 -o qq_noguess.sfx.dali q.prg
 	./$(TARGET) $(FLAGSNG2) -nc -np -i -o q.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_noguess2.sfx.exo q.prg
-	dali --sfx 2082 -o zz_noguess2.sfx.dali q.prg
+	exomizer sfx basic -q -o qq_noguess2.sfx.exo q.prg
+	dali --sfx 2082 -o qq_noguess2.sfx.dali q.prg
 	./$(TARGET) $(FLAGSFORCE) -nc -np -i -o q.prg $(TESTPIC)
-	exomizer sfx basic -q -o zz_force_manual_colors.sfx.exo q.prg
-	dali --sfx 2082 -o zz_force_manual_colors.sfx.dali q.prg
+	exomizer sfx basic -q -o qq_force_manual_colors.sfx.exo q.prg
+	dali --sfx 2082 -o qq_force_manual_colors.sfx.dali q.prg
 	./$(TARGET) $(FLAGS) -i -o q.prg $(TESTPIC)
-	$(X64) zz_guess.sfx.exo >/dev/null
+	$(X64) qq_guess.sfx.exo >/dev/null
 
 clean:
-	rm -f $(ALLTARGETS) png2prg q*.prg display*.prg *.exo *.dali *.upx *.sym
+	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym
 	rm -rf dist
