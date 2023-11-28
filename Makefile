@@ -21,6 +21,7 @@ FLAGSFORCE=-d -v -bitpair-colors 0,8,10,2
 TESTPIC=testdata/mirage_parrot.png
 TESTMCI=testdata/mcinterlace/parriot?.png
 TESTSID=testdata/Rivalry_tune_5.sid
+TESTSIDMAD=testdata/madonna/holiday.sid
 TESTANIM=testdata/jamesband*.png
 TESTSIDANIM=testdata/Nightbreed_-_Dalezy_TRIAD.sid
 
@@ -40,18 +41,19 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID) $(TESTSIDANIM)
 	cp $(TESTPIC) dist/testdata/
 	cp $(TESTSID) dist/testdata/
 	cp $(TESTSID) $(TESTSIDANIM) dist/testdata/
+	cp testdata/Dutch_Breeze_Soft_and_Wet.sid dist/testdata/
 	cp -r testdata/evoluer dist/testdata/
 	cp -r testdata/mcinterlace dist/testdata/
 	cp -r testdata/drazlace dist/testdata/
 	cp -r testdata/madonna dist/testdata/
-	./$(TARGET) -d -q -o dist/madonna.prg -sid testdata/madonna/holiday.sid testdata/madonna/cjam_pure_madonna.png
-	./$(TARGET) -d -q -o dist/jamesband.prg -sid $(TESTSIDANIM) $(FLAGSANIM) testdata/jamesband*.png
-	./$(TARGET) -d -q -o dist/parrot.prg -sid $(TESTSID) testdata/mirage_parrot.png
-	./$(TARGET) -d -q -o dist/evoluer.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
-	./$(TARGET) -d -q -i -o dist/stoned.prg -sid $(TESTSID) testdata/drazlace/amn_stoned_frame*.png
-	./$(TARGET) -d -q -i -o dist/zootrope.prg -sid $(TESTSID) testdata/drazlace/clone_zootrope.png
-	./$(TARGET) -d -q -i -o dist/parriot.prg -sid $(TESTSID) testdata/mcinterlace/parriot*.png
-	./$(TARGET) -d -q -i -o dist/tete.prg -sid $(TESTSID) testdata/mcinterlace/tete*.png
+	./$(TARGET) -d -q -o dist/0.madonna.prg -sid $(TESTSIDMAD) testdata/madonna/cjam_pure_madonna.png
+	./$(TARGET) -d -q -o dist/5.jamesband.prg -sid $(TESTSIDANIM) $(FLAGSANIM) testdata/jamesband*.png
+	./$(TARGET) -d -q -o dist/7.parrot.prg -sid $(TESTSID) testdata/mirage_parrot.png
+	./$(TARGET) -d -q -o dist/6.evoluer.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
+	./$(TARGET) -d -q -i -o dist/1.stoned.prg -sid $(TESTSID) testdata/drazlace/amn_stoned_frame*.png
+	./$(TARGET) -d -q -i -o dist/2.zootrope.prg -sid testdata/Dutch_Breeze_Soft_and_Wet.sid testdata/drazlace/clone_zootrope.png
+	./$(TARGET) -d -q -i -o dist/3.parriot.prg -sid $(TESTSID) testdata/mcinterlace/parriot*.png
+	./$(TARGET) -d -q -i -o dist/4.tete.prg -sid $(TESTSID) testdata/mcinterlace/tete*.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/*.prg
 	rm -f dist/*.prg
@@ -104,8 +106,8 @@ testmci: $(TARGET) $(TESTMCI) $(TESTSID)
 	./$(TARGET) $(FLAGS) -o q.prg -i -sid $(TESTSID) $(TESTMCI)
 	$(X64) q.prg >/dev/null
 
-testmadonna: $(TARGET) $(TESTPIC) $(TESTSID)
-	./$(TARGET) $(FLAGS) -o q.prg -i -sid testdata/madonna/holiday.sid testdata/madonna/cjam_pure_madonna.png
+testmadonna: $(TARGET) $(TESTPIC) $(TESTSIDMAD)
+	./$(TARGET) $(FLAGS) -o q.prg -i -sid $(TESTSIDMAD) testdata/madonna/cjam_pure_madonna.png
 	$(X64) q.prg >/dev/null
 
 testanim: $(TARGET) $(TESTANIM) $(TESTSIDANIM)
