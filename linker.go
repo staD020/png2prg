@@ -49,6 +49,7 @@ func (l *Linker) Used() bool {
 }
 
 // Block blocks the memory area from start to end that must be kept free.
+// Blocked memory is not included in output, unless inbetween l.used bytes.
 func (l *Linker) Block(start, end Word) {
 	for i := start; i < end; i++ {
 		l.block[i] = true
@@ -173,6 +174,7 @@ func (l *Linker) WriteTo(w io.Writer) (n int64, err error) {
 	return n, nil
 }
 
+// WriteMemoryUsage writes memory usage map in text form to w.
 func (l *Linker) WriteMemoryUsage(w io.Writer) (n int, err error) {
 	fmt.Fprintln(w, "memory usage:")
 	for k := 0; k < 16; k++ {

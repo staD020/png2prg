@@ -40,14 +40,6 @@ const (
 	CharsetScreenRAMAddress = 0x2800
 )
 
-var TSCOptions = TSCrunch.Options{
-	PRG:     true,
-	QUIET:   true,
-	INPLACE: false,
-	Fast:    true,
-	JumpTo:  displayerJumpTo,
-}
-
 type Options struct {
 	OutFile             string
 	TargetDir           string
@@ -415,14 +407,19 @@ type converter struct {
 	Symbols []c64Symbol
 }
 
-func New(opt Options, in ...io.Reader) (*converter, error) {
+// New processes the input pngs and the returns the png2prg converter converter.
+// Returns an error if any of the images have non-supported dimensions.
+// Generally a single image is used as input. For animations an animated gif or multiple .pngs will do the trick.
+//
+// The returned converter implements the io.WriterTo interface.
+func New(opt Options, pngs ...io.Reader) (*converter, error) {
 	if opt.ForceBorderColor > 15 {
 		log.Printf("only values 0-15 are allowed, -force-border-color %d is not correct, now using default.", opt.ForceBorderColor)
 		opt.ForceBorderColor = -1
 	}
 
 	imgs := []sourceImage{}
-	for index, ir := range in {
+	for index, ir := range pngs {
 		ii, err := NewSourceImages(opt, index, ir)
 		if err != nil {
 			return nil, fmt.Errorf("NewSourceImages failed: %w", err)
@@ -497,6 +494,8 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 	return img, nil
 }
 
+// NewFromPath is the convenience New method when input images are on disk.
+// See New for detais.
 func NewFromPath(opt Options, filenames ...string) (*converter, error) {
 	in := make([]io.Reader, 0, len(filenames))
 	for _, path := range filenames {
@@ -510,6 +509,8 @@ func NewFromPath(opt Options, filenames ...string) (*converter, error) {
 	return New(opt, in...)
 }
 
+// WriteTo processes the image(s) and writes the resulting .prg to w.
+// Returns error when analysis or conversion fails.
 func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 	if len(c.images) == 0 {
 		return 0, fmt.Errorf("no images found")
@@ -612,8 +613,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 	}
 
 	if c.opt.Symbols {
-		s, ok := wt.(Symbolser)
-		if ok {
+		if s, ok := wt.(Symbolser); ok {
 			c.Symbols = append(c.Symbols, s.Symbols()...)
 		}
 		if len(c.Symbols) == 0 {
@@ -638,6 +638,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 	return n, nil
 }
 
+// WriteSymbolsTo writes c.Symbols to w in text format.
 func (c *converter) WriteSymbolsTo(w io.Writer) (n int64, err error) {
 	for _, s := range c.Symbols {
 		n2 := 0
@@ -654,6 +655,13 @@ func (c *converter) WriteSymbolsTo(w io.Writer) (n int64, err error) {
 	return n, nil
 }
 
+var TSCOptions = TSCrunch.Options{
+	PRG:    true,
+	QUIET:  true,
+	Fast:   true,
+	JumpTo: displayerJumpTo,
+}
+
 // injectCrunch drains the input io.WriterTo and returns a new TSCrunch WriterTo.
 func injectCrunch(c io.WriterTo, verbose bool) (io.WriterTo, error) {
 	buf := &bytes.Buffer{}
@@ -668,6 +676,7 @@ func injectCrunch(c io.WriterTo, verbose bool) (io.WriterTo, error) {
 }
 
 // defaultHeader returns the startaddress of a file located at BitmapAddress.
+// .prg format essentially.
 func defaultHeader() []byte {
 	return []byte{BitmapAddress & 0xff, BitmapAddress >> 8}
 }
@@ -679,6 +688,7 @@ func newHeader(t GraphicsType) []byte {
 }
 
 func zeroFill(s []byte, n int) []byte {
+	// return s[:len(s)+n]
 	return append(s, make([]byte, n)...)
 }
 
@@ -829,11 +839,12 @@ func writeData(w io.Writer, data ...[]byte) (n int64, err error) {
 	return n, nil
 }
 
+// DestinationFilename returns the filename based on Options given.
 func DestinationFilename(filename string, opt Options) (destfilename string) {
-	if len(opt.TargetDir) > 0 {
+	if opt.TargetDir != "" {
 		destfilename = filepath.Dir(opt.TargetDir+string(os.PathSeparator)) + string(os.PathSeparator)
 	}
-	if len(opt.OutFile) > 0 {
+	if opt.OutFile != "" {
 		return destfilename + opt.OutFile
 	}
 	return destfilename + filepath.Base(strings.TrimSuffix(filename, filepath.Ext(filename))+".prg")
