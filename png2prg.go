@@ -528,10 +528,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 		}
 		var rgba0, rgba1 *image.RGBA
 		if img.graphicsType == multiColorInterlaceBitmap {
-			rgba0, rgba1, err = img.SplitInterlace()
-			if err != nil {
-				return n, fmt.Errorf("img.SplitInterlace %q failed: %w", img.sourceFilename, err)
-			}
+			rgba0, rgba1 = img.SplitInterlace()
 			c.opt.ForceBorderColor = int(img.borderColor.ColorIndex)
 			if !c.opt.Quiet {
 				fmt.Println("interlaced pic was split")

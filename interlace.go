@@ -29,7 +29,7 @@ func (img *sourceImage) isMultiColorInterlace() bool {
 	return false
 }
 
-func (img *sourceImage) SplitInterlace() (*image.RGBA, *image.RGBA, error) {
+func (img *sourceImage) SplitInterlace() (*image.RGBA, *image.RGBA) {
 	new0 := image.NewRGBA(image.Rect(0, 0, FullScreenWidth, FullScreenHeight))
 	new1 := image.NewRGBA(image.Rect(0, 0, FullScreenWidth, FullScreenHeight))
 	for y := 0; y < FullScreenHeight; y++ {
@@ -44,7 +44,7 @@ func (img *sourceImage) SplitInterlace() (*image.RGBA, *image.RGBA, error) {
 			new1.Set(x+1, y, c)
 		}
 	}
-	return new0, new1, nil
+	return new0, new1
 }
 
 func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
