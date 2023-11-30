@@ -7,6 +7,7 @@ import (
 	"sort"
 )
 
+// sortColors sorts the colors by c64 colorindex.
 func sortColors(charColors PaletteMap) (cc []ColorInfo) {
 	for rgb, colorIndex := range charColors {
 		cc = append(cc, ColorInfo{RGB: rgb, ColorIndex: colorIndex})
@@ -22,6 +23,9 @@ func In[S ~[]E, E comparable](s S, v E) bool {
 	return slices.Index(s, v) >= 0
 }
 
+// multiColorIndexes return rgb2bitpair and bitpait2c64color maps.
+// It is the main function taking care of bitpair/color sorting, according to img.preferredBitpairColors.
+// forcePreferred is used with interlaced pictures.
 func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (rgb2bitpair PaletteMap, bitpair2c64color map[byte]byte, err error) {
 	rgb2bitpair = make(PaletteMap)
 	bitpair2c64color = make(map[byte]byte)
@@ -41,6 +45,7 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 	}
 
 	if forcePreferred {
+		// used for interlace
 		if len(img.preferredBitpairColors) == 0 {
 			return nil, nil, fmt.Errorf("you cannot forcePreferred without setting img.preferredBitpairColors")
 		}
@@ -123,6 +128,7 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 	return rgb2bitpair, bitpair2c64color, nil
 }
 
+// Koala converts the img to Koala and returns it.
 func (img *sourceImage) Koala() (Koala, error) {
 	k := Koala{
 		BackgroundColor: img.backgroundColor.ColorIndex,
@@ -181,6 +187,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 	return k, nil
 }
 
+// Hires converts the img to Hires and returns it.
 func (img *sourceImage) Hires() (Hires, error) {
 	h := Hires{
 		SourceFilename: img.sourceFilename,
@@ -229,6 +236,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 	return h, nil
 }
 
+// SingleColorCharset converts the img to SingleColorCharset and returns it.
 func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 	c := SingleColorCharset{
 		SourceFilename: img.sourceFilename,
@@ -350,6 +358,7 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 	return c, nil
 }
 
+// MultiColorCharset converts the img to MultiColorCharset and returns it.
 func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 	c.SourceFilename = img.sourceFilename
 	c.opt = img.opt
@@ -466,6 +475,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 	return c, nil
 }
 
+// SingleColorSprites converts the img to SingleColorSprites and returns it.
 func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 	maxX := img.width / SpriteWidth
 	maxY := img.height / SpriteHeight
@@ -551,6 +561,7 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 	return s, nil
 }
 
+// MultiColorSprites converts the img to MultiColorSprites and returns it.
 func (img *sourceImage) MultiColorSprites() (MultiColorSprites, error) {
 	s := MultiColorSprites{
 		SourceFilename: img.sourceFilename,

@@ -685,17 +685,21 @@ func defaultHeader() []byte {
 	return []byte{BitmapAddress & 0xff, BitmapAddress >> 8}
 }
 
+// newHeader returns a copy of the displayer code for GraphicsType t as a byte slice in .prg format.
 func newHeader(t GraphicsType) []byte {
 	bin := make([]byte, len(displayers[t]))
 	copy(bin, displayers[t])
 	return bin
 }
 
+// zeroFill appends n bytes to s and returns the new slice.
 func zeroFill(s []byte, n int) []byte {
 	// return s[:len(s)+n]
 	return append(s, make([]byte, n)...)
 }
 
+// injectSIDHeader injects the sid's start song and init/play addresses in predefined locations.
+// Must be called *after* displayer code is linked.
 func injectSIDHeader(header []byte, s *sid.SID) []byte {
 	startSong := s.StartSong().LowByte()
 	if startSong > 0 {
@@ -711,6 +715,8 @@ func injectSIDHeader(header []byte, s *sid.SID) []byte {
 	return header
 }
 
+// injectSIDLinker injects the sid's start song and init/play addresses in predefined locations in the linker.
+// Must be called *after* displayer code is linked.
 func injectSIDLinker(l *Linker, s *sid.SID) {
 	startSong := s.StartSong().LowByte()
 	if startSong > 0 {
