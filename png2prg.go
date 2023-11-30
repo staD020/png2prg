@@ -429,6 +429,9 @@ func New(opt Options, pngs ...io.Reader) (*converter, error) {
 	return &converter{images: imgs, opt: opt}, nil
 }
 
+// NewSourceImages decodes r into one or more sourceImages and returns them.
+// Also validates the resolution of the images.
+// Generally imgs contain 1 image, unless an animated .gif was supplied in r.
 func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, err error) {
 	path := fmt.Sprintf("png2prg_%02d", index)
 	if n, isNamer := r.(interface{ Name() string }); isNamer {
@@ -479,6 +482,7 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 	return imgs, nil
 }
 
+// NewSourceImage returns a new sourceImage after bounds check.
 func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, err error) {
 	img = sourceImage{
 		sourceFilename: fmt.Sprintf("png2prg_%02d", index),
