@@ -43,7 +43,7 @@ const (
 	CharsetScreenRAMAddress = 0x2800
 )
 
-// An Options contains all settings to be used for an instance of png2prg.
+// An Options struct contains all settings to be used for an instance of png2prg.
 // The default empty/false settings are in general fine.
 // You may want to set Quiet to suppress logging to stdout and Display to true if you want include the displayer.
 type Options struct {
@@ -156,6 +156,7 @@ func (b bitpairColors) String() (s string) {
 	return s
 }
 
+// A PalletMap contains mapping from RGB colors to their c64 colorindexes.
 type PaletteMap map[RGB]byte
 
 func (m PaletteMap) RGB(c64Color byte) RGB {
