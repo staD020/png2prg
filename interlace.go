@@ -53,7 +53,7 @@ func (img *sourceImage) SplitInterlace() (*image.RGBA, *image.RGBA) {
 }
 
 // WriteInterlaceTo converts the 2 images and writes the resulting .prg to w.
-func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
+func (c *Converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	if len(c.images) != 2 {
 		return n, fmt.Errorf("interlaces requires exactly 2 images at this stage, not %d", len(c.images))
 	}

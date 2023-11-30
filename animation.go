@@ -20,7 +20,7 @@ const (
 )
 
 // WriteAnimationTo processes all images and writes the resulting .prg to w.
-func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
+func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	var kk []Koala
 	var hh []Hires
 	var scSprites []SingleColorSprites
@@ -181,7 +181,7 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 }
 
 // writeAnimationDisplayerTo processes the images and writes the .prg including displayer to w.
-func (c *converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) (n int64, err error) {
+func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) (n int64, err error) {
 	buf := &bytes.Buffer{}
 	switch {
 	case len(kk) > 0:

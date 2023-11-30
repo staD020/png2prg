@@ -1,5 +1,5 @@
 // Package png2prg provides png/gif/jpg to c64 .prg conversion.
-// A single png2prg instance cannot be used concurrently,
+// A single png2prg instance cannot be used concurrently, but each instance is standalone, many can be used in parallel.
 
 package png2prg
 
@@ -408,18 +408,19 @@ func init() {
 	displayers[multiColorInterlaceBitmap] = mciBitmapDisplay
 }
 
-type converter struct {
+// A Converter implements the io.WriterTo interface.
+type Converter struct {
 	opt     Options
 	images  []sourceImage
 	Symbols []c64Symbol
 }
 
-// New processes the input pngs and the returns the png2prg converter converter.
+// New processes the input pngs and the returns the Converter.
 // Returns an error if any of the images have non-supported dimensions.
 // Generally a single image is used as input. For animations an animated gif or multiple .pngs will do the trick.
 //
-// The returned converter implements the io.WriterTo interface.
-func New(opt Options, pngs ...io.Reader) (*converter, error) {
+// The returned Converter implements the io.WriterTo interface.
+func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 	if opt.ForceBorderColor > 15 {
 		log.Printf("only values 0-15 are allowed, -force-border-color %d is not correct, now using default.", opt.ForceBorderColor)
 		opt.ForceBorderColor = -1
@@ -433,7 +434,7 @@ func New(opt Options, pngs ...io.Reader) (*converter, error) {
 		}
 		imgs = append(imgs, ii...)
 	}
-	return &converter{images: imgs, opt: opt}, nil
+	return &Converter{images: imgs, opt: opt}, nil
 }
 
 // NewSourceImages decodes r into one or more sourceImages and returns them.
@@ -507,7 +508,7 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 
 // NewFromPath is the convenience New method when input images are on disk.
 // See New for detais.
-func NewFromPath(opt Options, filenames ...string) (*converter, error) {
+func NewFromPath(opt Options, filenames ...string) (*Converter, error) {
 	in := make([]io.Reader, 0, len(filenames))
 	for _, path := range filenames {
 		f, err := os.Open(path)
@@ -522,7 +523,7 @@ func NewFromPath(opt Options, filenames ...string) (*converter, error) {
 
 // WriteTo processes the image(s) and writes the resulting .prg to w.
 // Returns error when analysis or conversion fails.
-func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
+func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 	if len(c.images) == 0 {
 		return 0, fmt.Errorf("no images found")
 	}
@@ -650,7 +651,7 @@ func (c *converter) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 // WriteSymbolsTo writes c.Symbols to w in text format.
-func (c *converter) WriteSymbolsTo(w io.Writer) (n int64, err error) {
+func (c *Converter) WriteSymbolsTo(w io.Writer) (n int64, err error) {
 	for _, s := range c.Symbols {
 		n2 := 0
 		if s.value < 16 {
