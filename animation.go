@@ -19,6 +19,7 @@ const (
 	hiresAnimationStart = 0x4400
 )
 
+// WriteAnimationTo processes all images and writes the resulting .prg to w.
 func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	var kk []Koala
 	var hh []Hires
@@ -179,6 +180,7 @@ func (c *converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	return n, fmt.Errorf("handleAnimation %q failed: no frames written", imgs[0].sourceFilename)
 }
 
+// writeAnimationDisplayerTo processes the images and writes the .prg including displayer to w.
 func (c *converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites) (n int64, err error) {
 	buf := &bytes.Buffer{}
 	switch {
@@ -259,6 +261,8 @@ func (c SingleColorChar) Bytes() (buf []byte) {
 	return append(buf, c.ScreenColor)
 }
 
+// processFramesOfChars creates a slice of byteslices, where each byteslice contains a frame of chunks in animation format.
+// See readme for details on format.
 func processFramesOfChars(opt Options, frames [][]Char) ([][]byte, error) {
 	if len(frames) < 2 {
 		return nil, fmt.Errorf("insufficient number of images %d < 2", len(frames))
@@ -306,6 +310,9 @@ func processFramesOfChars(opt Options, frames [][]Char) ([][]byte, error) {
 	return prgs, nil
 }
 
+// processAnimation extracts the differences between the various imgs per char (single or multicolor).
+// returns the converted animation in slices of byteslices, where each byteslice contains a frame of chunks in animation format.
+// See readme for details on format.
 func processAnimation(opt Options, imgs []Charer) ([][]byte, error) {
 	if len(imgs) < 2 {
 		return nil, fmt.Errorf("insufficient number of frames %d < 2", len(imgs))
@@ -335,6 +342,7 @@ func processAnimation(opt Options, imgs []Charer) ([][]byte, error) {
 	return processFramesOfChars(opt, charFrames)
 }
 
+// WriteKoalaDisplayAnimTo processes kk and writes the converted animation and displayer to w.
 func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	bgBorder := kk[0].BackgroundColor | kk[0].BorderColor<<4
 	opt := kk[0].opt
@@ -413,6 +421,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 //			d800col					1 byte
 // total bytes: 5 + 10 * charcount
 
+// WriteHiresDisplayAnimTo processes hh and writes the converted animation and displayer to w.
 func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	opt := hh[0].opt
 	frames := make([]Charer, len(hh))
@@ -486,6 +495,7 @@ type chunk struct {
 	charBytes []byte
 }
 
+// newChunk returns a new empty chunk starting at charIndex.
 func newChunk(charIndex int) chunk {
 	return chunk{
 		charIndex: charIndex,
@@ -510,6 +520,7 @@ func (c *chunk) String() string {
 	return fmt.Sprintf("chunk charindex: %d charcount %d bitmap: $%x char: $%x", c.charIndex, c.charCount, int(c.bitmapHi)*256+int(c.bitmapLo), int(c.charHi)*256+int(c.charLo))
 }
 
+// Char returns the Char at index charIndex.
 func (k Koala) Char(charIndex int) Char {
 	c := MultiColorChar{
 		CharIndex:       charIndex,
@@ -523,6 +534,7 @@ func (k Koala) Char(charIndex int) Char {
 	return c
 }
 
+// Char returns the Char at index charIndex.
 func (h Hires) Char(charIndex int) Char {
 	c := SingleColorChar{
 		CharIndex:   charIndex,

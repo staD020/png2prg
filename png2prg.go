@@ -1,3 +1,6 @@
+// Package png2prg provides png/gif/jpg to c64 .prg conversion.
+// A single png2prg instance cannot be used concurrently,
+
 package png2prg
 
 import (
@@ -40,6 +43,9 @@ const (
 	CharsetScreenRAMAddress = 0x2800
 )
 
+// An Options contains all settings to be used for an instance of png2prg.
+// The default empty/false settings are in general fine.
+// You may want to set Quiet to suppress logging to stdout and Display to true if you want include the displayer.
 type Options struct {
 	OutFile             string
 	TargetDir           string
@@ -83,6 +89,7 @@ func (c ColorInfo) String() string {
 	return fmt.Sprintf("{%d, %s},", c.ColorIndex, c.RGB)
 }
 
+// A GraphicsType represents a supported c64 graphics type.
 type GraphicsType byte
 
 const (
