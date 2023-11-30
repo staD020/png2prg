@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// setPreferredBitpairColors sets img.preferredBitpairColors according to v in format "0,1,6,7".
 func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 	if v == "" {
 		return nil
@@ -22,6 +23,7 @@ func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 	return nil
 }
 
+// parseBitPairColors parses the commandline -bitpair-colors string and returns a byte-slice of colors.
 func parseBitPairColors(bp string) ([]byte, error) {
 	var result []byte
 	for _, v := range strings.Split(bp, ",") {
@@ -37,6 +39,8 @@ func parseBitPairColors(bp string) ([]byte, error) {
 	return result, nil
 }
 
+// checkBounds confirms img width and height.
+// Returns error if requirements aren't met.
 func (img *sourceImage) checkBounds() error {
 	img.xOffset, img.yOffset = img.image.Bounds().Min.X, img.image.Bounds().Min.Y
 	img.width, img.height = img.image.Bounds().Max.X-img.xOffset, img.image.Bounds().Max.Y-img.yOffset
@@ -77,10 +81,12 @@ func (img *sourceImage) checkBounds() error {
 	return fmt.Errorf("image is not %dx%d, %dx%d or x*%d x y*%d pixels, but %d x %d pixels", FullScreenWidth, FullScreenHeight, ViceFullScreenWidth, ViceFullScreenHeight, SpriteWidth, SpriteHeight, img.width, img.height)
 }
 
+// hasSpriteDimensions returns true if the img is in sprite dimensions.
 func (img *sourceImage) hasSpriteDimensions() bool {
 	return (img.width%SpriteWidth == 0) && (img.height%SpriteHeight == 0)
 }
 
+// analyze validates the image and guesses img.graphicsType, etc.
 func (img *sourceImage) analyze() (err error) {
 	if err = img.analyzePalette(); err != nil {
 		return fmt.Errorf("analyzePalette failed: %w", err)
@@ -148,6 +154,7 @@ func (img *sourceImage) analyze() (err error) {
 	return nil
 }
 
+// analyzeSprites validates the image and guesses img.graphicsType, etc.
 func (img *sourceImage) analyzeSprites() error {
 	if img.width/SpriteWidth == 0 || img.height/SpriteHeight == 0 {
 		return fmt.Errorf("%d X-sprites x %d Y-sprites: cant have 0 sprites", img.width/SpriteWidth, img.height/SpriteHeight)
@@ -185,6 +192,7 @@ func (img *sourceImage) analyzeSprites() error {
 	return nil
 }
 
+// guessPreferredBitpairColors guesses and sets img.preferredBitpairColors.
 func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColors [MaxColors]int) {
 	if len(img.preferredBitpairColors) >= wantedMaxColors {
 		return
@@ -248,49 +256,47 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 	}
 }
 
-func (img *sourceImage) countSpriteColors() (int, []byte, [MaxColors]int) {
+// countSpriteColors returns color statistics.
+func (img *sourceImage) countSpriteColors() (numColors int, usedColors []byte, sumColors [MaxColors]int) {
 	m := img.palette
-	sum := [MaxColors]int{}
-
 	for y := 0; y < img.height; y++ {
 		for x := 0; x < img.width; x++ {
 			rgb := img.colorAtXY(x, y)
 			if ci, ok := img.palette[rgb]; ok {
-				sum[ci]++
+				sumColors[ci]++
 				continue
 			}
 			panic("countSpriteColors: this should never happen")
 		}
 	}
-	ci := []byte{}
 	for _, v := range img.palette {
-		ci = append(ci, v)
+		usedColors = append(usedColors, v)
 	}
-	sort.Slice(ci, func(i, j int) bool {
-		return ci[i] < ci[j]
+	sort.Slice(usedColors, func(i, j int) bool {
+		return usedColors[i] < usedColors[j]
 	})
-	return len(m), ci, sum
+	return len(m), usedColors, sumColors
 }
 
-func (img *sourceImage) countColors() (int, []byte, [MaxColors]int) {
+// countColors returns color statistics.
+func (img *sourceImage) countColors() (numColors int, usedColors []byte, sumColors [MaxColors]int) {
 	m := make(PaletteMap, MaxColors)
-	var sum [MaxColors]int
 	for i := range img.charColors {
 		for rgb, colorIndex := range img.charColors[i] {
 			m[rgb] = colorIndex
-			sum[colorIndex]++
+			sumColors[colorIndex]++
 		}
 	}
-	ci := []byte{}
 	for _, v := range m {
-		ci = append(ci, v)
+		usedColors = append(usedColors, v)
 	}
-	sort.Slice(ci, func(i, j int) bool {
-		return ci[i] < ci[j]
+	sort.Slice(usedColors, func(i, j int) bool {
+		return usedColors[i] < usedColors[j]
 	})
-	return len(m), ci, sum
+	return len(m), usedColors, sumColors
 }
 
+// maxColorsPerChar finds the char with the most colors and returns the color count and PalletMap.
 func (img *sourceImage) maxColorsPerChar() (max int, m PaletteMap) {
 	for i := range img.charColors {
 		if len(img.charColors[i]) > max {
@@ -301,6 +307,7 @@ func (img *sourceImage) maxColorsPerChar() (max int, m PaletteMap) {
 	return max, m
 }
 
+// findBackgroundColorCandidates iterates over all chars with 4 colors and sets the common color(s) in img.backgroundCandidates.
 func (img *sourceImage) findBackgroundColorCandidates() {
 	backgroundCharColors := []PaletteMap{}
 	for _, v := range img.charColors {
@@ -339,6 +346,9 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 	return
 }
 
+// findBackgroundColor figures out the background color (forced or detected) and checks if the background color is possible.
+// It sets img.backgroundColor to the correct color, which may differ from what was wanted if that color is not possible.
+// returns error if no background color is found or possible.
 func (img *sourceImage) findBackgroundColor() error {
 	var sumColors [MaxColors]int
 	isSprites := img.graphicsType == singleColorSprites || img.graphicsType == multiColorSprites
@@ -410,6 +420,8 @@ func (img *sourceImage) findBackgroundColor() error {
 	return fmt.Errorf("background color not found")
 }
 
+// findBorderColor sets img.borderColor to opt.ForceBorderColor or detects it if a vice default screenshot is used.
+// returns error if the border color is not found.
 func (img *sourceImage) findBorderColor() error {
 	if img.opt.ForceBorderColor >= 0 && img.opt.ForceBorderColor < MaxColors {
 		for rgb, ci := range img.palette {
@@ -443,6 +455,7 @@ func (img *sourceImage) findBorderColor() error {
 	return fmt.Errorf("border color not found")
 }
 
+// makeCharColors populates img.charColors, containing the colors used in each char.
 func (img *sourceImage) makeCharColors() error {
 	forceBgCol := -1
 	if len(img.preferredBitpairColors) > 0 {
@@ -488,6 +501,7 @@ func (img *sourceImage) makeCharColors() error {
 	return nil
 }
 
+// colorMapFromChar returns the colors present it the specific char.
 func (img *sourceImage) colorMapFromChar(char int) PaletteMap {
 	charColors := make(PaletteMap, MaxColors)
 	x, y := xyFromChar(char)
@@ -502,11 +516,13 @@ func (img *sourceImage) colorMapFromChar(char int) PaletteMap {
 	return charColors
 }
 
+// colorAtXY returns the RGB color at x,y coordinates.
 func (img *sourceImage) colorAtXY(x, y int) RGB {
 	r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
 	return RGB{byte(r), byte(g), byte(b)}
 }
 
+// xyFromChar returns the x and y coordinates for the given char.
 func xyFromChar(i int) (int, int) {
 	return 8*i - (FullScreenWidth * int(math.Floor(float64(i/40)))),
 		8 * int(math.Floor(float64(i/40)))
@@ -568,6 +584,7 @@ OUTER:
 	return nil
 }
 
+// setSourceColors parses the image and sets img.colors.
 func (img *sourceImage) setSourceColors() error {
 	m := make(map[RGB]bool, MaxColors)
 	for x := 0; x < img.image.Bounds().Max.X-img.xOffset; x++ {
@@ -589,9 +606,10 @@ func (img *sourceImage) setSourceColors() error {
 	return nil
 }
 
-func (img *sourceImage) distanceAndMap(palette [MaxColors]ColorInfo) (int, PaletteMap) {
-	m := make(PaletteMap, MaxColors)
-	totalDistance := 0
+// distanceAndMap calculates the total colordistance of the image colors compared to the input palette.
+// It returns the totalDistance and PaletteMap.
+func (img *sourceImage) distanceAndMap(palette [MaxColors]ColorInfo) (totalDistance int, m PaletteMap) {
+	m = make(PaletteMap, MaxColors)
 	for _, rgb := range img.colors {
 		if _, ok := m[rgb]; !ok {
 			d := 0
@@ -602,22 +620,22 @@ func (img *sourceImage) distanceAndMap(palette [MaxColors]ColorInfo) (int, Palet
 	return totalDistance, m
 }
 
-func (r RGB) colorIndexAndDistance(palette [MaxColors]ColorInfo) (byte, int) {
-	distance := r.distanceTo(palette[0].RGB)
-	closestColorIndex := 0
+// colorIndexAndDistance finds the closest color from the palette.
+func (r RGB) colorIndexAndDistance(palette [MaxColors]ColorInfo) (closestColorIndex byte, distance int) {
+	distance = r.distanceTo(palette[0].RGB)
 	for i := 0; i < len(palette); i++ {
 		d := r.distanceTo(palette[i].RGB)
 		if d < distance {
 			distance = d
-			closestColorIndex = i
+			closestColorIndex = byte(i)
 		}
 	}
-	return byte(closestColorIndex), distance
+	return closestColorIndex, distance
 }
 
+// distanceTo returns the absolute difference in r and r2.
 func (r RGB) distanceTo(r2 RGB) int {
-	dr := int(math.Abs(float64(r.R) - float64(r2.R)))
-	dg := int(math.Abs(float64(r.G) - float64(r2.G)))
-	db := int(math.Abs(float64(r.B) - float64(r2.B)))
-	return dr + dg + db
+	return int(math.Abs(float64(r.R)-float64(r2.R))) +
+		int(math.Abs(float64(r.G)-float64(r2.G))) +
+		int(math.Abs(float64(r.B)-float64(r2.B)))
 }
