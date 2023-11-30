@@ -11,6 +11,8 @@ import (
 	"github.com/staD020/sid"
 )
 
+// drazlace examples:
+//
 // https://csdb.dk/release/?id=3961 zootrope by clone/wd
 // https://csdb.dk/release/?id=9863 bubbling panda
 // https://csdb.dk/release/?id=2118 madonna by electric (herb's shot)
@@ -18,6 +20,8 @@ import (
 // http://unusedino.de/ec64/technical/aay/c64/gfxdrl0.htm
 // https://codebase64.org/doku.php?id=base:c64_grafix_files_specs_list_v0.03
 
+// isMultiColorInterlace does a real simple check for hires pixels.
+// returns true if a mismatch of colors is detected on even/odd pixels.
 func (img *sourceImage) isMultiColorInterlace() bool {
 	for y := 0; y < FullScreenHeight; y++ {
 		for x := 0; x < FullScreenWidth; x += 2 {
@@ -29,6 +33,7 @@ func (img *sourceImage) isMultiColorInterlace() bool {
 	return false
 }
 
+// SplitInterlace splits the img by even and odd pixels into 2 multicolor images.
 func (img *sourceImage) SplitInterlace() (*image.RGBA, *image.RGBA) {
 	new0 := image.NewRGBA(image.Rect(0, 0, FullScreenWidth, FullScreenHeight))
 	new1 := image.NewRGBA(image.Rect(0, 0, FullScreenWidth, FullScreenHeight))
@@ -47,6 +52,7 @@ func (img *sourceImage) SplitInterlace() (*image.RGBA, *image.RGBA) {
 	return new0, new1
 }
 
+// WriteInterlaceTo converts the 2 images and writes the resulting .prg to w.
 func (c *converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	if len(c.images) != 2 {
 		return n, fmt.Errorf("interlaces requires exactly 2 images at this stage, not %d", len(c.images))

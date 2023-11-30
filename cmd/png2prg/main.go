@@ -79,6 +79,9 @@ func main() {
 	}
 }
 
+// processAsOne converts the filenames as single entity, this may be 2 images for interlace and 2 or more for animations.
+// It reads the files(s) from filesystem and stores the resulting .prg.
+// returns error on failure.
 func processAsOne(opt *png2prg.Options, filenames ...string) error {
 	opt.OutFile = png2prg.DestinationFilename(filenames[0], *opt)
 	opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
@@ -123,15 +126,18 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 	return nil
 }
 
+// processInParallel processes all filenames in parallel.
+// It starts the workers and feeds filenames to them for processing.
+// The function returns when all jobs are finished.
 func processInParallel(opt *png2prg.Options, filenames ...string) error {
-	wg := &sync.WaitGroup{}
-	numWorkers := numWorkers
-	if numWorkers > len(filenames) {
-		numWorkers = len(filenames)
+	num := numWorkers
+	if num > len(filenames) {
+		num = len(filenames)
 	}
-	jobs := make(chan string, numWorkers)
-	wg.Add(numWorkers)
-	for i := 1; i <= numWorkers; i++ {
+	jobs := make(chan string, num)
+	wg := &sync.WaitGroup{}
+	wg.Add(num)
+	for i := 1; i <= num; i++ {
 		go worker(i, *opt, wg, jobs)
 	}
 	defer func() {
@@ -139,7 +145,7 @@ func processInParallel(opt *png2prg.Options, filenames ...string) error {
 		wg.Wait()
 	}()
 	if !opt.Quiet {
-		fmt.Printf("started %d workers\n", numWorkers)
+		fmt.Printf("started %d workers\n", num)
 	}
 
 	for i, filename := range filenames {
@@ -166,6 +172,9 @@ func writeMemProfile(path string) error {
 	return pprof.WriteHeapProfile(f)
 }
 
+// worker runs one worker to process incoming conversion jobs.
+// The caller is expected to start 1 or more workers to process jobs in parallel.
+// The caller is also expected to close(jobs) when done and wait for wg.Wait().
 func worker(i int, opt png2prg.Options, wg *sync.WaitGroup, jobs <-chan string) {
 	defer wg.Done()
 	for filename := range jobs {
@@ -179,6 +188,8 @@ func worker(i int, opt png2prg.Options, wg *sync.WaitGroup, jobs <-chan string) 
 	}
 }
 
+// expandWildcards searches all filenames for ? and * characters and manually finds matching files on the filesystem.
+// It skips matching directories and does not recursively search them.
 func expandWildcards(filenames []string) (result []string, err error) {
 	for _, filename := range filenames {
 		if !strings.ContainsAny(filename, "?*") {
