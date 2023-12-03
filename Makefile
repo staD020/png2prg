@@ -45,7 +45,8 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp testdata/Dutch_Breeze_Soft_and_Wet.sid dist/testdata/
 	cp testdata/Max_Headroom_preview_v2.sid dist/testdata/
 	cp -r testdata/evoluer dist/testdata/
-	cp -r testdata/mcinterlace dist/testdata/
+	mkdir -p dist/testdata/mcinterlace
+	cp -r testdata/mcinterlace/*.png dist/testdata/mcinterlace/
 	cp -r testdata/drazlace dist/testdata/
 	cp -r testdata/madonna dist/testdata/
 	./$(TARGET) -d -q -o dist/0.madonna.prg -sid $(TESTSIDMAD) testdata/madonna/cjam_pure_madonna.png
