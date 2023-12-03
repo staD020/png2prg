@@ -119,7 +119,7 @@ func (l *Linker) WritePrg(prg []byte) (n int, err error) {
 	return l.Write(prg[2:])
 }
 
-// EndAddress returns the memory location of the first used byte.
+// StartAddress returns the memory address of the first used byte.
 func (l *Linker) StartAddress() Word {
 	for i := Word(0); i <= MaxMemory; i++ {
 		if l.used[i] {
@@ -129,7 +129,7 @@ func (l *Linker) StartAddress() Word {
 	return MaxMemory
 }
 
-// EndAddress returns the memory location of the last used byte + 1.
+// EndAddress returns the memory address of the last used byte + 1.
 func (l *Linker) EndAddress() Word {
 	for i := Word(MaxMemory); i >= 0; i-- {
 		if l.used[i] {
