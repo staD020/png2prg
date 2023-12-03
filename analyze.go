@@ -595,11 +595,10 @@ func (img *sourceImage) setSourceColors() error {
 			}
 		}
 	}
-	cc := make([]RGB, 0, MaxColors)
+	img.colors = make([]RGB, 0, MaxColors)
 	for rgb := range m {
-		cc = append(cc, rgb)
+		img.colors = append(img.colors, rgb)
 	}
-	img.colors = cc
 	if len(m) > MaxColors {
 		return fmt.Errorf("image %q uses %d colors, the maximum is %d.", img.sourceFilename, len(m), MaxColors)
 	}
