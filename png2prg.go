@@ -430,19 +430,18 @@ type Converter struct {
 // The returned Converter implements the io.WriterTo interface.
 func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 	if opt.ForceBorderColor > 15 {
-		log.Printf("only values 0-15 are allowed, -force-border-color %d is not correct, now using default.", opt.ForceBorderColor)
+		log.Printf("-force-border-color %d is not correct, only values 0-15 are allowed, now using default.", opt.ForceBorderColor)
 		opt.ForceBorderColor = -1
 	}
-
-	imgs := []sourceImage{}
+	c := &Converter{opt: opt}
 	for index, ir := range pngs {
 		ii, err := NewSourceImages(opt, index, ir)
 		if err != nil {
-			return nil, fmt.Errorf("NewSourceImages failed: %w", err)
+			return c, fmt.Errorf("NewSourceImages failed: %w", err)
 		}
-		imgs = append(imgs, ii...)
+		c.images = append(c.images, ii...)
 	}
-	return &Converter{images: imgs, opt: opt}, nil
+	return c, nil
 }
 
 // NewSourceImages decodes r into one or more sourceImages and returns them.
