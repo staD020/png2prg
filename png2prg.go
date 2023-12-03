@@ -409,6 +409,13 @@ func init() {
 	displayers[multiColorInterlaceBitmap] = mciBitmapDisplay
 }
 
+// newHeader returns a copy of the displayer code for GraphicsType t as a byte slice in .prg format.
+func (t GraphicsType) newHeader() []byte {
+	bin := make([]byte, len(displayers[t]))
+	copy(bin, displayers[t])
+	return bin
+}
+
 // A Converter implements the io.WriterTo interface.
 type Converter struct {
 	opt     Options
@@ -694,13 +701,6 @@ func defaultHeader() []byte {
 	return []byte{BitmapAddress & 0xff, BitmapAddress >> 8}
 }
 
-// newHeader returns a copy of the displayer code for GraphicsType t as a byte slice in .prg format.
-func newHeader(t GraphicsType) []byte {
-	bin := make([]byte, len(displayers[t]))
-	copy(bin, displayers[t])
-	return bin
-}
-
 // zeroFill appends n bytes to s and returns the new slice.
 func zeroFill(s []byte, n int) []byte {
 	// return s[:len(s)+n]
@@ -757,7 +757,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	}
 	link.Block(0x4800, 0x8e50)
 
-	if _, err = link.WritePrg(newHeader(multiColorBitmap)); err != nil {
+	if _, err = link.WritePrg(multiColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
 	if k.opt.IncludeSID == "" {
@@ -792,7 +792,7 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	}
 	link.Block(0x4800, 0x6b29)
 
-	if _, err = link.WritePrg(newHeader(singleColorBitmap)); err != nil {
+	if _, err = link.WritePrg(singleColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
 	if h.opt.IncludeSID == "" {
@@ -815,7 +815,7 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if c.opt.Display {
-		header = newHeader(multiColorCharset)
+		header = multiColorCharset.newHeader()
 	}
 	return writeData(w, header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor})
 }
@@ -823,7 +823,7 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if c.opt.Display {
-		header = newHeader(singleColorCharset)
+		header = singleColorCharset.newHeader()
 	}
 	return writeData(w, header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor})
 }
@@ -831,7 +831,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if s.opt.Display {
-		header = newHeader(singleColorSprites)
+		header = singleColorSprites.newHeader()
 		header = append(header, s.Columns, s.Rows, s.BackgroundColor, s.SpriteColor)
 	}
 	return writeData(w, header, s.Bitmap[:])
@@ -840,7 +840,7 @@ func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 func (s MultiColorSprites) WriteTo(w io.Writer) (n int64, err error) {
 	header := defaultHeader()
 	if s.opt.Display {
-		header = newHeader(multiColorSprites)
+		header = multiColorSprites.newHeader()
 		header = append(header, s.Columns, s.Rows, s.BackgroundColor, s.D025Color, s.SpriteColor, s.D026Color)
 	}
 	return writeData(w, header, s.Bitmap[:])
