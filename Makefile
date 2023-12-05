@@ -57,6 +57,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -i -o dist/2.zootrope.prg -sid testdata/Dutch_Breeze_Soft_and_Wet.sid testdata/drazlace/clone_zootrope.png
 	./$(TARGET) -d -q -i -o dist/3.parriot.prg -sid $(TESTSID2) testdata/mcinterlace/parriot*.png
 	./$(TARGET) -d -q -i -o dist/4.tete.prg -sid testdata/Max_Headroom_preview_v2.sid testdata/mcinterlace/tete*.png
+	./$(TARGET) -d -q -i -o dist/8.kuppa2.prg -sid testdata/drazlace/sanxion.sid testdata/drazlace/electric_kuppa2_frame*.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/*.prg
 	rm -f dist/*.prg
