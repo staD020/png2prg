@@ -450,7 +450,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		}
 	}
 	if !opt.Quiet {
-		fmt.Printf("memory usage for picture: 0x%04x - %s\n", BitmapAddress, link.EndAddress())
+		fmt.Printf("memory usage for picture: %#04x - %s\n", BitmapAddress, link.EndAddress())
 	}
 
 	link.SetCursor(hiresAnimationStart)
@@ -463,8 +463,8 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		return n, fmt.Errorf("link.Write error: %w", err)
 	}
 	if !opt.Quiet {
-		fmt.Printf("memory usage for animations: 0x%04x - %s\n", hiresAnimationStart, link.EndAddress())
-		fmt.Printf("memory usage for generated fadecode: 0x%04x - 0x%04x\n", hiresFadePassStart, 0xcfff)
+		fmt.Printf("memory usage for animations: %#04x - %s\n", hiresAnimationStart, link.EndAddress())
+		fmt.Printf("memory usage for generated fadecode: %#04x - %#04x\n", hiresFadePassStart, 0xcfff)
 	}
 
 	if opt.IncludeSID != "" {

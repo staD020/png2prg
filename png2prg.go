@@ -76,7 +76,7 @@ type RGB struct {
 }
 
 func (r RGB) String() string {
-	return fmt.Sprintf("RGB{0x%02x, 0x%02x, 0x%02x}", r.R, r.G, r.B)
+	return fmt.Sprintf("RGB{%#02x, %#02x, %#02x}", r.R, r.G, r.B)
 }
 
 type ColorInfo struct {

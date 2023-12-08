@@ -12,7 +12,7 @@ func NewWord(bLo, bHi byte) Word {
 	return Word(uint16(bHi)<<8 + uint16(bLo))
 }
 func (w Word) String() string {
-	return fmt.Sprintf("0x%04x", uint16(w))
+	return fmt.Sprintf("%#04x", uint16(w))
 }
 func (w Word) Low() byte {
 	return byte(w & 0xff)
@@ -199,7 +199,7 @@ func (l *Linker) WriteMemoryUsage(w io.Writer) (n int, err error) {
 				s += "."
 			}
 		}
-		m, err := fmt.Fprintf(w, "0x%04x: %s\n", k*0x1000, s)
+		m, err := fmt.Fprintf(w, "%#04x: %s\n", k*0x1000, s)
 		n += m
 		if err != nil {
 			return n, err
