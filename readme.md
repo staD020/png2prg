@@ -1,5 +1,3 @@
-png2prg 1.4 by burg
-
 # PNG2PRG 1.4 by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
