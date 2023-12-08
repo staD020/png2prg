@@ -365,8 +365,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		return n, err
 	}
 	link.Block(koalaFadePassStart, 0xd000)
-	link.SetByte(0x820, byte(opt.FrameDelay))
-	link.SetByte(0x821, byte(opt.WaitSeconds))
+	link.SetByte(0x820, byte(opt.FrameDelay), byte(opt.WaitSeconds))
 	if !opt.Quiet {
 		fmt.Printf("memory usage for displayer code: %s - %s\n", link.StartAddress(), link.EndAddress())
 	}
@@ -438,8 +437,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		return n, fmt.Errorf("link.WritePrg error: %w", err)
 	}
 	link.Block(hiresFadePassStart, 0xd000)
-	link.SetByte(0x820, byte(opt.FrameDelay))
-	link.SetByte(0x821, byte(opt.WaitSeconds))
+	link.SetByte(0x820, byte(opt.FrameDelay), byte(opt.WaitSeconds))
 	if !opt.Quiet {
 		fmt.Printf("memory usage for displayer code: %s - %s\n", link.StartAddress(), link.EndAddress())
 	}

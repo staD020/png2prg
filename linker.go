@@ -67,9 +67,11 @@ func (l *Linker) SetCursor(v Word) {
 }
 
 // SetByte writes v at addr, regardless if it's in use or not. Useful for patching bytes.
-func (l *Linker) SetByte(addr Word, v byte) {
-	l.payload[addr] = v
-	l.used[addr] = true
+func (l *Linker) SetByte(addr Word, v ...byte) {
+	for i := range v {
+		l.payload[int(addr)+int(i)] = v[i]
+		l.used[int(addr)+int(i)] = true
+	}
 }
 
 // CursorWrite sets the cursor and writes b to payload.

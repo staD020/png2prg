@@ -732,11 +732,9 @@ func injectSIDLinker(l *Linker, s *sid.SID) {
 	}
 	l.SetByte(0x819, startSong)
 	init := s.InitAddress()
-	l.SetByte(0x81b, init.LowByte())
-	l.SetByte(0x81c, init.HighByte())
+	l.SetByte(0x81b, init.LowByte(), init.HighByte())
 	play := s.PlayAddress()
-	l.SetByte(0x81e, play.LowByte())
-	l.SetByte(0x81f, play.HighByte())
+	l.SetByte(0x81e, play.LowByte(), play.HighByte())
 }
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
