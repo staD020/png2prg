@@ -8,7 +8,7 @@ import (
 
 type Word uint16
 
-func NewWord(bHi, bLo byte) Word {
+func NewWord(bLo, bHi byte) Word {
 	return Word(uint16(bHi)<<8 + uint16(bLo))
 }
 func (w Word) String() string {
@@ -22,10 +22,6 @@ func (w Word) High() byte {
 }
 func (w Word) Bytes() []byte {
 	return []byte{w.Low(), w.High()}
-}
-
-func BytesToWord(bLo, bHi byte) Word {
-	return Word(uint16(bHi)<<8 + uint16(bLo))
 }
 
 const MaxMemory = 0xffff
@@ -117,7 +113,7 @@ func (l *Linker) WritePrg(prg []byte) (n int, err error) {
 	if len(prg) < 3 {
 		return 0, fmt.Errorf("prg too short to write. length: %d", len(prg))
 	}
-	l.cursor = BytesToWord(prg[0], prg[1])
+	l.cursor = NewWord(prg[0], prg[1])
 	return l.Write(prg[2:])
 }
 
