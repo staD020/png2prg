@@ -83,7 +83,7 @@ func (l *Linker) CursorWrite(cursor Word, b []byte) (n int, err error) {
 type LinkMap map[Word][]byte
 
 // MapWrite writes all byteslices to the linker at their respective addresses.
-func (l *Linker) MapWrite(m LinkMap) (n int, err error) {
+func (l *Linker) WriteMap(m LinkMap) (n int, err error) {
 	for c, bin := range m {
 		p, err := l.CursorWrite(c, bin)
 		n += p
