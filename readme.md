@@ -1,9 +1,9 @@
-# PNG2PRG 1.4 by burg
+# PNG2PRG 1.4.1-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
-multicolor bitmap, charset or sprites. It will find the best matching palette
-and backgroundcolor automatically, no need to modify your source images or
-configure a palette.
+multicolor bitmap, charset or sprites prg. It will find the best matching
+palette and backgroundcolor automatically, no need to modify your source images
+or configure a palette.
 Vice screenshots with default borders (384x272) are automatically cropped.
 Vice's main screen's offset is at x=32, y=35.
 Images in sprite dimensions will be converted to sprites.
