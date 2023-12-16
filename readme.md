@@ -57,7 +57,7 @@ When making screenshots in vice, please disable the d016 pixel shift manually.
 
     ./png2prg -i testdata/madonna/frame_0.png testdata/madonna/frame_1.png
 
-### Drazlace (shared screenram and colorram for both frames
+### Drazlace (shared screenram and colorram for both frames)
 
     ./png2prg testdata/madonna/cjam_pure_madonna.png
 

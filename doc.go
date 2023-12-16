@@ -69,7 +69,7 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println("    ./png2prg -i testdata/madonna/frame_0.png testdata/madonna/frame_1.png")
 	fmt.Println()
-	fmt.Println("### Drazlace (shared screenram and colorram for both frames")
+	fmt.Println("### Drazlace (shared screenram and colorram for both frames)")
 	fmt.Println()
 	fmt.Println("    ./png2prg testdata/madonna/cjam_pure_madonna.png")
 	fmt.Println()
