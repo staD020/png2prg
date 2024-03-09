@@ -19,7 +19,8 @@ start:
 		jsr vblank
 		ldx #0
 		stx $d011
-		stx $d020
+		lda charset_source+$800+1000+2
+		sta $d020
 		lda charset_source+$800+1000+1
 		sta $d021
 	!:

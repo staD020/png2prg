@@ -822,7 +822,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.Display {
 		header = singleColorCharset.newHeader()
 	}
-	return writeData(w, header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor})
+	return writeData(w, header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor, c.BorderColor})
 }
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {

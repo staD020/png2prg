@@ -95,6 +95,7 @@ If you do not want charpacking, eg for a 1x1 charset, please use -no-pack
     Screen:    $2800-$2be7
     CharColor: $2be8
     D021:      $2be9
+    D020:      $2bea       (singlecolor only)
     D022:      $2bea       (multicolor only)
     D023:      $2beb       (multicolor only)
     D020:      $2bec       (multicolor only)
@@ -237,6 +238,10 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 	return p.WriteTo(w)
 }
 ```
+
+## Changes for version 1.4.1
+
+ - Fix -force-border-color for singlecolor charset (thanks Raistlin).
 
 ## Changes for version 1.4
 
