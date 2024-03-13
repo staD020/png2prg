@@ -267,7 +267,7 @@ func PrintHelp() {
 	fmt.Println("}")
 	fmt.Println("```")
 	fmt.Println()
-	fmt.Println("## Changes for version 1.4.1")
+	fmt.Printf("## Changes for version %s\n", Version)
 	fmt.Println()
 	fmt.Println(" - Fix -force-border-color for singlecolor charset (thanks Raistlin).")
 	fmt.Println(" - Experimental -mode mixedcharset.")
