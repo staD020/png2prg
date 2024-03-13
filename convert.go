@@ -483,7 +483,7 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 	}
 	img.findBackgroundColorCandidates()
 
-	if len(img.backgroundCandidates) >= 3 {
+	if len(img.backgroundCandidates) >= 0 {
 		candidates := []byte{}
 		for _, col := range img.backgroundCandidates {
 			candidates = append(candidates, col)
