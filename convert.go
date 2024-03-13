@@ -482,9 +482,6 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		log.Printf("img.MixedCharset: preferredBitpairColors: %v", img.preferredBitpairColors)
 	}
 	img.findBackgroundColorCandidates()
-	if img.opt.Verbose {
-		log.Printf("img.MixedCharset: img.backgroundCandidates: %v", img.backgroundCandidates)
-	}
 
 	if len(img.backgroundCandidates) >= 3 {
 		candidates := []byte{}
