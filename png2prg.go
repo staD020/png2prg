@@ -41,6 +41,7 @@ const (
 	BitmapScreenRAMAddress  = 0x3f40
 	BitmapColorRAMAddress   = 0x4328
 	CharsetScreenRAMAddress = 0x2800
+	CharsetColorRAMAddress  = 0x2c00
 )
 
 // An Options struct contains all settings to be used for an instance of png2prg.
@@ -101,6 +102,7 @@ const (
 	singleColorSprites
 	multiColorSprites
 	multiColorInterlaceBitmap // https://csdb.dk/release/?id=3961
+	mixedCharset
 )
 
 func StringToGraphicsType(s string) GraphicsType {
@@ -119,6 +121,8 @@ func StringToGraphicsType(s string) GraphicsType {
 		return multiColorSprites
 	case "mcibitmap":
 		return multiColorInterlaceBitmap
+	case "mixedcharset":
+		return mixedCharset
 	}
 	return unknownGraphicsType
 }
@@ -139,6 +143,8 @@ func (t GraphicsType) String() string {
 		return "multicolor sprites"
 	case multiColorInterlaceBitmap:
 		return "mcibitmap"
+	case mixedCharset:
+		return "mixed charset"
 	default:
 		return "unknown"
 	}
@@ -233,6 +239,12 @@ type SingleColorChar struct {
 	ScreenColor byte
 }
 
+type MixedChar struct {
+	CharIndex int
+	Bitmap    [8]byte
+	D800Color byte
+}
+
 type Koala struct {
 	SourceFilename  string
 	Bitmap          [8000]byte
@@ -322,6 +334,30 @@ func (img SingleColorCharset) Symbols() []c64Symbol {
 	}
 }
 
+type MixedCharset struct {
+	SourceFilename  string
+	Bitmap          [0x800]byte
+	Screen          [1000]byte
+	D800Color       [1000]byte
+	BorderColor     byte
+	BackgroundColor byte
+	D022Color       byte
+	D023Color       byte
+	opt             Options
+}
+
+func (img MixedCharset) Symbols() []c64Symbol {
+	return []c64Symbol{
+		{"bitmap", BitmapAddress},
+		{"screenram", CharsetScreenRAMAddress},
+		{"colorram", CharsetColorRAMAddress},
+		{"d020color", int(img.BorderColor)},
+		{"d021color", int(img.BackgroundColor)},
+		{"d022color", int(img.D022Color)},
+		{"d023color", int(img.D023Color)},
+	}
+}
+
 type SingleColorSprites struct {
 	SourceFilename  string
 	Bitmap          []byte
@@ -399,6 +435,9 @@ var hiresDisplayAnim []byte
 //go:embed "display_mci_bitmap.prg"
 var mciBitmapDisplay []byte
 
+//go:embed "display_mixed_charset.prg"
+var mixedCharsetDisplay []byte
+
 func init() {
 	displayers[multiColorBitmap] = koalaDisplay
 	displayers[singleColorBitmap] = hiresDisplay
@@ -407,6 +446,7 @@ func init() {
 	displayers[multiColorSprites] = mcSpritesDisplay
 	displayers[singleColorSprites] = scSpritesDisplay
 	displayers[multiColorInterlaceBitmap] = mciBitmapDisplay
+	displayers[mixedCharset] = mixedCharsetDisplay
 }
 
 // newHeader returns a copy of the displayer code for GraphicsType t as a byte slice in .prg format.
@@ -627,6 +667,10 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		if wt, err = img.MultiColorSprites(); err != nil {
 			return 0, fmt.Errorf("img.MultiColorSprites %q failed: %w", img.sourceFilename, err)
 		}
+	case mixedCharset:
+		if wt, err = img.MixedCharset(); err != nil {
+			return 0, fmt.Errorf("img.MixedCharset %q failed: %w", img.sourceFilename, err)
+		}
 	default:
 		return 0, fmt.Errorf("unsupported graphicsType %q for %q", img.graphicsType, img.sourceFilename)
 	}
@@ -823,6 +867,25 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 		header = singleColorCharset.newHeader()
 	}
 	return writeData(w, header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor, c.BorderColor})
+}
+
+func (c MixedCharset) WriteTo(w io.Writer) (n int64, err error) {
+	link := NewLinker(BitmapAddress, c.opt.VeryVerbose)
+	_, err = link.WriteMap(LinkMap{
+		BitmapAddress:           c.Bitmap[:],
+		CharsetScreenRAMAddress: c.Screen[:],
+		CharsetColorRAMAddress:  c.D800Color[:],
+		0x2fe8:                  []byte{c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor},
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.WriteMap failed: %w", err)
+	}
+	if c.opt.Display {
+		if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
+			return n, fmt.Errorf("link.WritePrg failed: %w", err)
+		}
+	}
+	return link.WriteTo(w)
 }
 
 func (s SingleColorSprites) WriteTo(w io.Writer) (n int64, err error) {

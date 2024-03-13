@@ -236,6 +236,8 @@ func (img *sourceImage) Hires() (Hires, error) {
 	return h, nil
 }
 
+type charBytes [8]byte
+
 // SingleColorCharset converts the img to SingleColorCharset and returns it.
 func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 	c := SingleColorCharset{
@@ -305,9 +307,7 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 		return c, nil
 	}
 
-	type charBytes [8]byte
 	charMap := []charBytes{}
-
 	for char := 0; char < FullScreenChars; char++ {
 		cbuf := charBytes{}
 		x, y := xyFromChar(char)
@@ -391,7 +391,6 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		}
 	}
 
-	type charBytes [8]byte
 	charset := []charBytes{}
 
 	c.CharColor = bitpair2c64color[3] | 8
@@ -473,6 +472,186 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		fmt.Printf("used %d unique chars in the charset", len(charset))
 	}
 	return c, nil
+}
+
+func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
+	c.SourceFilename = img.sourceFilename
+	c.BorderColor = img.borderColor.ColorIndex
+	c.opt = img.opt
+	if img.opt.Verbose {
+		log.Printf("img.MixedCharset: preferredBitpairColors: %v", img.preferredBitpairColors)
+	}
+	img.findBackgroundColorCandidates()
+	if img.opt.Verbose {
+		log.Printf("img.MixedCharset: img.backgroundCandidates: %v", img.backgroundCandidates)
+	}
+
+	if len(img.backgroundCandidates) == 3 {
+		candidates := []byte{}
+		for _, col := range img.backgroundCandidates {
+			candidates = append(candidates, col)
+		}
+		sort.Slice(candidates, func(i, j int) bool { return candidates[i] > candidates[j] })
+		if img.opt.Verbose {
+			log.Printf("img.MixedCharset: candidates: %v", candidates)
+		}
+
+		fixpref := bitpairColors{}
+		for _, p := range img.preferredBitpairColors {
+			if In(candidates, p) {
+				fixpref = append(fixpref, p)
+			}
+		}
+		if len(fixpref) < len(candidates) {
+			for _, p := range candidates {
+				if In(img.preferredBitpairColors, p) && !In(fixpref, p) {
+					fixpref = append(fixpref, p)
+				}
+			}
+		}
+		if len(fixpref) < len(candidates) {
+			for _, p := range candidates {
+				if !In(fixpref, p) {
+					fixpref = append(fixpref, p)
+				}
+			}
+		}
+		img.preferredBitpairColors = fixpref
+	}
+
+	if img.opt.Verbose {
+		log.Printf("img.MixedCharset: preferredBitpairColors: %v", img.preferredBitpairColors)
+	}
+	if len(img.preferredBitpairColors) > 0 {
+		c.BackgroundColor = img.preferredBitpairColors[0]
+	}
+	if len(img.preferredBitpairColors) > 1 {
+		c.D022Color = img.preferredBitpairColors[1]
+	}
+	if len(img.preferredBitpairColors) > 2 {
+		c.D023Color = img.preferredBitpairColors[2]
+	}
+	if len(img.preferredBitpairColors) > 3 {
+		return c, fmt.Errorf("d800 color for mixed charsets are deterministic, please use max 3.")
+	}
+
+	charset := []charBytes{}
+	for char := 0; char < FullScreenChars; char++ {
+		rgb2bitpair := PaletteMap{
+			img.palette.RGB(c.BackgroundColor): 0,
+			img.palette.RGB(c.D022Color):       1,
+			img.palette.RGB(c.D023Color):       2,
+		}
+		bitpair2c64color := map[byte]byte{
+			0: c.BackgroundColor,
+			1: c.D022Color,
+			2: c.D023Color,
+		}
+
+		for rgb, col := range img.charColors[char] {
+			if _, ok := rgb2bitpair[rgb]; !ok {
+				rgb2bitpair[rgb] = 3
+				bitpair2c64color[3] = col
+				c.D800Color[char] = bitpair2c64color[3]
+				break
+			}
+		}
+		if len(bitpair2c64color) == 4 {
+			c.D800Color[char] = bitpair2c64color[3]
+		}
+
+		hires := false
+		charcol := byte(0)
+		x, y := xyFromChar(char)
+		if len(img.charColors[char]) <= 2 {
+			// could be hires
+			if bgcol, ok := img.charColors[char][img.palette.RGB(c.BackgroundColor)]; ok {
+			LOOP:
+				for _, col := range img.charColors[char] {
+					if col != bgcol && charcol < 8 {
+						// detect hires pixels
+						for byteIndex := 0; byteIndex < 8; byteIndex++ {
+							for pixel := 0; pixel < 8; pixel += 2 {
+								if img.colorAtXY(x+pixel, y+byteIndex) != img.colorAtXY(x+pixel+1, y+byteIndex) {
+									// we are convinced
+									hires = true
+									charcol = col
+									c.D800Color[char] = col
+									rgb2bitpair = PaletteMap{
+										img.palette.RGB(c.BackgroundColor): 0,
+										img.palette.RGB(charcol):           1,
+									}
+									bitpair2c64color = map[byte]byte{
+										0: c.BackgroundColor,
+										1: charcol,
+									}
+									break LOOP
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		cbuf := charBytes{}
+		if hires {
+			if img.opt.VeryVerbose {
+				log.Printf("char %d seems to be hires, charcol %d img.charColors: %v", char, charcol, img.charColors[char])
+			}
+			for byteIndex := 0; byteIndex < 8; byteIndex++ {
+				bmpbyte := byte(0)
+				for pixel := 0; pixel < 8; pixel++ {
+					rgb := img.colorAtXY(x+pixel, y+byteIndex)
+					if bitpair, ok := rgb2bitpair[rgb]; ok {
+						bmpbyte |= bitpair << (7 - byte(pixel))
+					}
+				}
+				cbuf[byteIndex] = bmpbyte
+			}
+		} else {
+			c.D800Color[char] |= 8
+			for byteIndex := 0; byteIndex < 8; byteIndex++ {
+				bmpbyte := byte(0)
+				for pixel := 0; pixel < 8; pixel += 2 {
+					rgb := img.colorAtXY(x+pixel, y+byteIndex)
+					if bitpair, ok := rgb2bitpair[rgb]; ok {
+						bmpbyte = bmpbyte | (bitpair << (6 - byte(pixel)))
+					}
+				}
+				cbuf[byteIndex] = bmpbyte
+			}
+		}
+
+		found := false
+		curChar := 0
+		for curChar = range charset {
+			if cbuf == charset[curChar] {
+				found = true
+				break
+			}
+		}
+		if !found {
+			charset = append(charset, cbuf)
+			curChar = len(charset) - 1
+		}
+		c.Screen[char] = byte(curChar)
+	}
+
+	if len(charset) > MaxChars {
+		return c, fmt.Errorf("image packs to %d unique chars, the max is %d.", len(charset), MaxChars)
+	}
+
+	for i, bytes := range charset {
+		for j, b := range bytes {
+			c.Bitmap[i*8+j] = b
+		}
+	}
+	if !img.opt.Quiet {
+		fmt.Printf("used %d unique chars in the charset", len(charset))
+	}
+
+	return c, err
 }
 
 // SingleColorSprites converts the img to SingleColorSprites and returns it.
