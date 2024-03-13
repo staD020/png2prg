@@ -469,7 +469,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		}
 	}
 	if !img.opt.Quiet {
-		fmt.Printf("used %d unique chars in the charset", len(charset))
+		fmt.Printf("used %d unique chars in the charset\n", len(charset))
 	}
 	return c, nil
 }
@@ -648,7 +648,7 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		}
 	}
 	if !img.opt.Quiet {
-		fmt.Printf("used %d unique chars in the charset", len(charset))
+		fmt.Printf("used %d unique chars in the charset\n", len(charset))
 	}
 
 	return c, err
