@@ -100,6 +100,22 @@ If you do not want charpacking, eg for a 1x1 charset, please use -no-pack
     D023:      $2beb       (multicolor only)
     D020:      $2bec       (multicolor only)
 
+## Mixed Multi/Singlecolor Charset (individual d800 colors)
+
+*EXPERIMENTAL*
+
+Individual d800 colors are supported.
+
+    ./png2prg -m mixedcharset testdata/mixedcharset/hein_neo.png
+
+    Charset:   $2000-$27ff
+    Screen:    $2800-$2be7
+    D800Color: $2c00-$2fe7
+    D021:      $2fe8
+    D022:      $2fe9       (multicolor only)
+    D023:      $2fea       (multicolor only)
+    D020:      $2feb       (multicolor only)
+
 ## Single or Multicolor Sprites
 
 If the source image size is a multiple of a 24x21 pixel sprite,
@@ -242,6 +258,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 ## Changes for version 1.4.1
 
  - Fix -force-border-color for singlecolor charset (thanks Raistlin).
+ - Experimental -mode mixedcharset.
 
 ## Changes for version 1.4
 
