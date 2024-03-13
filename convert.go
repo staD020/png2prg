@@ -486,7 +486,7 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		log.Printf("img.MixedCharset: img.backgroundCandidates: %v", img.backgroundCandidates)
 	}
 
-	if len(img.backgroundCandidates) == 3 {
+	if len(img.backgroundCandidates) >= 3 {
 		candidates := []byte{}
 		for _, col := range img.backgroundCandidates {
 			candidates = append(candidates, col)
@@ -499,11 +499,17 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		fixpref := bitpairColors{}
 		for _, p := range img.preferredBitpairColors {
 			if In(candidates, p) {
+				if len(fixpref) > 2 {
+					break
+				}
 				fixpref = append(fixpref, p)
 			}
 		}
 		if len(fixpref) < len(candidates) {
 			for _, p := range candidates {
+				if len(fixpref) > 2 {
+					break
+				}
 				if In(img.preferredBitpairColors, p) && !In(fixpref, p) {
 					fixpref = append(fixpref, p)
 				}
@@ -511,6 +517,9 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		}
 		if len(fixpref) < len(candidates) {
 			for _, p := range candidates {
+				if len(fixpref) > 2 {
+					break
+				}
 				if !In(fixpref, p) {
 					fixpref = append(fixpref, p)
 				}
