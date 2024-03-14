@@ -495,29 +495,20 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 
 		fixpref := bitpairColors{}
 		for _, p := range img.preferredBitpairColors {
-			if In(candidates, p) {
-				if len(fixpref) > 2 {
-					break
-				}
+			if In(candidates, p) && len(fixpref) < 3 {
 				fixpref = append(fixpref, p)
 			}
 		}
 		if len(fixpref) < len(candidates) {
 			for _, p := range candidates {
-				if len(fixpref) > 2 {
-					break
-				}
-				if In(img.preferredBitpairColors, p) && !In(fixpref, p) {
+				if In(img.preferredBitpairColors, p) && !In(fixpref, p) && len(fixpref) < 3 {
 					fixpref = append(fixpref, p)
 				}
 			}
 		}
 		if len(fixpref) < len(candidates) {
 			for _, p := range candidates {
-				if len(fixpref) > 2 {
-					break
-				}
-				if !In(fixpref, p) {
+				if !In(fixpref, p) && len(fixpref) < 3 {
 					fixpref = append(fixpref, p)
 				}
 			}
