@@ -24,13 +24,14 @@ If you do need to wire fullcolor images, check out Youth's [Retropixels](https:/
 
 ## Supported Graphics Modes
 
-    koala:     multicolor bitmap (max 4 colors per char)
-    hires:     singlecolor bitmap (max 2 colors per char)
-    mccharset: multicolor charset (max 4 colors)
-    sccharset: singlecolor charset (max 2 colors)
-    mcsprites: multicolor sprites (max 4 colors)
-    scsprites: singlecolor sprites (max 2 colors)
-    mcibitmap: 320x200 multicolor interlace bitmap (max 4 colors per char/frame)
+    koala:        multicolor bitmap (max 4 colors per char)
+    hires:        singlecolor bitmap (max 2 colors per char)
+    mixedcharset: multicolor charset (max 4 colors per char (fixed bgcol, d022, d023))
+    mccharset:    multicolor charset (max 4 colors)
+    sccharset:    singlecolor charset (max 2 colors per char (fixed bgcol))
+    mcsprites:    multicolor sprites (max 4 colors)
+    scsprites:    singlecolor sprites (max 2 colors)
+    mcibitmap:    320x200 multicolor interlace bitmap (max 4 colors per char/frame)
 
 Png2prg is mostly able to autodetect the correct graphics mode, but you can
 also force a specific graphics mode with the -mode flag:
@@ -82,39 +83,33 @@ When making screenshots in vice, please disable the d016 pixel shift manually.
     Screen2: $e000 - $e3e7
     D800:    $e400 - $e7e7
 
-## Single or Multicolor Charset
-
-Currently only images with max 4 colors can be converted into a charset.
-Support for individual d800 colors and mixed single/multicolor chars may be
-added in a future release, if the need arises.
+## Singlecolor Charset (individual d800 colors)
 
 By default charsets are packed, they only contain unique characters.
-If you do not want charpacking, eg for a 1x1 charset, please use -no-pack
+If you do not want charpacking, eg for a 1x1 charset, please use -no-pack.
+NB: individual d800 colors are not supported with -no-pack.
+
+    ./png2prg -m sccharset testdata/hirescharset/ohno_logo.png
 
     Charset:   $2000-$27ff
     Screen:    $2800-$2be7
-    CharColor: $2be8
-    D021:      $2be9
-    D020:      $2bea       (singlecolor only)
-    D022:      $2bea       (multicolor only)
-    D023:      $2beb       (multicolor only)
-    D020:      $2bec       (multicolor only)
+    D800:      $2c00-$2fe7
+    D020:      $2fe8
+    D021:      $2fe9
+    D022:      $2fea       (multicolor only)
+    D023:      $2feb       (multicolor only)
 
 ## Mixed Multi/Singlecolor Charset (individual d800 colors)
-
-*EXPERIMENTAL*
-
-Individual d800 colors are supported.
 
     ./png2prg -m mixedcharset testdata/mixedcharset/hein_neo.png
 
     Charset:   $2000-$27ff
     Screen:    $2800-$2be7
-    D800Color: $2c00-$2fe7
-    D021:      $2fe8
-    D022:      $2fe9       (multicolor only)
-    D023:      $2fea       (multicolor only)
-    D020:      $2feb       (multicolor only)
+    D800:      $2c00-$2fe7
+    D020:      $2fe8
+    D021:      $2fe9
+    D022:      $2fea       (multicolor only)
+    D023:      $2feb       (multicolor only)
 
 ## Single or Multicolor Sprites
 
@@ -346,7 +341,7 @@ tables used in the koala and hires displayers.
   -memprofile file
     	write memory profile to file (only in -parallel mode)
   -mode string
-    	force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites
+    	force graphics mode to koala, hires, mixedcharset, sccharset, mccharset (4col), scsprites or mcsprites
   -nc
     	no-crunch
   -ng

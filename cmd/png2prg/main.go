@@ -236,7 +236,7 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.StringVar(&opt.TargetDir, "td", "", "targetdir")
 	flag.StringVar(&opt.TargetDir, "targetdir", "", "specify targetdir")
 	flag.StringVar(&opt.GraphicsMode, "m", "", "mode")
-	flag.StringVar(&opt.GraphicsMode, "mode", "", "force graphics mode to koala, hires, mccharset, sccharset, scsprites or mcsprites")
+	flag.StringVar(&opt.GraphicsMode, "mode", "", "force graphics mode to koala, hires, mixedcharset, sccharset, mccharset (4col), scsprites or mcsprites")
 	flag.BoolVar(&opt.Interlace, "i", false, "interlace")
 	flag.BoolVar(&opt.Interlace, "interlace", false, "when you supply 2 frames, specify -interlace to treat the images as such")
 	flag.IntVar(&opt.D016Offset, "d016", 1, "d016offset")

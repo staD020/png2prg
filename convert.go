@@ -300,10 +300,9 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 
 	charMap := []charBytes{}
 	for char := 0; char < FullScreenChars; char++ {
-		charcols := img.charColors[char]
 		rgb2bitpair = PaletteMap{}
 		bitpair2c64color = map[byte]byte{}
-		for rgb, col := range charcols {
+		for rgb, col := range img.charColors[char] {
 			if col == cc[0].ColorIndex {
 				rgb2bitpair[rgb] = 0
 				bitpair2c64color[0] = col
