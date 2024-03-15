@@ -217,9 +217,9 @@ func (img *sourceImage) Hires() (Hires, error) {
 					bmpbyte |= bitpair << (7 - byte(pixel))
 				} else {
 					if img.opt.Verbose {
-						log.Printf("rgb: %v not found in char: %d.", rgb, char)
-						log.Printf("x, y = %d, %d", x, y)
-						log.Printf("rgb2bitpair: %v", rgb2bitpair)
+						//log.Printf("rgb: %v not found in char: %d.", rgb, char)
+						//log.Printf("x, y = %d, %d", x, y)
+						//log.Printf("rgb2bitpair: %v", rgb2bitpair)
 					}
 				}
 			}
@@ -245,6 +245,7 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 		BorderColor:    img.borderColor.ColorIndex,
 		opt:            img.opt,
 	}
+
 	_, palette := img.maxColorsPerChar()
 	cc := sortColors(palette)
 
@@ -279,8 +280,11 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 		bit++
 	}
 
-	c.CharColor = bitpair2c64color[1]
 	c.BackgroundColor = bitpair2c64color[0]
+	// c.CharColor = bitpair2c64color[1]
+	for i := 0; i < MaxChars; i++ {
+		c.D800Color[i] = bitpair2c64color[1]
+	}
 
 	if img.opt.NoPackChars {
 		for char := 0; char < MaxChars; char++ {
@@ -292,12 +296,6 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 					rgb := img.colorAtXY(x+pixel, y+byteIndex)
 					if bitpair, ok := rgb2bitpair[rgb]; ok {
 						bmpbyte |= bitpair << (7 - byte(pixel))
-					} else {
-						if img.opt.Verbose {
-							log.Printf("rgb %v not found in char %d.", rgb, char)
-							log.Printf("x, y = %d, %d", x, y)
-							log.Printf("rgb2bitpair: %v", rgb2bitpair)
-						}
 					}
 				}
 				c.Bitmap[bitmapIndex+byteIndex] = bmpbyte
@@ -319,9 +317,9 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 					bmpbyte |= bitpair << (7 - byte(pixel))
 				} else {
 					if img.opt.Verbose {
-						log.Printf("rgb %v not found in char %d.", rgb, char)
-						log.Printf("x, y = %d, %d", x, y)
-						log.Printf("rgb2bitpair: %v", rgb2bitpair)
+						//log.Printf("rgb %v not found in char %d.", rgb, char)
+						//log.Printf("x, y = %d, %d", x, y)
+						//log.Printf("rgb2bitpair: %v", rgb2bitpair)
 					}
 				}
 			}
@@ -410,11 +408,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 					if bitpair, ok := rgb2bitpair[rgb]; ok {
 						bmpbyte |= bitpair << (6 - byte(pixel))
 					} else {
-						if img.opt.Verbose {
-							log.Printf("rgb %v not found in char %d.", rgb, char)
-							log.Printf("x, y = %d, %d", x, y)
-							log.Printf("rgb2bitpair: %v", rgb2bitpair)
-						}
+						return c, fmt.Errorf("rgb %v not found in char %d.", rgb, char)
 					}
 				}
 				c.Bitmap[bitmapIndex+byteIndex] = bmpbyte
@@ -434,11 +428,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 				if bitpair, ok := rgb2bitpair[rgb]; ok {
 					bmpbyte |= bitpair << (6 - byte(pixel))
 				} else {
-					if img.opt.Verbose {
-						log.Printf("rgb %v not found in char %d.", rgb, char)
-						log.Printf("x, y = %d, %d", x, y)
-						log.Printf("rgb2bitpair: %v", rgb2bitpair)
-					}
+					return c, fmt.Errorf("rgb %v not found in char %d.", rgb, char)
 				}
 			}
 			cbuf[byteIndex] = bmpbyte
@@ -481,7 +471,6 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 	if img.opt.Verbose {
 		log.Printf("img.MixedCharset: preferredBitpairColors: %v", img.preferredBitpairColors)
 	}
-	img.findBackgroundColorCandidates()
 
 	if len(img.backgroundCandidates) >= 0 {
 		candidates := []byte{}
@@ -565,27 +554,19 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 			if bgcol, ok := img.charColors[char][img.palette.RGB(c.BackgroundColor)]; ok {
 			LOOP:
 				for _, col := range img.charColors[char] {
-					if col != bgcol && charcol < 8 {
-						// detect hires pixels
-						for byteIndex := 0; byteIndex < 8; byteIndex++ {
-							for pixel := 0; pixel < 8; pixel += 2 {
-								if img.colorAtXY(x+pixel, y+byteIndex) != img.colorAtXY(x+pixel+1, y+byteIndex) {
-									// we are convinced
-									hires = true
-									charcol = col
-									c.D800Color[char] = col
-									rgb2bitpair = PaletteMap{
-										img.palette.RGB(c.BackgroundColor): 0,
-										img.palette.RGB(charcol):           1,
-									}
-									bitpair2c64color = map[byte]byte{
-										0: c.BackgroundColor,
-										1: charcol,
-									}
-									break LOOP
-								}
-							}
+					if col != bgcol && col < 8 {
+						hires = true
+						charcol = col
+						c.D800Color[char] = col
+						rgb2bitpair = PaletteMap{
+							img.palette.RGB(c.BackgroundColor): 0,
+							img.palette.RGB(charcol):           1,
 						}
+						bitpair2c64color = map[byte]byte{
+							0: c.BackgroundColor,
+							1: charcol,
+						}
+						break LOOP
 					}
 				}
 			}
@@ -594,7 +575,7 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		cbuf := charBytes{}
 		if hires {
 			if img.opt.VeryVerbose {
-				log.Printf("char %d seems to be hires, charcol %d img.charColors: %v", char, charcol, img.charColors[char])
+				log.Printf("char %d seems to be hires, charcol %d img.charColors: %v, -bpc %s", char, charcol, img.charColors[char], img.preferredBitpairColors)
 			}
 			for byteIndex := 0; byteIndex < 8; byteIndex++ {
 				bmpbyte := byte(0)
@@ -602,6 +583,8 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 					rgb := img.colorAtXY(x+pixel, y+byteIndex)
 					if bitpair, ok := rgb2bitpair[rgb]; ok {
 						bmpbyte |= bitpair << (7 - byte(pixel))
+					} else {
+						return c, fmt.Errorf("mixedcharset failed: char %d, %s not found you may want to re-order -bpc %s", char, rgb, img.preferredBitpairColors)
 					}
 				}
 				cbuf[byteIndex] = bmpbyte

@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Version              = "1.4.2-dev"
+	Version              = "1.4.3-dev"
 	displayerJumpTo      = "$0822"
 	MaxColors            = 16
 	MaxChars             = 256
@@ -237,6 +237,7 @@ type SingleColorChar struct {
 	CharIndex   int
 	Bitmap      [8]byte
 	ScreenColor byte
+	D800Color   byte
 }
 
 type Koala struct {
@@ -312,7 +313,7 @@ type SingleColorCharset struct {
 	SourceFilename  string
 	Bitmap          [0x800]byte
 	Screen          [1000]byte
-	CharColor       byte
+	D800Color       [1000]byte
 	BackgroundColor byte
 	BorderColor     byte
 	opt             Options
@@ -322,7 +323,7 @@ func (img SingleColorCharset) Symbols() []c64Symbol {
 	return []c64Symbol{
 		{"bitmap", BitmapAddress},
 		{"screenram", CharsetScreenRAMAddress},
-		{"charcolor", int(img.CharColor)},
+		{"colorram", CharsetColorRAMAddress},
 		{"d020color", int(img.BorderColor)},
 		{"d021color", int(img.BackgroundColor)},
 	}
@@ -663,7 +664,20 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		}
 	case mixedCharset:
 		if wt, err = img.MixedCharset(); err != nil {
-			return 0, fmt.Errorf("img.MixedCharset %q failed: %w", img.sourceFilename, err)
+			if c.opt.GraphicsMode != "" {
+				return 0, fmt.Errorf("img.MixedCharset %q failed: %w", img.sourceFilename, err)
+			}
+			if !c.opt.Quiet {
+				fmt.Printf("falling back to %s because img.MixedCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
+			}
+			img.graphicsType = multiColorBitmap
+			err = img.findBackgroundColor()
+			if err != nil {
+				return 0, fmt.Errorf("findBackgroundColor %q failed: %w", img.sourceFilename, err)
+			}
+			if wt, err = img.Koala(); err != nil {
+				return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
+			}
 		}
 	default:
 		return 0, fmt.Errorf("unsupported graphicsType %q for %q", img.graphicsType, img.sourceFilename)
@@ -856,11 +870,22 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
-	header := defaultHeader()
-	if c.opt.Display {
-		header = singleColorCharset.newHeader()
+	link := NewLinker(BitmapAddress, c.opt.VeryVerbose)
+	_, err = link.WriteMap(LinkMap{
+		BitmapAddress:           c.Bitmap[:],
+		CharsetScreenRAMAddress: c.Screen[:],
+		CharsetColorRAMAddress:  c.D800Color[:],
+		0x2fe8:                  []byte{c.BackgroundColor, c.BorderColor},
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
-	return writeData(w, header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor, c.BorderColor})
+	if c.opt.Display {
+		if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
+			return n, fmt.Errorf("link.WritePrg failed: %w", err)
+		}
+	}
+	return link.WriteTo(w)
 }
 
 func (c MixedCharset) WriteTo(w io.Writer) (n int64, err error) {

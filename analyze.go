@@ -99,26 +99,37 @@ func (img *sourceImage) analyze() (err error) {
 		return fmt.Errorf("img.makeCharColors failed: %w", err)
 	}
 
-	max, _ := img.maxColorsPerChar()
+	maxcolsperchar, _ := img.maxColorsPerChar()
 	if img.opt.Verbose {
-		log.Printf("max colors per char: %d\n", max)
+		log.Printf("max colors per char: %d", maxcolsperchar)
 	}
 	numColors, colorIndexes, sumColors := img.countColors()
 	if img.opt.Verbose {
-		log.Printf("total colors: %d (%v)\n", numColors, colorIndexes)
+		log.Printf("total colors: %d (%v)", numColors, colorIndexes)
 	}
+
+	img.findBackgroundColorCandidates(true)
+	numbgcolcandidateshires := len(img.backgroundCandidates)
+	log.Printf("numbgcolcandidateshires: %d", numbgcolcandidateshires)
+	img.findBackgroundColorCandidates(false)
+	numbgcolcandidates := len(img.backgroundCandidates)
 
 	switch {
 	case numColors == 2:
 		img.graphicsType = singleColorCharset
-	case max <= 2:
+	case maxcolsperchar <= 2 && numbgcolcandidateshires > 1:
 		img.graphicsType = singleColorBitmap
+	case maxcolsperchar <= 2 && numbgcolcandidateshires == 1:
+		img.graphicsType = singleColorCharset
 	case numColors == 3 || numColors == 4:
 		img.graphicsType = multiColorCharset
-	case max > 2:
+	case maxcolsperchar > 2 && maxcolsperchar <= 4:
 		img.graphicsType = multiColorBitmap
 		if img.isMultiColorInterlace() {
 			img.graphicsType = multiColorInterlaceBitmap
+		}
+		if numbgcolcandidates > 2 {
+			img.graphicsType = mixedCharset
 		}
 	}
 	if !img.opt.Quiet {
@@ -147,9 +158,9 @@ func (img *sourceImage) analyze() (err error) {
 	}
 	if !img.opt.NoGuess {
 		if img.graphicsType == multiColorBitmap {
-			max = 4
+			maxcolsperchar = 4
 		}
-		img.guessPreferredBitpairColors(max, sumColors)
+		img.guessPreferredBitpairColors(maxcolsperchar, sumColors)
 	}
 	return nil
 }
@@ -245,11 +256,13 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 			break
 		}
 		if img.preferredBitpairColors[3] > 7 {
-			for i, v := range img.preferredBitpairColors {
-				if v < 8 {
-					img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
-					log.Printf("had to avoid mixed singlecolor/multicolor mode, -bitpair-colors %v", img.preferredBitpairColors)
-					break
+			for i := len(img.preferredBitpairColors) - 1; i >= 0; i-- {
+				for i, v := range img.preferredBitpairColors {
+					if v < 8 {
+						img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
+						log.Printf("had to avoid mixed singlecolor/multicolor mode, -bitpair-colors %v", img.preferredBitpairColors)
+						break
+					}
 				}
 			}
 		}
@@ -298,20 +311,24 @@ func (img *sourceImage) countColors() (numColors int, usedColors []byte, sumColo
 
 // maxColorsPerChar finds the char with the most colors and returns the color count and PalletMap.
 func (img *sourceImage) maxColorsPerChar() (max int, m PaletteMap) {
+	char := 0
 	for i := range img.charColors {
 		if len(img.charColors[i]) > max {
 			max = len(img.charColors[i])
 			m = img.charColors[i]
+			char = i
 		}
 	}
+	x, y := xyFromChar(char)
+	log.Printf("char %d (x %d y %d) maxColorsPerChar: %d m: %s", char, x, y, max, m)
 	return max, m
 }
 
 // findBackgroundColorCandidates iterates over all chars with 4 colors and sets the common color(s) in img.backgroundCandidates.
-func (img *sourceImage) findBackgroundColorCandidates() {
+func (img *sourceImage) findBackgroundColorCandidates(hires bool) {
 	backgroundCharColors := []PaletteMap{}
 	for _, v := range img.charColors {
-		if len(v) == 4 {
+		if hires && len(v) == 2 || !hires && len(v) == 4 {
 			backgroundCharColors = append(backgroundCharColors, v)
 		}
 	}
@@ -328,7 +345,7 @@ func (img *sourceImage) findBackgroundColorCandidates() {
 			candidates[k] = v
 		}
 	}
-	if img.opt.Verbose {
+	if img.opt.VeryVerbose {
 		log.Printf("all BackgroundColor candidates: %v", candidates)
 	}
 
@@ -389,10 +406,7 @@ func (img *sourceImage) findBackgroundColor() error {
 		return fmt.Errorf("background color not found in sprites")
 	}
 
-	if img.backgroundCandidates == nil {
-		img.findBackgroundColorCandidates()
-	}
-
+	img.findBackgroundColorCandidates(false)
 	for rgb, colorIndex = range img.backgroundCandidates {
 		switch {
 		case forceBgCol < 0:

@@ -1,7 +1,7 @@
 
-.const fade_speed = 4
 .const charset    = $2000
-.const screenram  = $0400
+.const screenram  = $2800
+.const colorram   = $2c00
 
 .import source "lib.asm"
 
@@ -13,48 +13,26 @@ basicend:
 		.byte 0, 0, 0
 .pc = $0822 "start"
 start:
-		sei
+		//sei
 		lda #$37
 		sta $01
 		jsr vblank
 		ldx #0
 		stx $d011
-		lda charset_source+$800+1000+2
-		sta $d020
-		lda charset_source+$800+1000+1
+		stx $d020
+		lda charset+$fe8
 		sta $d021
 	!:
-		lda charset_source+$800+1000
 	.for (var i=0; i<4; i++) {
+		lda colorram+$c00+(i*$100),x
 		sta $d800+(i*$100),x
-	}
-
-	.for (var i=0; i<4; i++) {
-		lda charset_source+$800+(i*$100),x
-		sta screenram+(i*$100),x
 	}
 		inx
 		bne !-
 
-		lda #$ff
-!loop:
-smc_src:
-		ldx charset_source+$7ff
-smc_dest:
-		stx charset+$7ff
-		dcp smc_src+1
-		bne !+
-		dec smc_src+2
-	!:
-		dcp smc_dest+1
-		bne !+
-		dec smc_dest+2
-	!:
-		ldx smc_dest+2
-		cpx #>(charset-1)
-		bne !loop-
-
 		jsr vblank
+		lda charset+$fe9
+		sta $d020
 		:setBank(charset)
 		lda #toD018(screenram, charset)
 		sta $d018
@@ -62,6 +40,7 @@ smc_dest:
 		sta $d016
 		lda #$1b
 		sta $d011
+
 		lda #$ef
 	!:	cmp $dc01
 		bne !-
@@ -72,6 +51,3 @@ smc_dest:
 vblank:
 		:vblank()
 		rts
-
-.pc = * "charset_source" virtual
-charset_source:

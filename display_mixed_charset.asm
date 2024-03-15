@@ -1,6 +1,7 @@
 
 .const charset    = $2000
 .const screenram  = $2800
+.const colorram   = $2c00
 
 .import source "lib.asm"
 
@@ -12,24 +13,22 @@ basicend:
 		.byte 0, 0, 0
 .pc = $0822 "start"
 start:
-		sei
+		//sei
 		lda #$37
 		sta $01
 		jsr vblank
 		ldx #0
 		stx $d011
 		stx $d020
-
 		lda charset+$fe8
 		sta $d021
 		lda charset+$fe9
 		sta $d022
 		lda charset+$fea
 		sta $d023
-
 	!:
 	.for (var i=0; i<4; i++) {
-		lda charset+$c00+(i*$100),x
+		lda colorram+(i*$100),x
 		sta $d800+(i*$100),x
 	}
 		inx
