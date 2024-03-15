@@ -881,7 +881,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
 	if c.opt.Display {
-		if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
+		if _, err = link.WritePrg(singleColorCharset.newHeader()); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
 	}

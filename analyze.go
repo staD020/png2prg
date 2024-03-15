@@ -141,9 +141,6 @@ func (img *sourceImage) analyze() (err error) {
 			if !img.opt.Quiet {
 				fmt.Printf("graphics mode forced: %s\n", img.graphicsType)
 			}
-			if img.graphicsType == singleColorCharset && numColors > 2 {
-				return fmt.Errorf("unable to convert to %s, too many colors: %d > 2", img.graphicsType, numColors)
-			}
 		}
 	}
 	if err = img.findBorderColor(); err != nil {

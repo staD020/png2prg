@@ -17,6 +17,7 @@ start:
 		lda #$37
 		sta $01
 		jsr vblank
+
 		ldx #0
 		stx $d011
 		stx $d020
@@ -24,7 +25,7 @@ start:
 		sta $d021
 	!:
 	.for (var i=0; i<4; i++) {
-		lda colorram+$c00+(i*$100),x
+		lda colorram+(i*$100),x
 		sta $d800+(i*$100),x
 	}
 		inx

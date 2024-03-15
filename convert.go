@@ -163,12 +163,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 				if bitpair, ok := rgb2bitpair[rgb]; ok {
 					bmpbyte = bmpbyte | (bitpair << (6 - byte(pixel)))
 				} else {
-					if img.opt.Verbose {
-						//log.Printf("rgb %v not found in char %d.", rgb, char)
-						//x, y := xyFromChar(char)
-						//log.Printf("x, y = %d, %d", x, y)
-						//log.Printf("rgb2bitpair: %v", rgb2bitpair)
-					}
+					return k, fmt.Errorf("rgb %v not found char %d", rgb, char)
 				}
 			}
 			k.Bitmap[bitmapIndex+byteIndex] = bmpbyte
@@ -216,11 +211,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 				if bitpair, ok := rgb2bitpair[rgb]; ok {
 					bmpbyte |= bitpair << (7 - byte(pixel))
 				} else {
-					if img.opt.Verbose {
-						//log.Printf("rgb: %v not found in char: %d.", rgb, char)
-						//log.Printf("x, y = %d, %d", x, y)
-						//log.Printf("rgb2bitpair: %v", rgb2bitpair)
-					}
+					return h, fmt.Errorf("rgb %v not found in char %d", rgb, char)
 				}
 			}
 			h.Bitmap[bitmapIndex+byteIndex] = bmpbyte
@@ -252,17 +243,18 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 	forceBgCol := -1
 	if len(img.preferredBitpairColors) > 0 {
 		forceBgCol = int(img.preferredBitpairColors[0])
+	} else {
+		return c, fmt.Errorf("no bgcol? this should not happen.")
 	}
 
-	if forceBgCol >= 0 {
-		for i, col := range cc {
-			if col.ColorIndex == byte(forceBgCol) {
-				cc[0], cc[i] = cc[i], cc[0]
-				if img.opt.Verbose {
-					log.Printf("forced background color %d was found", forceBgCol)
-				}
-				break
+	for i, col := range cc {
+		if col.ColorIndex == byte(forceBgCol) {
+			cc[0], cc[i] = cc[i], cc[0]
+			c.BackgroundColor = byte(forceBgCol)
+			if img.opt.Verbose {
+				log.Printf("forced background color %d was found", forceBgCol)
 			}
+			break
 		}
 	}
 
@@ -281,8 +273,7 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 	}
 
 	c.BackgroundColor = bitpair2c64color[0]
-	// c.CharColor = bitpair2c64color[1]
-	for i := 0; i < MaxChars; i++ {
+	for i := 0; i < FullScreenChars; i++ {
 		c.D800Color[i] = bitpair2c64color[1]
 	}
 
@@ -296,6 +287,8 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 					rgb := img.colorAtXY(x+pixel, y+byteIndex)
 					if bitpair, ok := rgb2bitpair[rgb]; ok {
 						bmpbyte |= bitpair << (7 - byte(pixel))
+					} else {
+						return c, fmt.Errorf("rgb %v not found in char %d.", rgb, char)
 					}
 				}
 				c.Bitmap[bitmapIndex+byteIndex] = bmpbyte
@@ -307,6 +300,20 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 
 	charMap := []charBytes{}
 	for char := 0; char < FullScreenChars; char++ {
+		charcols := img.charColors[char]
+		rgb2bitpair = PaletteMap{}
+		bitpair2c64color = map[byte]byte{}
+		for rgb, col := range charcols {
+			if col == cc[0].ColorIndex {
+				rgb2bitpair[rgb] = 0
+				bitpair2c64color[0] = col
+			} else {
+				rgb2bitpair[rgb] = 1
+				bitpair2c64color[1] = col
+				c.D800Color[char] = col
+			}
+		}
+
 		cbuf := charBytes{}
 		x, y := xyFromChar(char)
 		for byteIndex := 0; byteIndex < 8; byteIndex++ {
@@ -316,11 +323,7 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 				if bitpair, ok := rgb2bitpair[rgb]; ok {
 					bmpbyte |= bitpair << (7 - byte(pixel))
 				} else {
-					if img.opt.Verbose {
-						//log.Printf("rgb %v not found in char %d.", rgb, char)
-						//log.Printf("x, y = %d, %d", x, y)
-						//log.Printf("rgb2bitpair: %v", rgb2bitpair)
-					}
+					return c, fmt.Errorf("rgb %v not found in char %d.", rgb, char)
 				}
 			}
 			cbuf[byteIndex] = bmpbyte
@@ -597,6 +600,8 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 					rgb := img.colorAtXY(x+pixel, y+byteIndex)
 					if bitpair, ok := rgb2bitpair[rgb]; ok {
 						bmpbyte = bmpbyte | (bitpair << (6 - byte(pixel)))
+					} else {
+						return c, fmt.Errorf("rgb %v not found in char %d.", rgb, char)
 					}
 				}
 				cbuf[byteIndex] = bmpbyte
@@ -702,9 +707,7 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 						if bitpair, ok := rgb2bitpair[rgb]; ok {
 							bmpbyte = bmpbyte | (bitpair << (7 - byte(pixel)))
 						} else {
-							if img.opt.Verbose {
-								log.Printf("rgb %v not found.", rgb)
-							}
+							return s, fmt.Errorf("rgb %v not found in x %d, u %d.", rgb, x, y)
 						}
 					}
 					s.Bitmap = append(s.Bitmap, bmpbyte)
@@ -777,9 +780,7 @@ func (img *sourceImage) MultiColorSprites() (MultiColorSprites, error) {
 						if bitpair, ok := rgb2bitpair[rgb]; ok {
 							bmpbyte |= bitpair << (6 - byte(pixel))
 						} else {
-							if img.opt.Verbose {
-								log.Printf("rgb %v not found.", rgb)
-							}
+							return s, fmt.Errorf("rgb %v not found in x %d, u %d.", rgb, x, y)
 						}
 					}
 					s.Bitmap = append(s.Bitmap, bmpbyte)
