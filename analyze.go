@@ -117,7 +117,7 @@ func (img *sourceImage) analyze() (err error) {
 	switch {
 	case numColors == 2:
 		img.graphicsType = singleColorCharset
-	case maxcolsperchar <= 2 && numbgcolcandidateshires > 1:
+	case maxcolsperchar <= 2 && numbgcolcandidateshires != 1:
 		img.graphicsType = singleColorBitmap
 	case maxcolsperchar <= 2 && numbgcolcandidateshires == 1:
 		img.graphicsType = singleColorCharset

@@ -43,21 +43,21 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp $(TESTSID) dist/testdata/
 	cp $(TESTSID) $(TESTSIDANIM) dist/testdata/
 	cp testdata/Dutch_Breeze_Soft_and_Wet.sid dist/testdata/
-	cp testdata/Max_Headroom_preview_v2.sid dist/testdata/
 	cp -r testdata/evoluer dist/testdata/
 	mkdir -p dist/testdata/mcinterlace
 	cp -r testdata/mcinterlace/*.png dist/testdata/mcinterlace/
 	cp -r testdata/drazlace dist/testdata/
 	cp -r testdata/madonna dist/testdata/
-	./$(TARGET) -d -q -o dist/0.madonna.prg -sid $(TESTSIDMAD) testdata/madonna/cjam_pure_madonna.png
-	./$(TARGET) -d -q -o dist/5.jamesband.prg -sid $(TESTSIDANIM) $(FLAGSANIM) testdata/jamesband*.png
-	./$(TARGET) -d -q -o dist/7.parrot.prg -sid $(TESTSID2) testdata/mirage_parrot.png
-	./$(TARGET) -d -q -o dist/6.evoluer.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
-	./$(TARGET) -d -q -i -o dist/1.stoned.prg -sid $(TESTSID) testdata/drazlace/amn_stoned_frame*.png
-	./$(TARGET) -d -q -i -o dist/2.zootrope.prg -sid testdata/Dutch_Breeze_Soft_and_Wet.sid testdata/drazlace/clone_zootrope.png
-	./$(TARGET) -d -q -i -o dist/3.parriot.prg -sid $(TESTSID2) testdata/mcinterlace/parriot*.png
-	./$(TARGET) -d -q -i -o dist/4.tete.prg -sid testdata/Max_Headroom_preview_v2.sid testdata/mcinterlace/tete*.png
-	./$(TARGET) -d -q -i -o dist/8.kuppa2.prg -sid testdata/drazlace/sanxion.sid testdata/drazlace/electric_kuppa2_frame*.png
+	mkdir -p dist/testdata/mixedcharset
+	mkdir -p dist/testdata/hirescharset
+	cp -r testdata/mixedcharset/*.png dist/testdata/mixedcharset/
+	cp -r testdata/hirescharset/*.png dist/testdata/hirescharset/
+	./$(TARGET) -d -q -o dist/0.neo.prg testdata/mixedcharset/hein_neo.png
+	./$(TARGET) -d -q -o dist/1.wrath.prg testdata/mixedcharset/joe_wrath.png
+	./$(TARGET) -d -q -o dist/2.huntress.prg testdata/mixedcharset/huntress.gif
+	./$(TARGET) -d -q -o dist/3.ohno.prg testdata/hirescharset/ohno_logo.png
+	./$(TARGET) -d -q -o dist/4.gestalt.prg testdata/hirescharset/gestalt.png
+	./$(TARGET) -d -q -o dist/5.samar.prg testdata/hirescharset/jetan_samar.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/*.prg
 	rm -f dist/*.prg
