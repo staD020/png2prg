@@ -122,7 +122,7 @@ func (img *sourceImage) analyze() (err error) {
 	case maxcolsperchar <= 2 && numbgcolcandidateshires == 1:
 		img.graphicsType = singleColorCharset
 	case numColors == 3 || numColors == 4:
-		img.graphicsType = multiColorCharset
+		img.graphicsType = mixedCharset
 	case maxcolsperchar > 2 && maxcolsperchar <= 4:
 		img.graphicsType = multiColorBitmap
 		if img.isMultiColorInterlace() {
@@ -317,7 +317,9 @@ func (img *sourceImage) maxColorsPerChar() (max int, m PaletteMap) {
 		}
 	}
 	x, y := xyFromChar(char)
-	log.Printf("char %d (x %d y %d) maxColorsPerChar: %d m: %s", char, x, y, max, m)
+	if img.opt.VeryVerbose {
+		log.Printf("char %d (x %d y %d) maxColorsPerChar: %d m: %s", char, x, y, max, m)
+	}
 	return max, m
 }
 

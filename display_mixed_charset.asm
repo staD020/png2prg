@@ -20,12 +20,6 @@ start:
 		ldx #0
 		stx $d011
 		stx $d020
-		lda charset+$fe8
-		sta $d021
-		lda charset+$fe9
-		sta $d022
-		lda charset+$fea
-		sta $d023
 	!:
 	.for (var i=0; i<4; i++) {
 		lda colorram+(i*$100),x
@@ -33,10 +27,12 @@ start:
 	}
 		inx
 		bne !-
-
 		jsr vblank
-		lda charset+$feb
-		sta $d020
+		ldx #3
+	!:	lda charset+$fe8,x
+		sta $d020,x
+		dex
+		bpl !-
 		:setBank(charset)
 		lda #toD018(screenram, charset)
 		sta $d018

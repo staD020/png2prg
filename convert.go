@@ -395,6 +395,9 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 	charset := []charBytes{}
 
 	c.CharColor = bitpair2c64color[3] | 8
+	for i := 0; i < FullScreenChars; i++ {
+		c.D800Color[i] = c.CharColor
+	}
 	c.BackgroundColor = bitpair2c64color[0]
 	c.D022Color = bitpair2c64color[1]
 	c.D023Color = bitpair2c64color[2]

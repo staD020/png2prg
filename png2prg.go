@@ -289,11 +289,12 @@ type MultiColorCharset struct {
 	SourceFilename  string
 	Bitmap          [0x800]byte
 	Screen          [1000]byte
+	D800Color       [1000]byte
 	CharColor       byte
+	BorderColor     byte
 	BackgroundColor byte
 	D022Color       byte
 	D023Color       byte
-	BorderColor     byte
 	opt             Options
 }
 
@@ -862,11 +863,22 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
-	header := defaultHeader()
-	if c.opt.Display {
-		header = multiColorCharset.newHeader()
+	link := NewLinker(BitmapAddress, c.opt.VeryVerbose)
+	_, err = link.WriteMap(LinkMap{
+		BitmapAddress:           c.Bitmap[:],
+		CharsetScreenRAMAddress: c.Screen[:],
+		CharsetColorRAMAddress:  c.D800Color[:],
+		0x2fe8:                  []byte{c.BorderColor, c.BackgroundColor, c.D022Color, c.D023Color},
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
-	return writeData(w, header, c.Bitmap[:], c.Screen[:], []byte{c.CharColor, c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor})
+	if c.opt.Display {
+		if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
+			return n, fmt.Errorf("link.WritePrg failed: %w", err)
+		}
+	}
+	return link.WriteTo(w)
 }
 
 func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
@@ -875,7 +887,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 		BitmapAddress:           c.Bitmap[:],
 		CharsetScreenRAMAddress: c.Screen[:],
 		CharsetColorRAMAddress:  c.D800Color[:],
-		0x2fe8:                  []byte{c.BackgroundColor, c.BorderColor},
+		0x2fe8:                  []byte{c.BorderColor, c.BackgroundColor},
 	})
 	if err != nil {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
@@ -894,7 +906,7 @@ func (c MixedCharset) WriteTo(w io.Writer) (n int64, err error) {
 		BitmapAddress:           c.Bitmap[:],
 		CharsetScreenRAMAddress: c.Screen[:],
 		CharsetColorRAMAddress:  c.D800Color[:],
-		0x2fe8:                  []byte{c.BackgroundColor, c.D022Color, c.D023Color, c.BorderColor},
+		0x2fe8:                  []byte{c.BorderColor, c.BackgroundColor, c.D022Color, c.D023Color},
 	})
 	if err != nil {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
