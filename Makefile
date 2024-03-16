@@ -50,8 +50,11 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp -r testdata/madonna dist/testdata/
 	mkdir -p dist/testdata/mixedcharset
 	mkdir -p dist/testdata/hirescharset
+	mkdir -p dist/testdata/petscii
 	cp -r testdata/mixedcharset/*.png dist/testdata/mixedcharset/
+	cp -r testdata/mixedcharset/*.gif dist/testdata/mixedcharset/
 	cp -r testdata/hirescharset/*.png dist/testdata/hirescharset/
+	cp -r testdata/petscii/*.png dist/testdata/petscii/
 	./$(TARGET) -d -q -o dist/0.neo.prg testdata/mixedcharset/hein_neo.png
 	./$(TARGET) -d -q -o dist/1.wrath.prg testdata/mixedcharset/joe_wrath.png
 	./$(TARGET) -d -q -o dist/2.huntress.prg testdata/mixedcharset/huntress.gif
@@ -70,8 +73,12 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -o dist/15.triad.prg testdata/petscii/triad.png
 	./$(TARGET) -d -q -o dist/16.proxima.prg testdata/petscii/proxima.png
 	./$(TARGET) -d -q -o dist/17.artline.prg testdata/petscii/artline.png
+	./$(TARGET) -d -q -o dist/18.gary.prg testdata/petscii/gary.png
+	./$(TARGET) -d -q -o dist/19.ernie.prg testdata/petscii/ernie.png
+	./$(TARGET) -d -q -o dist/20.4nki.prg testdata/petscii/deev_4nki.png
+	./$(TARGET) -d -q -o dist/21.f4cg.prg testdata/mixedcharset/zscs_f4cg.png
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg
+	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg dist/2?.*.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
