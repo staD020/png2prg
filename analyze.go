@@ -122,6 +122,7 @@ func (img *sourceImage) analyze() (err error) {
 	case maxcolsperchar <= 2 && numbgcolcandidateshires != 1:
 		img.graphicsType = singleColorBitmap
 	case maxcolsperchar <= 2 && numbgcolcandidateshires == 1:
+		img.findBackgroundColorCandidates(true)
 		img.graphicsType = singleColorCharset
 	case numColors == 3 || numColors == 4:
 		img.graphicsType = mixedCharset

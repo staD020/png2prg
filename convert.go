@@ -247,15 +247,22 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 		return c, fmt.Errorf("no bgcol? this should not happen.")
 	}
 
-	for i, col := range cc {
-		if col.ColorIndex == byte(forceBgCol) {
-			cc[0], cc[i] = cc[i], cc[0]
-			c.BackgroundColor = byte(forceBgCol)
-			if img.opt.Verbose {
-				log.Printf("forced background color %d was found", forceBgCol)
+LOOP:
+	for _, candidate := range img.backgroundCandidates {
+		if candidate == byte(forceBgCol) {
+			for i, col := range cc {
+				if col.ColorIndex == byte(forceBgCol) {
+					cc[0], cc[i] = cc[i], cc[0]
+					if img.opt.Verbose {
+						log.Printf("forced background color %d was found", forceBgCol)
+					}
+					break LOOP
+				}
 			}
-			break
 		}
+	}
+	if byte(forceBgCol) != cc[0].ColorIndex {
+		return c, fmt.Errorf("forced background color %d was not found in img.backgroundCandidates %s", forceBgCol, img.backgroundCandidates)
 	}
 
 	rgb2bitpair := PaletteMap{}
