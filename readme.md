@@ -1,4 +1,4 @@
-# PNG2PRG 1.5.2-dev by burg
+# PNG2PRG 1.5.3-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset or sprites prg. It will find the best matching
@@ -257,7 +257,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.5.2-dev
+## Changes for version 1.5.3-dev
 
  - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).
  - Added -mode mixedcharset for mixed multicolor/singlecolor and
