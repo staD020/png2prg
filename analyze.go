@@ -131,6 +131,11 @@ func (img *sourceImage) analyze() (err error) {
 		}
 	case numColors == 3 || numColors == 4:
 		img.graphicsType = mixedCharset
+		if len(img.preferredBitpairColors) == 0 && len(img.backgroundCandidates) == 1 {
+			for _, bgcol := range img.backgroundCandidates {
+				img.preferredBitpairColors = append(img.preferredBitpairColors, bgcol)
+			}
+		}
 	case maxcolsperchar > 2 && maxcolsperchar <= 4:
 		img.graphicsType = multiColorBitmap
 		if img.isMultiColorInterlace() {

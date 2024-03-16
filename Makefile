@@ -77,6 +77,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -o dist/19.ernie.prg testdata/petscii/ernie.png
 	./$(TARGET) -d -q -o dist/20.4nki.prg testdata/petscii/deev_4nki.png
 	./$(TARGET) -d -q -o dist/21.f4cg.prg testdata/mixedcharset/zscs_f4cg.png
+	./$(TARGET) -d -q -o dist/22.charsetcompo.prg -bpc 0 testdata/mixedcharset/charsetcompo.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg dist/2?.*.prg
 	rm -f dist/*.prg

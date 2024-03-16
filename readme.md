@@ -83,15 +83,16 @@ When making screenshots in vice, please disable the d016 pixel shift manually.
     Screen2: $e000 - $e3e7
     D800:    $e400 - $e7e7
 
-## Singlecolor Charset (individual d800 colors)
+## Singlecolor or PETSCII Charset (individual d800 colors)
 
 By default charsets are packed, they only contain unique characters.
 If you do not want charpacking, eg for a 1x1 charset, please use -no-pack.
 NB: individual d800 colors are not supported with -no-pack.
 
     ./png2prg -m sccharset testdata/hirescharset/ohno_logo.png
+    ./png2prg -m petscii testdata/petscii/hein_hibiscus.png
 
-    Charset:   $2000-$27ff
+    Charset:   $2000-$27ff (omitted for petscii
     Screen:    $2800-$2be7
     D800:      $2c00-$2fe7
     D020:      $2fe8
@@ -99,8 +100,8 @@ NB: individual d800 colors are not supported with -no-pack.
 
 ## Mixed Multi/Singlecolor Charset (individual d800 colors)
 
-Png2prg tries to figure out the right -bitpair-colors and even autocorrects
-where it can, but there still are edge-cases like the 3 below.
+Png2prg tries to figure out the right -bitpair-colors and auto-corrects
+where it can, but there still are edge-cases like the ones below.
 If an impossible color is found, an error will be displayed.
 Swap some -bpc colors around and retry.
 There can also be cases where manual -bpc colors can influence char-count or
@@ -109,6 +110,7 @@ packed size.
     ./png2prg -m mixedcharset testdata/mixedcharset/hein_neo.png
     ./png2prg -m mixedcharset testdata/mixedcharset/huntress.gif
     ./png2prg -m mixedcharset -bpc 3 testdata/mixedcharset/shine.png
+    ./png2prg -m mixedcharset -bpc 0 testdata/mixedcharset/charsetcompo.png
 
     Charset:   $2000-$27ff
     Screen:    $2800-$2be7
