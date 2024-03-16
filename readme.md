@@ -1,4 +1,4 @@
-# PNG2PRG 1.4.3-dev by burg
+# PNG2PRG 1.5.1-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset or sprites prg. It will find the best matching
@@ -96,8 +96,6 @@ NB: individual d800 colors are not supported with -no-pack.
     D800:      $2c00-$2fe7
     D020:      $2fe8
     D021:      $2fe9
-    D022:      $2fea       (multicolor only)
-    D023:      $2feb       (multicolor only)
 
 ## Mixed Multi/Singlecolor Charset (individual d800 colors)
 
@@ -108,8 +106,8 @@ NB: individual d800 colors are not supported with -no-pack.
     D800:      $2c00-$2fe7
     D020:      $2fe8
     D021:      $2fe9
-    D022:      $2fea       (multicolor only)
-    D023:      $2feb       (multicolor only)
+    D022:      $2fea
+    D023:      $2feb
 
 ## Single or Multicolor Sprites
 
@@ -250,7 +248,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.4.3-dev
+## Changes for version 1.5.1-dev
 
  - Fix -force-border-color for singlecolor charset (thanks Raistlin).
  - Experimental -mode mixedcharset for mixed multicolor/singlecolor and individial d800 color per char.

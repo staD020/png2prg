@@ -477,6 +477,17 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		log.Printf("img.MixedCharset: preferredBitpairColors: %v", img.preferredBitpairColors)
 	}
 
+	if len(img.preferredBitpairColors) > 3 {
+		if img.preferredBitpairColors[3] > 7 {
+			for i := 2; i >= 0; i-- {
+				if img.preferredBitpairColors[i] < 8 {
+					img.preferredBitpairColors[i], img.preferredBitpairColors[3] = img.preferredBitpairColors[3], img.preferredBitpairColors[i]
+					break
+				}
+			}
+		}
+	}
+
 	if len(img.backgroundCandidates) >= 0 {
 		candidates := []byte{}
 		for _, col := range img.backgroundCandidates {

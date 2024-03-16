@@ -58,8 +58,14 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -o dist/3.ohno.prg testdata/hirescharset/ohno_logo.png
 	./$(TARGET) -d -q -o dist/4.gestalt.prg testdata/hirescharset/gestalt.png
 	./$(TARGET) -d -q -o dist/5.samar.prg testdata/hirescharset/jetan_samar.png
+	./$(TARGET) -d -q -o dist/6.apace.prg testdata/mixedcharset/zscs_apace.png
+	./$(TARGET) -d -q -o dist/7.ocd.prg testdata/mixedcharset/ocd.png
+	./$(TARGET) -d -q -o dist/8.hyper.prg testdata/mixedcharset/hein_hyper.png
+	./$(TARGET) -d -q -o dist/9.extend.prg testdata/hirescharset/extend.png
+	./$(TARGET) -d -q -o dist/10.mega.prg testdata/mixedcharset/sarge_mega.png
+	./$(TARGET) -d -q -o dist/11.fair.prg testdata/mixedcharset/soya_fair.png
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/*.prg
+	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
