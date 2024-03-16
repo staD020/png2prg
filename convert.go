@@ -572,12 +572,21 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		}
 
 		hires := false
+		hirespixels := false
 		charcol := byte(0)
 		x, y := xyFromChar(char)
 		if len(img.charColors[char]) <= 2 {
 			// could be hires
+		LOOP:
+			for y2 := 0; y2 < 8; y2++ {
+				for x2 := 0; x2 < 8; x2 += 2 {
+					if img.colorAtXY(x+x2, y+y2) != img.colorAtXY(x+x2+1, y+y2) {
+						hirespixels = true
+						break LOOP
+					}
+				}
+			}
 			if bgcol, ok := img.charColors[char][img.palette.RGB(c.BackgroundColor)]; ok {
-			LOOP:
 				for _, col := range img.charColors[char] {
 					if col != bgcol && col < 8 {
 						hires = true
@@ -591,10 +600,14 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 							0: c.BackgroundColor,
 							1: charcol,
 						}
-						break LOOP
+						break
 					}
 				}
 			}
+		}
+
+		if hirespixels && !hires {
+			return c, fmt.Errorf("found hirespixels in char %d, but colors are bad: %s please swap some -bitpair-colors %s", char, img.charColors[char], img.preferredBitpairColors)
 		}
 
 		cbuf := charBytes{}
