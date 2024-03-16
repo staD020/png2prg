@@ -109,6 +109,14 @@ png2prg_win_x86.exe: $(SRC) $(DISPLAYERS)
 readme: $(TARGET)
 	./$(TARGET) -q -h >readme.md 2>&1
 
+roms: rom_charset_lowercase.prg rom_charset_uppercase.prg
+
+rom_charset_lowercase.prg: testdata/rom_charset_lowercase.png $(TARGET)
+	./$(TARGET) -np -m sccharset -bpc 0 -o $@ $<
+
+rom_charset_uppercase.prg: testdata/rom_charset_uppercase.png $(TARGET)
+	./$(TARGET) -np -m sccharset -bpc 0 -o $@ $<
+
 test: $(TARGET) $(TESTPIC) $(TESTSID)
 	./$(TARGET) $(FLAGS) -o q.prg -sid $(TESTSID) $(TESTPIC)
 	$(X64) q.prg >/dev/null
