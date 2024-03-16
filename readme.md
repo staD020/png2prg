@@ -99,7 +99,16 @@ NB: individual d800 colors are not supported with -no-pack.
 
 ## Mixed Multi/Singlecolor Charset (individual d800 colors)
 
+Png2prg tries to figure out the right -bitpair-colors and even autocorrects
+where it can, but there still are edge-cases like the 3 below.
+If an impossible color is found, an error will be displayed.
+Swap some -bpc colors around and retry.
+There can also be cases where manual -bpc colors can influence char-count or
+packed size.
+
     ./png2prg -m mixedcharset testdata/mixedcharset/hein_neo.png
+    ./png2prg -m mixedcharset testdata/mixedcharset/huntress.gif
+    ./png2prg -m mixedcharset -bpc 3 testdata/mixedcharset/shine.png
 
     Charset:   $2000-$27ff
     Screen:    $2800-$2be7
@@ -250,10 +259,11 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 
 ## Changes for version 1.5.1-dev
 
- - Fix -force-border-color for singlecolor charset (thanks Raistlin).
+ - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).
  - Experimental -mode mixedcharset for mixed multicolor/singlecolor and individial d800 color per char.
  - Experimental -mode sccharset modified to use individual d800 color per char.
  - Improved auto-detection of graphics mode, including the new charset support.
+ - Bug Fix: do not write empty .prg file on error.
 
 ## Changes for version 1.4
 

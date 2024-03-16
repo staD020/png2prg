@@ -115,6 +115,8 @@ func PrintHelp() {
 	fmt.Println("where it can, but there still are edge-cases like the 3 below.")
 	fmt.Println("If an impossible color is found, an error will be displayed.")
 	fmt.Println("Swap some -bpc colors around and retry.")
+	fmt.Println("There can also be cases where manual -bpc colors can influence char-count or")
+	fmt.Println("packed size.")
 	fmt.Println()
 	fmt.Println("    ./png2prg -m mixedcharset testdata/mixedcharset/hein_neo.png")
 	fmt.Println("    ./png2prg -m mixedcharset testdata/mixedcharset/huntress.gif")
