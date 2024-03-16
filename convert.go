@@ -479,11 +479,20 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 
 	if len(img.preferredBitpairColors) > 3 {
 		if img.preferredBitpairColors[3] > 7 {
-			for i := 2; i >= 0; i-- {
+			if img.opt.Verbose {
+				log.Printf("img.MixedCharset: detected charcol %d > 7, attempting to swap with another bitpair", img.preferredBitpairColors[3])
+			}
+			fixed := false
+			for i := 2; i > 0; i-- {
+				//for i := 1; i < 3; i++ {
 				if img.preferredBitpairColors[i] < 8 {
 					img.preferredBitpairColors[i], img.preferredBitpairColors[3] = img.preferredBitpairColors[3], img.preferredBitpairColors[i]
+					fixed = true
 					break
 				}
+			}
+			if !fixed {
+				return c, fmt.Errorf("could not find charcol %d to swap, required in mixed mode. try alternate -bitpair-colors", img.preferredBitpairColors[3])
 			}
 		}
 	}
