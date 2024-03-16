@@ -260,10 +260,12 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 ## Changes for version 1.5.1-dev
 
  - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).
- - Experimental -mode mixedcharset for mixed multicolor/singlecolor and individial d800 color per char.
- - Experimental -mode sccharset modified to use individual d800 color per char.
- - Improved auto-detection of graphics mode, including the new charset support.
+ - Added -mode mixedcharset for mixed multicolor/singlecolor and
+   individual d800 color per char.
+ - Modified -mode sccharset to use individual d800 color per char.
+ - Improved auto-detection of graphics modes, including the new charset support.
  - Bug Fix: do not write empty .prg file on error.
+ - Standardized 0xd0xx colors in output.prg for charset modes.
 
 ## Changes for version 1.4
 
