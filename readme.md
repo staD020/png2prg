@@ -1,16 +1,16 @@
 # PNG2PRG 1.5.3-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
-multicolor bitmap, charset or sprites prg. It will find the best matching
-palette and backgroundcolor automatically, no need to modify your source images
-or configure a palette.
+multicolor bitmap, charset, petscii or sprites prg. It will find the best
+matching palette and background/bitpair-colors automatically, no need to modify
+your source images or configure a palette.
+
 Vice screenshots with default borders (384x272) are automatically cropped.
 Vice's main screen's offset is at x=32, y=35.
 Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
-The displayers for koala, hires, mcibitmap and animations include fullscreen
-fade-in/out and optionally a .sid tune.
+The displayers can optionally play a .sid tune.
 
 This tool can be used in all buildchains on most platforms.
 
