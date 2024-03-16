@@ -186,7 +186,7 @@ The -d or -display flag will link displayer code infront of the picture.
 By default it will also crunch the resulting file with Antonio Savona's
 [TSCrunch](https://github.com/tonysavon/TSCrunch/) with a couple of changes in my own [fork](https://github.com/staD020/TSCrunch/).
 
-For hires, koala and koala-anim the displayer also supports adding a .sid.
+All displayers except for sprites support adding a .sid.
 Multispeed sids are supported as long as the .sid initializes the CIA timers
 correctly.
 
@@ -266,6 +266,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Improved auto-detection of graphics modes, including the new charset support.
  - Bug Fix: do not write empty .prg file on error.
  - Standardized 0xd0xx colors in output.prg for charset modes.
+ - Add sid support to charset displayers.
 
 ## Changes for version 1.4
 
