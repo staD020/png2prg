@@ -64,6 +64,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -o dist/9.extend.prg testdata/hirescharset/extend.png
 	./$(TARGET) -d -q -o dist/10.mega.prg testdata/mixedcharset/sarge_mega.png
 	./$(TARGET) -d -q -o dist/11.fair.prg testdata/mixedcharset/soya_fair.png
+	./$(TARGET) -d -q -o dist/12.shine.prg -bpc 3 testdata/mixedcharset/shine.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg
 	rm -f dist/*.prg

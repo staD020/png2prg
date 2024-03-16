@@ -110,7 +110,9 @@ func (img *sourceImage) analyze() (err error) {
 
 	img.findBackgroundColorCandidates(true)
 	numbgcolcandidateshires := len(img.backgroundCandidates)
-	log.Printf("numbgcolcandidateshires: %d", numbgcolcandidateshires)
+	if img.opt.Verbose {
+		log.Printf("numbgcolcandidateshires: %d", numbgcolcandidateshires)
+	}
 	img.findBackgroundColorCandidates(false)
 	numbgcolcandidates := len(img.backgroundCandidates)
 

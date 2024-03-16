@@ -665,20 +665,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		}
 	case mixedCharset:
 		if wt, err = img.MixedCharset(); err != nil {
-			if c.opt.GraphicsMode != "" {
-				return 0, fmt.Errorf("img.MixedCharset %q failed: %w", img.sourceFilename, err)
-			}
-			if !c.opt.Quiet {
-				fmt.Printf("falling back to %s because img.MixedCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
-			}
-			img.graphicsType = multiColorBitmap
-			err = img.findBackgroundColor()
-			if err != nil {
-				return 0, fmt.Errorf("findBackgroundColor %q failed: %w", img.sourceFilename, err)
-			}
-			if wt, err = img.Koala(); err != nil {
-				return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
-			}
+			return 0, fmt.Errorf("img.MixedCharset %q failed: %w", img.sourceFilename, err)
 		}
 	default:
 		return 0, fmt.Errorf("unsupported graphicsType %q for %q", img.graphicsType, img.sourceFilename)

@@ -668,6 +668,7 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		}
 	}
 	if !img.opt.Quiet {
+		fmt.Printf("settled for -bitpair-colors %s\n", img.preferredBitpairColors)
 		fmt.Printf("used %d unique chars in the charset\n", len(charset))
 	}
 
