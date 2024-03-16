@@ -1,5 +1,5 @@
-SRC=*.go cmd/png2prg/*.go
-DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg display_mci_bitmap.prg display_mixed_charset.prg
+SRC=*.go cmd/png2prg/*.go tools/rom_charset_lowercase.prg tools/rom_charset_uppercase.prg
+DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg display_mci_bitmap.prg display_mixed_charset.prg display_petscii_charset.prg
 ASMLIB=lib.asm
 ASM=java -jar ./tools/KickAss-5.25.jar
 ASMFLAGS=-showmem -time
@@ -65,6 +65,11 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -o dist/10.mega.prg testdata/mixedcharset/sarge_mega.png
 	./$(TARGET) -d -q -o dist/11.fair.prg testdata/mixedcharset/soya_fair.png
 	./$(TARGET) -d -q -o dist/12.shine.prg -bpc 3 testdata/mixedcharset/shine.png
+	./$(TARGET) -d -q -o dist/13.hibiscus.prg testdata/petscii/hein_hibiscus.png
+	./$(TARGET) -d -q -o dist/14.submarine.prg testdata/petscii/submarine.png
+	./$(TARGET) -d -q -o dist/15.triad.prg testdata/petscii/triad.png
+	./$(TARGET) -d -q -o dist/16.proxima.prg testdata/petscii/proxima.png
+	./$(TARGET) -d -q -o dist/17.artline.prg testdata/petscii/artline.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg
 	rm -f dist/*.prg

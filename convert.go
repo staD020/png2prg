@@ -230,7 +230,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 type charBytes [8]byte
 
 // SingleColorCharset converts the img to SingleColorCharset and returns it.
-func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
+func (img *sourceImage) SingleColorCharset(prebuiltCharset []charBytes) (SingleColorCharset, error) {
 	c := SingleColorCharset{
 		SourceFilename: img.sourceFilename,
 		BorderColor:    img.borderColor.ColorIndex,
@@ -241,11 +241,10 @@ func (img *sourceImage) SingleColorCharset() (SingleColorCharset, error) {
 	cc := sortColors(palette)
 
 	forceBgCol := -1
-	if len(img.preferredBitpairColors) > 0 {
-		forceBgCol = int(img.preferredBitpairColors[0])
-	} else {
+	if len(img.preferredBitpairColors) == 0 {
 		return c, fmt.Errorf("no bgcol? this should not happen.")
 	}
+	forceBgCol = int(img.preferredBitpairColors[0])
 
 LOOP:
 	for _, candidate := range img.backgroundCandidates {
@@ -306,6 +305,13 @@ LOOP:
 	}
 
 	charMap := []charBytes{}
+	if len(prebuiltCharset) > 0 {
+		charMap = prebuiltCharset
+		if img.opt.Verbose {
+			log.Printf("using prebuiltCharset len: %d chars", len(charMap))
+		}
+	}
+
 	for char := 0; char < FullScreenChars; char++ {
 		rgb2bitpair = PaletteMap{}
 		bitpair2c64color = map[byte]byte{}
@@ -363,6 +369,47 @@ LOOP:
 		fmt.Printf("used %d unique chars in the charset\n", len(charMap))
 	}
 	return c, nil
+}
+
+func romCharsetToCharBytes(romPrg []byte) (cb []charBytes) {
+	buf := romPrg[2 : MaxChars*8+2]
+	if len(buf)%8 != 0 {
+		panic(fmt.Sprintf("romCharsetToCharBytes romPrg does not consist of 8 byte chars, %d %% 8 == %d", len(buf), len(buf)%8))
+	}
+	for i := 0; i < len(buf); i += 8 {
+		c := charBytes{}
+		for j := 0; j < 8; j++ {
+			c[j] = buf[i+j]
+		}
+		cb = append(cb, c)
+	}
+	return cb
+}
+
+func (img *sourceImage) PETSCIICharset() (PETSCIICharset, error) {
+	c := PETSCIICharset{
+		SourceFilename: img.sourceFilename,
+		BorderColor:    img.borderColor.ColorIndex,
+		opt:            img.opt,
+	}
+	charMap := romCharsetToCharBytes(romCharsetUppercasePrg)
+	scc, err := img.SingleColorCharset(charMap)
+	if err == nil {
+		c.Screen = scc.Screen
+		c.D800Color = scc.D800Color
+		c.BackgroundColor = scc.BackgroundColor
+		return c, nil
+	}
+	charMap = romCharsetToCharBytes(romCharsetLowercasePrg)
+	scc, err = img.SingleColorCharset(charMap)
+	if err == nil {
+		c.Screen = scc.Screen
+		c.D800Color = scc.D800Color
+		c.BackgroundColor = scc.BackgroundColor
+		c.Lowercase = 1
+		return c, nil
+	}
+	return c, err
 }
 
 // MultiColorCharset converts the img to MultiColorCharset and returns it.

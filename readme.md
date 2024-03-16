@@ -266,7 +266,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Improved auto-detection of graphics modes, including the new charset support.
  - Bug Fix: do not write empty .prg file on error.
  - Standardized 0xd0xx colors in output.prg for charset modes.
- - Add sid support to charset displayers.
+ - Added sid support to charset displayers.
+ - Added -mode petscii support including auto-detection and sid support.
 
 ## Changes for version 1.4
 

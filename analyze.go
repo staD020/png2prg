@@ -124,6 +124,11 @@ func (img *sourceImage) analyze() (err error) {
 	case maxcolsperchar <= 2 && numbgcolcandidateshires == 1:
 		img.findBackgroundColorCandidates(true)
 		img.graphicsType = singleColorCharset
+		if len(img.preferredBitpairColors) == 0 && len(img.backgroundCandidates) == 1 {
+			for _, bgcol := range img.backgroundCandidates {
+				img.preferredBitpairColors = append(img.preferredBitpairColors, bgcol)
+			}
+		}
 	case numColors == 3 || numColors == 4:
 		img.graphicsType = mixedCharset
 	case maxcolsperchar > 2 && maxcolsperchar <= 4:

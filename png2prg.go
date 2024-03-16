@@ -103,6 +103,7 @@ const (
 	multiColorSprites
 	multiColorInterlaceBitmap // https://csdb.dk/release/?id=3961
 	mixedCharset
+	petsciiCharset
 )
 
 func StringToGraphicsType(s string) GraphicsType {
@@ -123,6 +124,8 @@ func StringToGraphicsType(s string) GraphicsType {
 		return multiColorInterlaceBitmap
 	case "mixedcharset":
 		return mixedCharset
+	case "petscii":
+		return petsciiCharset
 	}
 	return unknownGraphicsType
 }
@@ -145,6 +148,8 @@ func (t GraphicsType) String() string {
 		return "mcibitmap"
 	case mixedCharset:
 		return "mixed charset"
+	case petsciiCharset:
+		return "petscii"
 	default:
 		return "unknown"
 	}
@@ -354,6 +359,25 @@ func (img MixedCharset) Symbols() []c64Symbol {
 	}
 }
 
+type PETSCIICharset struct {
+	SourceFilename  string
+	Lowercase       byte // 0 = uppercase, 1 = lowercase
+	Screen          [1000]byte
+	D800Color       [1000]byte
+	BackgroundColor byte
+	BorderColor     byte
+	opt             Options
+}
+
+func (img PETSCIICharset) Symbols() []c64Symbol {
+	return []c64Symbol{
+		{"screenram", CharsetScreenRAMAddress},
+		{"colorram", CharsetColorRAMAddress},
+		{"d020color", int(img.BorderColor)},
+		{"d021color", int(img.BackgroundColor)},
+	}
+}
+
 type SingleColorSprites struct {
 	SourceFilename  string
 	Bitmap          []byte
@@ -434,6 +458,15 @@ var mciBitmapDisplay []byte
 //go:embed "display_mixed_charset.prg"
 var mixedCharsetDisplay []byte
 
+//go:embed "display_petscii_charset.prg"
+var petsciiCharsetDisplay []byte
+
+//go:embed "tools/rom_charset_lowercase.prg"
+var romCharsetLowercasePrg []byte
+
+//go:embed "tools/rom_charset_uppercase.prg"
+var romCharsetUppercasePrg []byte
+
 func init() {
 	displayers[multiColorBitmap] = koalaDisplay
 	displayers[singleColorBitmap] = hiresDisplay
@@ -443,6 +476,7 @@ func init() {
 	displayers[singleColorSprites] = scSpritesDisplay
 	displayers[multiColorInterlaceBitmap] = mciBitmapDisplay
 	displayers[mixedCharset] = mixedCharsetDisplay
+	displayers[petsciiCharset] = petsciiCharsetDisplay
 }
 
 // newHeader returns a copy of the displayer code for GraphicsType t as a byte slice in .prg format.
@@ -626,17 +660,27 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
 		}
 	case singleColorCharset:
-		if wt, err = img.SingleColorCharset(); err != nil {
-			if c.opt.GraphicsMode != "" {
-				return 0, fmt.Errorf("img.SingleColorCharset %q failed: %w", img.sourceFilename, err)
+		if wt, err = img.PETSCIICharset(); err != nil {
+			if wt, err = img.SingleColorCharset(nil); err != nil {
+				if c.opt.GraphicsMode != "" {
+					return 0, fmt.Errorf("img.SingleColorCharset %q failed: %w", img.sourceFilename, err)
+				}
+				if !c.opt.Quiet {
+					fmt.Printf("falling back to %s because img.SingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
+				}
+				img.graphicsType = singleColorBitmap
+				if wt, err = img.Hires(); err != nil {
+					return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
+				}
 			}
+		} else {
 			if !c.opt.Quiet {
-				fmt.Printf("falling back to %s because img.SingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
+				fmt.Printf("detected petscii\n")
 			}
-			img.graphicsType = singleColorBitmap
-			if wt, err = img.Hires(); err != nil {
-				return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
-			}
+		}
+	case petsciiCharset:
+		if wt, err = img.PETSCIICharset(); err != nil {
+			return 0, fmt.Errorf("img.PETSCIICharset %q failed: %w", img.sourceFilename, err)
 		}
 	case multiColorCharset:
 		if wt, err = img.MultiColorCharset(); err != nil {
@@ -947,6 +991,47 @@ func (c MixedCharset) WriteTo(w io.Writer) (n int64, err error) {
 	}
 	if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
+	}
+	if c.opt.IncludeSID == "" {
+		return link.WriteTo(w)
+	}
+	s, err := sid.LoadSID(c.opt.IncludeSID)
+	if err != nil {
+		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+	}
+	if _, err = link.WritePrg(s.Bytes()); err != nil {
+		return n, fmt.Errorf("link.WritePrg failed: %w", err)
+	}
+	injectSIDLinker(link, s)
+	if !c.opt.Quiet {
+		fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+	}
+	return link.WriteTo(w)
+}
+
+func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
+	link := NewLinker(BitmapAddress, c.opt.VeryVerbose)
+	_, err = link.WriteMap(LinkMap{
+		CharsetScreenRAMAddress: c.Screen[:],
+		CharsetColorRAMAddress:  c.D800Color[:],
+		0x2fe8:                  []byte{c.BorderColor, c.BackgroundColor},
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.WriteMap failed: %w", err)
+	}
+	if !c.opt.Display {
+		return link.WriteTo(w)
+	}
+	if _, err = link.WritePrg(petsciiCharset.newHeader()); err != nil {
+		return n, fmt.Errorf("link.WritePrg failed: %w", err)
+	}
+	link.SetByte(0x0820, c.Lowercase)
+	if c.opt.Verbose {
+		if c.Lowercase == 1 {
+			log.Printf("lowercase rom charset found")
+		} else {
+			log.Printf("uppercase rom charset found")
+		}
 	}
 	if c.opt.IncludeSID == "" {
 		return link.WriteTo(w)
