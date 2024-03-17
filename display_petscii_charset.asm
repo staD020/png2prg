@@ -117,6 +117,7 @@ start:
 		sta $01
 		lda #0
 		sta $d011
+		sta $d418
 		jmp $fce2
 vblank:
 		:vblank()
