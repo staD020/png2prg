@@ -665,9 +665,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 				if c.opt.GraphicsMode != "" {
 					return 0, fmt.Errorf("img.SingleColorCharset %q failed: %w", img.sourceFilename, err)
 				}
-				if !c.opt.Quiet {
-					fmt.Printf("falling back to %s because img.SingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
-				}
+				fmt.Printf("falling back to %s because img.SingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
 				img.graphicsType = singleColorBitmap
 				if wt, err = img.Hires(); err != nil {
 					return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
@@ -687,9 +685,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("img.MultiColorCharset %q failed: %w", img.sourceFilename, err)
 			}
-			if !c.opt.Quiet {
-				fmt.Printf("falling back to %s because img.MultiColorCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
-			}
+			fmt.Printf("falling back to %s because img.MultiColorCharset %q failed: %v\n", multiColorBitmap, img.sourceFilename, err)
 			img.graphicsType = multiColorBitmap
 			err = img.findBackgroundColor()
 			if err != nil {
@@ -712,9 +708,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("img.MixedCharset %q failed: %w", img.sourceFilename, err)
 			}
-			if !c.opt.Quiet {
-				fmt.Printf("falling back to %s because %s for %q failed: %v\n", multiColorBitmap, mixedCharset, img.sourceFilename, err)
-			}
+			fmt.Printf("falling back to %s because %s for %q failed: %v\n", multiColorBitmap, mixedCharset, img.sourceFilename, err)
 			img.graphicsType = multiColorBitmap
 			img.findBackgroundColorCandidates(false)
 			if err = img.findBackgroundColor(); err != nil {
