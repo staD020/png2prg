@@ -20,7 +20,7 @@ FLAGSNG2=-d -v -bitpair-colors 0,-1,-1,-1
 FLAGSFORCE=-d -v -bitpair-colors 0,8,10,2
 TESTPIC=testdata/mirage_parrot.png
 TESTMCI=testdata/mcinterlace/parriot?.png
-TESTSID=testdata/Rivalry_tune_5.sid
+TESTSID=testdata/Lift_Off_V2.sid
 TESTSID2=testdata/Snake_Disco.sid
 TESTSIDMAD=testdata/madonna/holiday.sid
 TESTANIM=testdata/jamesband*.png
@@ -55,29 +55,29 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp -r testdata/mixedcharset/*.gif dist/testdata/mixedcharset/
 	cp -r testdata/hirescharset/*.png dist/testdata/hirescharset/
 	cp -r testdata/petscii/*.png dist/testdata/petscii/
-	./$(TARGET) -d -q -o dist/0.neo.prg testdata/mixedcharset/hein_neo.png
-	./$(TARGET) -d -q -o dist/1.wrath.prg testdata/mixedcharset/joe_wrath.png
-	./$(TARGET) -d -q -o dist/2.huntress.prg testdata/mixedcharset/huntress.gif
-	./$(TARGET) -d -q -o dist/3.ohno.prg testdata/hirescharset/ohno_logo.png
-	./$(TARGET) -d -q -o dist/4.gestalt.prg testdata/hirescharset/gestalt.png
-	./$(TARGET) -d -q -o dist/5.samar.prg testdata/hirescharset/jetan_samar.png
-	./$(TARGET) -d -q -o dist/6.apace.prg testdata/mixedcharset/zscs_apace.png
-	./$(TARGET) -d -q -o dist/7.ocd.prg testdata/mixedcharset/ocd.png
-	./$(TARGET) -d -q -o dist/8.hyper.prg testdata/mixedcharset/hein_hyper.png
-	./$(TARGET) -d -q -o dist/9.extend.prg testdata/hirescharset/extend.png
-	./$(TARGET) -d -q -o dist/10.mega.prg testdata/mixedcharset/sarge_mega.png
-	./$(TARGET) -d -q -o dist/11.fair.prg testdata/mixedcharset/soya_fair.png
-	./$(TARGET) -d -q -o dist/12.shine.prg -bpc 3 testdata/mixedcharset/shine.png
-	./$(TARGET) -d -q -o dist/13.hibiscus.prg testdata/petscii/hein_hibiscus.png
-	./$(TARGET) -d -q -o dist/14.submarine.prg testdata/petscii/submarine.png
-	./$(TARGET) -d -q -o dist/15.triad.prg testdata/petscii/triad.png
-	./$(TARGET) -d -q -o dist/16.proxima.prg testdata/petscii/proxima.png
-	./$(TARGET) -d -q -o dist/17.artline.prg testdata/petscii/artline.png
-	./$(TARGET) -d -q -o dist/18.gary.prg testdata/petscii/gary.png
-	./$(TARGET) -d -q -o dist/19.ernie.prg testdata/petscii/ernie.png
-	./$(TARGET) -d -q -o dist/20.4nki.prg testdata/petscii/deev_4nki.png
-	./$(TARGET) -d -q -o dist/21.f4cg.prg testdata/mixedcharset/zscs_f4cg.png
-	./$(TARGET) -d -q -o dist/22.charsetcompo.prg -bpc 0 testdata/mixedcharset/charsetcompo.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/0.neo.prg testdata/mixedcharset/hein_neo.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/1.wrath.prg testdata/mixedcharset/joe_wrath.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/2.huntress.prg testdata/mixedcharset/huntress.gif
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/3.ohno.prg testdata/hirescharset/ohno_logo.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/4.gestalt.prg testdata/hirescharset/gestalt.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/5.samar.prg testdata/hirescharset/jetan_samar.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/6.apace.prg testdata/mixedcharset/zscs_apace.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/7.ocd.prg testdata/mixedcharset/ocd.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/8.hyper.prg testdata/mixedcharset/hein_hyper.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/9.extend.prg testdata/hirescharset/extend.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/10.mega.prg testdata/mixedcharset/sarge_mega.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/11.fair.prg testdata/mixedcharset/soya_fair.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/12.shine.prg -bpc 3 testdata/mixedcharset/shine.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/13.hibiscus.prg testdata/petscii/hein_hibiscus.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/14.submarine.prg testdata/petscii/submarine.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/15.triad.prg testdata/petscii/triad.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/16.proxima.prg testdata/petscii/proxima.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/17.artline.prg testdata/petscii/artline.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/18.gary.prg testdata/petscii/gary.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/19.ernie.prg testdata/petscii/ernie.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/20.4nki.prg testdata/petscii/deev_4nki.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/21.f4cg.prg testdata/mixedcharset/zscs_f4cg.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/22.charsetcompo.prg -bpc 0 testdata/mixedcharset/charsetcompo.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg dist/2?.*.prg
 	rm -f dist/*.prg
