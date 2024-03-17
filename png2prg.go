@@ -1026,11 +1026,11 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
 	link.SetByte(0x0820, c.Lowercase)
-	if c.opt.Verbose {
+	if !c.opt.Quiet {
 		if c.Lowercase == 1 {
-			log.Printf("lowercase rom charset found")
+			fmt.Println("lowercase rom charset found")
 		} else {
-			log.Printf("uppercase rom charset found")
+			fmt.Println("uppercase rom charset found")
 		}
 	}
 	if c.opt.IncludeSID == "" {
