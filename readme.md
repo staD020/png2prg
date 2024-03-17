@@ -29,6 +29,7 @@ If you do need to wire fullcolor images, check out Youth's [Retropixels](https:/
     mixedcharset: multicolor charset (max 4 colors per char (fixed bgcol, d022, d023))
     mccharset:    multicolor charset (max 4 colors)
     sccharset:    singlecolor charset (max 2 colors per char (fixed bgcol))
+    petscii:      singlecolor rom charset (max 2 colors per char (fixed bgcol))
     mcsprites:    multicolor sprites (max 4 colors)
     scsprites:    singlecolor sprites (max 2 colors)
     mcibitmap:    320x200 multicolor interlace bitmap (max 4 colors per char/frame)

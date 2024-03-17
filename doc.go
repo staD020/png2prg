@@ -41,6 +41,7 @@ func PrintHelp() {
 	fmt.Println("    mixedcharset: multicolor charset (max 4 colors per char (fixed bgcol, d022, d023))")
 	fmt.Println("    mccharset:    multicolor charset (max 4 colors)")
 	fmt.Println("    sccharset:    singlecolor charset (max 2 colors per char (fixed bgcol))")
+	fmt.Println("    petscii:      singlecolor rom charset (max 2 colors per char (fixed bgcol))")
 	fmt.Println("    mcsprites:    multicolor sprites (max 4 colors)")
 	fmt.Println("    scsprites:    singlecolor sprites (max 2 colors)")
 	fmt.Println("    mcibitmap:    320x200 multicolor interlace bitmap (max 4 colors per char/frame)")
