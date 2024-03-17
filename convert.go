@@ -252,7 +252,7 @@ LOOP:
 			for i, col := range cc {
 				if col.ColorIndex == byte(forceBgCol) {
 					cc[0], cc[i] = cc[i], cc[0]
-					if img.opt.Verbose {
+					if img.opt.VeryVerbose {
 						log.Printf("forced background color %d was found", forceBgCol)
 					}
 					break LOOP
@@ -307,11 +307,12 @@ LOOP:
 	charMap := []charBytes{}
 	if len(prebuiltCharset) > 0 {
 		charMap = prebuiltCharset
-		if img.opt.Verbose {
-			log.Printf("using prebuiltCharset len: %d chars", len(charMap))
+		if img.opt.VeryVerbose {
+			log.Printf("using prebuiltCharset of %d chars", len(prebuiltCharset))
 		}
 	}
 
+	truecount := make(map[charBytes]int, MaxChars)
 	for char := 0; char < FullScreenChars; char++ {
 		rgb2bitpair = PaletteMap{}
 		bitpair2c64color = map[byte]byte{}
@@ -341,6 +342,7 @@ LOOP:
 			cbuf[byteIndex] = bmpbyte
 		}
 
+		truecount[cbuf]++
 		found := false
 		curChar := 0
 		for curChar = range charMap {
@@ -366,7 +368,7 @@ LOOP:
 		}
 	}
 	if !img.opt.Quiet {
-		fmt.Printf("used %d unique chars in the charset\n", len(charMap))
+		fmt.Printf("used %d unique chars in the charset\n", len(truecount))
 	}
 	return c, nil
 }
