@@ -109,11 +109,12 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 		return fmt.Errorf("os.Create failed: %w", err)
 	}
 	defer w.Close()
-	if _, err = io.Copy(w, &buf); err != nil {
+	n, err := io.Copy(w, &buf)
+	if err != nil {
 		return fmt.Errorf("WriteTo failed: %w", err)
 	}
 	if !opt.Quiet {
-		fmt.Printf("write %q\n", opt.OutFile)
+		fmt.Printf("write %d bytes to %q\n", n, opt.OutFile)
 	}
 	if opt.Symbols && len(p.Symbols) > 0 {
 		fn := strings.TrimSuffix(opt.OutFile, ".prg") + ".sym"
