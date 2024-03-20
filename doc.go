@@ -18,7 +18,7 @@ func PrintHelp() {
 	fmt.Println("your source images or configure a palette.")
 	fmt.Println()
 	fmt.Println("Vice screenshots with default borders (384x272) are automatically cropped.")
-	fmt.Println("Vice's main screen's offset is at x=32, y=35.")
+	fmt.Println("Vice's main screen offset is at x=32, y=35.")
 	fmt.Println("Images in sprite dimensions will be converted to sprites.")
 	fmt.Println()
 	fmt.Println("The resulting .prg includes the 2-byte start address and optional displayer.")
