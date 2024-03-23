@@ -161,11 +161,20 @@ func (img *sourceImage) analyze() (err error) {
 			log.Printf("skipping: findBorderColor failed: %v", err)
 		}
 	}
-	if img.graphicsType == multiColorBitmap {
+	switch img.graphicsType {
+	case multiColorBitmap:
 		if err = img.findBackgroundColor(); err != nil {
 			return fmt.Errorf("findBackgroundColor failed: %w", err)
 		}
+	case ecmCharset:
+		if err = img.findECMColors(); err != nil {
+			return fmt.Errorf("findECMColors failed: %w", err)
+		}
+		if img.opt.Verbose {
+			log.Printf("img.ecmColors: %v", img.ecmColors)
+		}
 	}
+
 	if !img.opt.NoGuess {
 		if img.graphicsType == multiColorBitmap {
 			maxcolsperchar = 4
@@ -336,13 +345,32 @@ func (img *sourceImage) maxColorsPerChar() (max int, m PaletteMap) {
 	return max, m
 }
 
-// findBackgroundColorCandidates iterates over all chars with 4 colors and sets the common color(s) in img.backgroundCandidates.
+// findBackgroundColorCandidates iterates over all chars with 4 colors (or 2 for hires) and sets the common color(s) in img.backgroundCandidates.
 func (img *sourceImage) findBackgroundColorCandidates(hires bool) {
+	if img.graphicsType == ecmCharset {
+		hires = true
+	}
 	backgroundCharColors := []PaletteMap{}
 	for _, v := range img.charColors {
-		if hires && len(v) == 2 || !hires && len(v) == 4 {
+		if (hires && len(v) == 2) || (!hires && len(v) == 4) {
 			backgroundCharColors = append(backgroundCharColors, v)
 		}
+	}
+	if img.graphicsType == ecmCharset {
+		pm := make(PaletteMap, MaxColors)
+		for _, v := range backgroundCharColors {
+			for rgb, col := range v {
+				pm[rgb] = col
+			}
+		}
+		if img.opt.VeryVerbose {
+			log.Printf("ecm: all backgroundCharColors or raw candidates: %v", pm)
+		}
+		img.backgroundCandidates = pm
+		// xpardey.png
+		// >C:d020  fc fd fe fa  fc
+		// 12 13 14 10
+		return
 	}
 
 	// need to copy the map, as we delete false candidates
@@ -444,6 +472,110 @@ func (img *sourceImage) findBackgroundColor() error {
 		return nil
 	}
 	return fmt.Errorf("background color not found")
+}
+
+type sortcolor struct {
+	colorIndex byte
+	rgb        RGB
+	count      int
+}
+
+func (img *sourceImage) findECMColors() error {
+	if img.graphicsType != ecmCharset {
+		return fmt.Errorf("img.graphicsType must be %s", ecmCharset)
+	}
+
+	if len(img.preferredBitpairColors) == 4 {
+		log.Printf("skipping findECMColors because we have 4 img.preferredBitpairColors %s", img.preferredBitpairColors)
+		img.ecmColors = img.preferredBitpairColors
+		return nil
+	}
+
+	// find the 4 colors present in all chars
+	colm := map[byte]*sortcolor{}
+	for _, v := range img.charColors {
+		if len(v) != 2 {
+			continue
+		}
+		for rgb, col := range v {
+			if c, ok := colm[col]; ok {
+				c.count++
+			} else {
+				colm[col] = &sortcolor{colorIndex: col, rgb: rgb, count: 1}
+			}
+		}
+	}
+
+	colors := make([]*sortcolor, 0)
+	for _, col := range colm {
+		if col != nil {
+			if col.count > 0 {
+				colors = append(colors, col)
+			}
+		}
+	}
+	sort.Slice(colors, func(i, j int) bool {
+		return colors[i].count > colors[j].count
+	})
+	colors = colors[:7]
+
+	if img.opt.VeryVerbose {
+		log.Printf("findECMColors sorted len %d: %v", len(colors), colors)
+		for i, v := range colors {
+			log.Printf("%d: %v", i, *v)
+		}
+	}
+
+	count := 0
+PERMUTE:
+	for p := make([]int, len(colors)); p[0] < len(p); nextPerm(p) {
+		count++
+		s := getPerm(colors, p)[:4]
+		for _, v := range img.charColors {
+			if len(v) != 2 {
+				continue
+			}
+			nfound := 0
+			for _, charcol := range v {
+				for _, ecmcol := range s {
+					if charcol == ecmcol.colorIndex {
+						nfound++
+					}
+				}
+			}
+			if nfound == 0 {
+				continue PERMUTE
+			}
+		}
+		if img.opt.Verbose {
+			log.Println("ecm color solution found:")
+			for i, v := range s {
+				img.ecmColors = append(img.ecmColors, v.colorIndex)
+				log.Printf("  permutation %d -> %d: %v", count, i, *v)
+			}
+
+		}
+		return nil
+	}
+	return fmt.Errorf("solution for ecm colors was not found")
+}
+
+func nextPerm(p []int) {
+	for i := len(p) - 1; i >= 0; i-- {
+		if i == 0 || p[i] < len(p)-i-1 {
+			p[i]++
+			return
+		}
+		p[i] = 0
+	}
+}
+
+func getPerm(orig []*sortcolor, p []int) []*sortcolor {
+	result := append([]*sortcolor{}, orig...)
+	for i, v := range p {
+		result[i], result[i+v] = result[i+v], result[i]
+	}
+	return result
 }
 
 // findBorderColor sets img.borderColor to opt.ForceBorderColor or detects it if a vice default screenshot is used.

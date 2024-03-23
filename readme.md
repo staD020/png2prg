@@ -1,7 +1,7 @@
-# PNG2PRG 1.5.3-dev by burg
+# PNG2PRG 1.5.4-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
-multicolor bitmap, charset, petscii or sprites prg. It will find the best
+multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
 matching palette and background/bitpair-colors automatically, no need to modify
 your source images or configure a palette.
 
@@ -84,7 +84,7 @@ When making screenshots in vice, please disable the d016 pixel shift manually.
     Screen2: $e000 - $e3e7
     D800:    $e400 - $e7e7
 
-## Singlecolor or PETSCII Charset (individual d800 colors)
+## Singlecolor, PETSCII or ECM Charset (individual d800 colors)
 
 By default charsets are packed, they only contain unique characters.
 If you do not want charpacking, eg for a 1x1 charset, please use -no-pack.
@@ -92,12 +92,16 @@ NB: individual d800 colors are not supported with -no-pack.
 
     ./png2prg -m sccharset testdata/hirescharset/ohno_logo.png
     ./png2prg -m petscii testdata/petscii/hein_hibiscus.png
+    ./png2prg -m ecm testdata/ecm/xpardey.png
 
-    Charset:   $2000-$27ff (omitted for petscii
+    Charset:   $2000-$27ff (omitted for petscii)
     Screen:    $2800-$2be7
     D800:      $2c00-$2fe7
     D020:      $2fe8
     D021:      $2fe9
+    D022:      $2fea (ecm only)
+    D023:      $2feb (ecm only)
+    D024:      $2fec (ecm only)
 
 ## Mixed Multi/Singlecolor Charset (individual d800 colors)
 
@@ -260,12 +264,13 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.5.3-dev
+## Changes for version 1.5.4-dev
 
  - Added -mode mixedcharset for mixed multicolor/singlecolor and
    individual d800 colors per char.
  - Modified -mode sccharset to use individual d800 colors per char.
  - Added -mode petscii.
+ - Added -mode ecm, very experimental though.
  - Improved auto-detection of graphics modes, including various charset modes.
  - Added sid support to charset displayers.
  - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).

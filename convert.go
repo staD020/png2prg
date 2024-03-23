@@ -37,10 +37,10 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 	}
 	// which bitpairs do we have left, default is multicolor
 	bitpairs := []byte{1, 2, 3}
-	if img.graphicsType == singleColorBitmap {
+	switch img.graphicsType {
+	case singleColorBitmap:
 		bitpairs = []byte{0, 1}
-	}
-	if img.graphicsType == singleColorCharset || img.graphicsType == singleColorSprites {
+	case singleColorCharset, singleColorSprites, ecmCharset:
 		bitpairs = []byte{1}
 	}
 
@@ -729,6 +729,99 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 	}
 
 	return c, err
+}
+
+// ECMCharset converts the img to ECMCharset and returns it.
+func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, error) {
+	if len(img.ecmColors) < 4 {
+		return ECMCharset{}, fmt.Errorf("not enough img.ecmColors: %v", img.ecmColors)
+	}
+
+	c := ECMCharset{
+		SourceFilename:  img.sourceFilename,
+		BorderColor:     img.borderColor.ColorIndex,
+		BackgroundColor: img.ecmColors[0],
+		D022Color:       img.ecmColors[1],
+		D023Color:       img.ecmColors[2],
+		D024Color:       img.ecmColors[3],
+		opt:             img.opt,
+	}
+
+	charMap := []charBytes{}
+	if len(prebuiltCharset) > 0 && len(prebuiltCharset) <= MaxECMChars {
+		charMap = prebuiltCharset
+		if img.opt.VeryVerbose {
+			log.Printf("using prebuiltCharset of %d chars", len(prebuiltCharset))
+		}
+	}
+
+	truecount := make(map[charBytes]int, MaxECMChars)
+	for char := 0; char < FullScreenChars; char++ {
+		rgb2bitpair := PaletteMap{}
+		orchar := byte(0)
+		foundbg := false
+		// TODO: undeterministic when 2 ecm colors are used in the same char, which color to choose for bitpair 00?
+		// good example: testdata/ecm/orion.png
+		// only occasionally fits within MaxECMChars
+		for rgb, col := range img.charColors[char] {
+			i := slices.Index(img.ecmColors, col)
+			if i >= 0 && !foundbg {
+				rgb2bitpair[rgb] = 0
+				orchar = byte(i << 6)
+				foundbg = true
+			} else {
+				rgb2bitpair[rgb] = 1
+				c.D800Color[char] = col
+			}
+		}
+		if len(img.charColors[char]) == 2 && !foundbg {
+			return c, fmt.Errorf("background ecm color not found in char %d.", char)
+		}
+
+		cbuf := charBytes{}
+		x, y := xyFromChar(char)
+		for byteIndex := 0; byteIndex < 8; byteIndex++ {
+			bmpbyte := byte(0)
+			for pixel := 0; pixel < 8; pixel++ {
+				rgb := img.colorAtXY(x+pixel, y+byteIndex)
+				if bitpair, ok := rgb2bitpair[rgb]; ok {
+					bmpbyte |= bitpair << (7 - byte(pixel))
+				} else {
+					return c, fmt.Errorf("rgb %v not found in char %d.", rgb, char)
+				}
+			}
+			cbuf[byteIndex] = bmpbyte
+		}
+
+		truecount[cbuf]++
+		found := false
+		curChar := 0
+		for curChar = range charMap {
+			if cbuf == charMap[curChar] {
+				found = true
+				break
+			}
+		}
+		if !found {
+			charMap = append(charMap, cbuf)
+			curChar = len(charMap) - 1
+		}
+		c.Screen[char] = byte(curChar) + orchar
+	}
+
+	if len(charMap) > MaxECMChars {
+		return c, fmt.Errorf("image packs to %d unique chars, the max is %d.", len(charMap), MaxECMChars)
+	}
+
+	for i := range charMap {
+		for j := range charMap[i] {
+			c.Bitmap[i*8+j] = charMap[i][j]
+		}
+	}
+	if !img.opt.Quiet {
+		fmt.Printf("used %d unique chars in the charset\n", len(truecount))
+	}
+	return c, nil
 }
 
 // SingleColorSprites converts the img to SingleColorSprites and returns it.

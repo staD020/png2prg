@@ -25,10 +25,11 @@ import (
 )
 
 const (
-	Version              = "1.5.3-dev"
+	Version              = "1.5.4-dev"
 	displayerJumpTo      = "$0822"
 	MaxColors            = 16
 	MaxChars             = 256
+	MaxECMChars          = 64
 	FullScreenChars      = 1000
 	FullScreenWidth      = 320
 	FullScreenHeight     = 200
@@ -104,6 +105,7 @@ const (
 	multiColorInterlaceBitmap // https://csdb.dk/release/?id=3961
 	mixedCharset
 	petsciiCharset
+	ecmCharset
 )
 
 func StringToGraphicsType(s string) GraphicsType {
@@ -126,6 +128,8 @@ func StringToGraphicsType(s string) GraphicsType {
 		return mixedCharset
 	case "petscii":
 		return petsciiCharset
+	case "ecm":
+		return ecmCharset
 	}
 	return unknownGraphicsType
 }
@@ -150,6 +154,8 @@ func (t GraphicsType) String() string {
 		return "mixed charset"
 	case petsciiCharset:
 		return "petscii"
+	case ecmCharset:
+		return "ecm"
 	default:
 		return "unknown"
 	}
@@ -227,6 +233,7 @@ type sourceImage struct {
 	backgroundColor        ColorInfo
 	borderColor            ColorInfo
 	preferredBitpairColors bitpairColors
+	ecmColors              bitpairColors
 	graphicsType           GraphicsType
 }
 
@@ -378,6 +385,32 @@ func (img PETSCIICharset) Symbols() []c64Symbol {
 	}
 }
 
+type ECMCharset struct {
+	SourceFilename  string
+	Bitmap          [0x200]byte
+	Screen          [1000]byte
+	D800Color       [1000]byte
+	BorderColor     byte
+	BackgroundColor byte
+	D022Color       byte
+	D023Color       byte
+	D024Color       byte
+	opt             Options
+}
+
+func (img ECMCharset) Symbols() []c64Symbol {
+	return []c64Symbol{
+		{"bitmap", BitmapAddress},
+		{"screenram", CharsetScreenRAMAddress},
+		{"colorram", CharsetColorRAMAddress},
+		{"d020color", int(img.BorderColor)},
+		{"d021color", int(img.BackgroundColor)},
+		{"d022color", int(img.D022Color)},
+		{"d023color", int(img.D023Color)},
+		{"d024color", int(img.D024Color)},
+	}
+}
+
 type SingleColorSprites struct {
 	SourceFilename  string
 	Bitmap          []byte
@@ -461,6 +494,9 @@ var mixedCharsetDisplay []byte
 //go:embed "display_petscii_charset.prg"
 var petsciiCharsetDisplay []byte
 
+//go:embed "display_ecm_charset.prg"
+var ecmCharsetDisplay []byte
+
 //go:embed "tools/rom_charset_lowercase.prg"
 var romCharsetLowercasePrg []byte
 
@@ -477,6 +513,7 @@ func init() {
 	displayers[multiColorInterlaceBitmap] = mciBitmapDisplay
 	displayers[mixedCharset] = mixedCharsetDisplay
 	displayers[petsciiCharset] = petsciiCharsetDisplay
+	displayers[ecmCharset] = ecmCharsetDisplay
 }
 
 // newHeader returns a copy of the displayer code for GraphicsType t as a byte slice in .prg format.
@@ -679,6 +716,10 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 	case petsciiCharset:
 		if wt, err = img.PETSCIICharset(); err != nil {
 			return 0, fmt.Errorf("img.PETSCIICharset %q failed: %w", img.sourceFilename, err)
+		}
+	case ecmCharset:
+		if wt, err = img.ECMCharset(nil); err != nil {
+			return 0, fmt.Errorf("img.ECMCharset %q failed: %w", img.sourceFilename, err)
 		}
 	case multiColorCharset:
 		if wt, err = img.MultiColorCharset(); err != nil {
@@ -1026,6 +1067,40 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 		} else {
 			fmt.Println("uppercase rom charset found")
 		}
+	}
+	if c.opt.IncludeSID == "" {
+		return link.WriteTo(w)
+	}
+	s, err := sid.LoadSID(c.opt.IncludeSID)
+	if err != nil {
+		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
+	}
+	if _, err = link.WritePrg(s.Bytes()); err != nil {
+		return n, fmt.Errorf("link.WritePrg failed: %w", err)
+	}
+	injectSIDLinker(link, s)
+	if !c.opt.Quiet {
+		fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+	}
+	return link.WriteTo(w)
+}
+
+func (c ECMCharset) WriteTo(w io.Writer) (n int64, err error) {
+	link := NewLinker(BitmapAddress, c.opt.VeryVerbose)
+	_, err = link.WriteMap(LinkMap{
+		BitmapAddress:           c.Bitmap[:],
+		CharsetScreenRAMAddress: c.Screen[:],
+		CharsetColorRAMAddress:  c.D800Color[:],
+		0x2fe8:                  []byte{c.BorderColor, c.BackgroundColor, c.D022Color, c.D023Color, c.D024Color},
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.WriteMap failed: %w", err)
+	}
+	if !c.opt.Display {
+		return link.WriteTo(w)
+	}
+	if _, err = link.WritePrg(ecmCharset.newHeader()); err != nil {
+		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
 	if c.opt.IncludeSID == "" {
 		return link.WriteTo(w)
