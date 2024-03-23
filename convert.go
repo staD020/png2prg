@@ -760,18 +760,20 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 		rgb2bitpair := PaletteMap{}
 		orchar := byte(0)
 		foundbg := false
-		// TODO: undeterministic when 2 ecm colors are used in the same char, which color to choose for bitpair 00?
+		// undeterministic when 2 ecm colors are used in the same char, which color to choose for bitpair 00?
 		// good example: testdata/ecm/orion.png
 		// only occasionally fits within MaxECMChars
-		for rgb, col := range img.charColors[char] {
-			i := slices.Index(img.ecmColors, col)
+		// so now we try sorting, even testdata/ecm/pvm.png works and orion.png too
+		cc := sortColors(img.charColors[char])
+		for _, v := range cc {
+			i := slices.Index(img.ecmColors, v.ColorIndex)
 			if i >= 0 && !foundbg {
-				rgb2bitpair[rgb] = 0
+				rgb2bitpair[v.RGB] = 0
 				orchar = byte(i << 6)
 				foundbg = true
 			} else {
-				rgb2bitpair[rgb] = 1
-				c.D800Color[char] = col
+				rgb2bitpair[v.RGB] = 1
+				c.D800Color[char] = v.ColorIndex
 			}
 		}
 		if len(img.charColors[char]) == 2 && !foundbg {
