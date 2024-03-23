@@ -121,6 +121,11 @@ func (img *sourceImage) analyze() (err error) {
 		img.graphicsType = singleColorCharset
 	case maxcolsperchar <= 2 && numbgcolcandidateshires != 1:
 		img.graphicsType = singleColorBitmap
+		if err = img.findECMColors(); err != nil {
+			log.Printf("img.findECMColors failed: %v", err)
+		} else {
+			img.graphicsType = ecmCharset
+		}
 	case maxcolsperchar <= 2 && numbgcolcandidateshires == 1:
 		img.findBackgroundColorCandidates(true)
 		img.graphicsType = singleColorCharset
@@ -161,6 +166,7 @@ func (img *sourceImage) analyze() (err error) {
 			log.Printf("skipping: findBorderColor failed: %v", err)
 		}
 	}
+
 	switch img.graphicsType {
 	case multiColorBitmap:
 		if err = img.findBackgroundColor(); err != nil {
@@ -481,13 +487,12 @@ type sortcolor struct {
 }
 
 func (img *sourceImage) findECMColors() error {
-	if img.graphicsType != ecmCharset {
-		return fmt.Errorf("img.graphicsType must be %s", ecmCharset)
-	}
-
 	if len(img.preferredBitpairColors) == 4 {
 		log.Printf("skipping findECMColors because we have 4 img.preferredBitpairColors %s", img.preferredBitpairColors)
 		img.ecmColors = img.preferredBitpairColors
+		return nil
+	}
+	if len(img.ecmColors) > 0 {
 		return nil
 	}
 
@@ -549,11 +554,12 @@ PERMUTE:
 		}
 		if img.opt.Verbose {
 			log.Println("ecm color solution found:")
-			for i, v := range s {
-				img.ecmColors = append(img.ecmColors, v.colorIndex)
+		}
+		for i, v := range s {
+			img.ecmColors = append(img.ecmColors, v.colorIndex)
+			if img.opt.Verbose {
 				log.Printf("  permutation %d -> %d: %v", count, i, *v)
 			}
-
 		}
 		return nil
 	}
