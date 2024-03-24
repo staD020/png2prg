@@ -829,8 +829,8 @@ func (img *sourceImage) SingleColorSprites() (SingleColorSprites, error) {
 		forceBgCol = int(img.preferredBitpairColors[0])
 	}
 	if forceBgCol >= 0 {
-		for i, col := range cc {
-			if col.ColorIndex == byte(forceBgCol) {
+		for i := range cc {
+			if cc[i].ColorIndex == byte(forceBgCol) {
 				cc[0], cc[i] = cc[i], cc[0]
 				if img.opt.Verbose {
 					log.Printf("forced background color %d was found", forceBgCol)
