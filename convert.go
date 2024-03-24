@@ -193,9 +193,8 @@ func (img *sourceImage) Koala() (Koala, error) {
 		if err != nil {
 			return k, fmt.Errorf("multiColorcharBytes failed: error in char %d: %w", char, err)
 		}
-		bitmapIndex := char * 8
 		for i := range cbuf {
-			k.Bitmap[bitmapIndex+i] = cbuf[i]
+			k.Bitmap[char*8+i] = cbuf[i]
 		}
 
 		if _, ok := bitpair2c64color[1]; ok {
@@ -234,9 +233,8 @@ func (img *sourceImage) Hires() (Hires, error) {
 		if err != nil {
 			return h, fmt.Errorf("singleColorcharBytes failed: error in char %d: %w", char, err)
 		}
-		bitmapIndex := char * 8
 		for i := range cbuf {
-			h.Bitmap[bitmapIndex+i] = cbuf[i]
+			h.Bitmap[char*8+i] = cbuf[i]
 		}
 
 		if _, ok := bitpair2c64color[1]; ok {
@@ -311,9 +309,8 @@ LOOP:
 			if err != nil {
 				return c, fmt.Errorf("singleColorcharBytes failed: error in char %d: %w", char, err)
 			}
-			bitmapIndex := char * 8
 			for i := range cbuf {
-				c.Bitmap[bitmapIndex+i] = cbuf[i]
+				c.Bitmap[char*8+i] = cbuf[i]
 			}
 			c.Screen[char] = byte(char)
 		}
@@ -475,9 +472,8 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 			if err != nil {
 				return c, fmt.Errorf("multiColorcharBytes failed: error in char %d: %w", char, err)
 			}
-			bitmapIndex := char * 8
 			for i := range cbuf {
-				c.Bitmap[bitmapIndex+i] = cbuf[i]
+				c.Bitmap[char*8+i] = cbuf[i]
 			}
 			c.Screen[char] = byte(char)
 		}
