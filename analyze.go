@@ -281,12 +281,15 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 			break
 		}
 		if img.preferredBitpairColors[3] > 7 {
+		OUTER:
 			for i := len(img.preferredBitpairColors) - 1; i >= 0; i-- {
 				for i, v := range img.preferredBitpairColors {
 					if v < 8 {
 						img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
-						log.Printf("had to avoid mixed singlecolor/multicolor mode, -bitpair-colors %v", img.preferredBitpairColors)
-						break
+						if img.opt.Verbose {
+							log.Printf("had to avoid mixed singlecolor/multicolor mode, -bitpair-colors %v", img.preferredBitpairColors)
+						}
+						break OUTER
 					}
 				}
 			}
