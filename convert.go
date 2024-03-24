@@ -342,6 +342,12 @@ LOOP:
 			cbuf[byteIndex] = bmpbyte
 		}
 
+		emptyChar := charBytes{}
+		if cbuf == emptyChar {
+			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+			c.D800Color[char] = c.BackgroundColor
+		}
+
 		truecount[cbuf]++
 		found := false
 		curChar := 0
@@ -493,6 +499,12 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 				}
 			}
 			cbuf[byteIndex] = bmpbyte
+		}
+
+		emptyChar := charBytes{}
+		if cbuf == emptyChar {
+			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+			c.D800Color[char] = c.BackgroundColor
 		}
 
 		found := false
@@ -699,6 +711,11 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 			}
 		}
 
+		emptyChar := charBytes{}
+		if cbuf == emptyChar {
+			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+			c.D800Color[char] = c.BackgroundColor
+		}
 		found := false
 		curChar := 0
 		for curChar = range charset {
