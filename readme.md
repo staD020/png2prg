@@ -50,9 +50,8 @@ also force a specific graphics mode with the -mode flag:
 
 ## Multicolor Interlace Bitmap
 
-Experimental interlace support, you can supply one 320x200 multicolor
-image with max 4 colors per 8x8 pixel char per frame of which at least
-2 are shared (the D021 and D800 colors).
+You can supply one 320x200 multicolor image with max 4 colors per 8x8 pixel
+char per frame of which at least 2 are shared (the D021 and D800 colors).
 
 Or supply both frames in regular koala specs (-interlace flag required).
 When making screenshots in vice, please disable the d016 pixel shift manually.
@@ -88,11 +87,16 @@ When making screenshots in vice, please disable the d016 pixel shift manually.
 
 By default charsets are packed, they only contain unique characters.
 If you do not want charpacking, eg for a 1x1 charset, please use -no-pack.
+
+With ECM -bitpair-colors can be used to force d021-d024 colors.
+
 NB: individual d800 colors are not supported with -no-pack.
 
     ./png2prg -m sccharset testdata/hirescharset/ohno_logo.png
     ./png2prg -m petscii testdata/petscii/hein_hibiscus.png
     ./png2prg -m ecm testdata/ecm/xpardey.png
+    ./png2prg -m ecm testdata/ecm/shampoo.png
+    ./png2prg -m ecm -bpc 2,7,14,0 testdata/ecm/orion.png
 
     Charset:   $2000-$27ff (omitted for petscii)
     Screen:    $2800-$2be7
