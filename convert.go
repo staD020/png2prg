@@ -317,9 +317,9 @@ LOOP:
 		return c, nil
 	}
 
-	charMap := []charBytes{}
+	charset := []charBytes{}
 	if len(prebuiltCharset) > 0 {
-		charMap = prebuiltCharset
+		charset = prebuiltCharset
 		if img.opt.VeryVerbose {
 			log.Printf("using prebuiltCharset of %d chars", len(prebuiltCharset))
 		}
@@ -353,26 +353,26 @@ LOOP:
 		truecount[cbuf]++
 		found := false
 		curChar := 0
-		for curChar = range charMap {
-			if cbuf == charMap[curChar] {
+		for curChar = range charset {
+			if cbuf == charset[curChar] {
 				found = true
 				break
 			}
 		}
 		if !found {
-			charMap = append(charMap, cbuf)
-			curChar = len(charMap) - 1
+			charset = append(charset, cbuf)
+			curChar = len(charset) - 1
 		}
 		c.Screen[char] = byte(curChar)
 	}
 
-	if len(charMap) > MaxChars {
-		return c, fmt.Errorf("image packs to %d unique chars, the max is %d.", len(charMap), MaxChars)
+	if len(charset) > MaxChars {
+		return c, fmt.Errorf("image packs to %d unique chars, the max is %d.", len(charset), MaxChars)
 	}
 
-	for i := range charMap {
-		for j := range charMap[i] {
-			c.Bitmap[i*8+j] = charMap[i][j]
+	for i := range charset {
+		for j := range charset[i] {
+			c.Bitmap[i*8+j] = charset[i][j]
 		}
 	}
 	if !img.opt.Quiet {
@@ -402,16 +402,16 @@ func (img *sourceImage) PETSCIICharset() (PETSCIICharset, error) {
 		BorderColor:    img.borderColor.ColorIndex,
 		opt:            img.opt,
 	}
-	charMap := romCharsetToCharBytes(romCharsetUppercasePrg)
-	scc, err := img.SingleColorCharset(charMap)
+	charset := romCharsetToCharBytes(romCharsetUppercasePrg)
+	scc, err := img.SingleColorCharset(charset)
 	if err == nil {
 		c.Screen = scc.Screen
 		c.D800Color = scc.D800Color
 		c.BackgroundColor = scc.BackgroundColor
 		return c, nil
 	}
-	charMap = romCharsetToCharBytes(romCharsetLowercasePrg)
-	scc, err = img.SingleColorCharset(charMap)
+	charset = romCharsetToCharBytes(romCharsetLowercasePrg)
+	scc, err = img.SingleColorCharset(charset)
 	if err == nil {
 		c.Screen = scc.Screen
 		c.D800Color = scc.D800Color
@@ -455,8 +455,6 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		}
 	}
 
-	charset := []charBytes{}
-
 	c.CharColor = bitpair2c64color[3] | 8
 	for i := 0; i < FullScreenChars; i++ {
 		c.D800Color[i] = c.CharColor
@@ -480,6 +478,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		return c, nil
 	}
 
+	charset := []charBytes{}
 	for char := 0; char < FullScreenChars; char++ {
 		cbuf, err := img.multiColorcharBytes(char, rgb2bitpair)
 		if err != nil {
@@ -732,9 +731,9 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 		opt:             img.opt,
 	}
 
-	charMap := []charBytes{}
+	charset := []charBytes{}
 	if len(prebuiltCharset) > 0 && len(prebuiltCharset) <= MaxECMChars {
-		charMap = prebuiltCharset
+		charset = prebuiltCharset
 		if img.opt.VeryVerbose {
 			log.Printf("using prebuiltCharset of %d chars", len(prebuiltCharset))
 		}
@@ -781,26 +780,26 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 		truecount[cbuf]++
 		found := false
 		curChar := 0
-		for curChar = range charMap {
-			if cbuf == charMap[curChar] {
+		for curChar = range charset {
+			if cbuf == charset[curChar] {
 				found = true
 				break
 			}
 		}
 		if !found {
-			charMap = append(charMap, cbuf)
-			curChar = len(charMap) - 1
+			charset = append(charset, cbuf)
+			curChar = len(charset) - 1
 		}
 		c.Screen[char] = byte(curChar) + orchar
 	}
 
-	if len(charMap) > MaxECMChars {
-		return c, fmt.Errorf("image packs to %d unique chars, the max is %d.", len(charMap), MaxECMChars)
+	if len(charset) > MaxECMChars {
+		return c, fmt.Errorf("image packs to %d unique chars, the max is %d.", len(charset), MaxECMChars)
 	}
 
-	for i := range charMap {
-		for j := range charMap[i] {
-			c.Bitmap[i*8+j] = charMap[i][j]
+	for i := range charset {
+		for j := range charset[i] {
+			c.Bitmap[i*8+j] = charset[i][j]
 		}
 	}
 	if !img.opt.Quiet {
