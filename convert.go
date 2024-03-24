@@ -128,7 +128,7 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 	return rgb2bitpair, bitpair2c64color, nil
 }
 
-func (img *sourceImage) multiColorcharBytes(char int, rgb2bitpair PaletteMap) (charBytes, error) {
+func (img *sourceImage) multiColorCharBytes(char int, rgb2bitpair PaletteMap) (charBytes, error) {
 	b := charBytes{}
 	x, y := xyFromChar(char)
 	for i := 0; i < 8; i++ {
@@ -146,7 +146,7 @@ func (img *sourceImage) multiColorcharBytes(char int, rgb2bitpair PaletteMap) (c
 	return b, nil
 }
 
-func (img *sourceImage) singleColorcharBytes(char int, rgb2bitpair PaletteMap) (charBytes, error) {
+func (img *sourceImage) singleColorCharBytes(char int, rgb2bitpair PaletteMap) (charBytes, error) {
 	b := charBytes{}
 	x, y := xyFromChar(char)
 	for i := 0; i < 8; i++ {
@@ -189,9 +189,9 @@ func (img *sourceImage) Koala() (Koala, error) {
 			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 		}
 
-		cbuf, err := img.multiColorcharBytes(char, rgb2bitpair)
+		cbuf, err := img.multiColorCharBytes(char, rgb2bitpair)
 		if err != nil {
-			return k, fmt.Errorf("multiColorcharBytes failed: error in char %d: %w", char, err)
+			return k, fmt.Errorf("multiColorCharBytes failed: error in char %d: %w", char, err)
 		}
 		for i := range cbuf {
 			k.Bitmap[char*8+i] = cbuf[i]
@@ -229,9 +229,9 @@ func (img *sourceImage) Hires() (Hires, error) {
 			return h, fmt.Errorf("multiColorIndexes failed: error in char %d: %v", char, err)
 		}
 
-		cbuf, err := img.singleColorcharBytes(char, rgb2bitpair)
+		cbuf, err := img.singleColorCharBytes(char, rgb2bitpair)
 		if err != nil {
-			return h, fmt.Errorf("singleColorcharBytes failed: error in char %d: %w", char, err)
+			return h, fmt.Errorf("singleColorCharBytes failed: error in char %d: %w", char, err)
 		}
 		for i := range cbuf {
 			h.Bitmap[char*8+i] = cbuf[i]
@@ -305,9 +305,9 @@ LOOP:
 
 	if img.opt.NoPackChars {
 		for char := 0; char < MaxChars; char++ {
-			cbuf, err := img.singleColorcharBytes(char, rgb2bitpair)
+			cbuf, err := img.singleColorCharBytes(char, rgb2bitpair)
 			if err != nil {
-				return c, fmt.Errorf("singleColorcharBytes failed: error in char %d: %w", char, err)
+				return c, fmt.Errorf("singleColorCharBytes failed: error in char %d: %w", char, err)
 			}
 			for i := range cbuf {
 				c.Bitmap[char*8+i] = cbuf[i]
@@ -340,9 +340,9 @@ LOOP:
 			}
 		}
 
-		cbuf, err := img.singleColorcharBytes(char, rgb2bitpair)
+		cbuf, err := img.singleColorCharBytes(char, rgb2bitpair)
 		if err != nil {
-			return c, fmt.Errorf("singleColorcharBytes failed: error in char %d: %w", char, err)
+			return c, fmt.Errorf("singleColorCharBytes failed: error in char %d: %w", char, err)
 		}
 		emptyChar := charBytes{}
 		if cbuf == emptyChar {
@@ -458,9 +458,9 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 
 	if img.opt.NoPackChars {
 		for char := 0; char < MaxChars; char++ {
-			cbuf, err := img.multiColorcharBytes(char, rgb2bitpair)
+			cbuf, err := img.multiColorCharBytes(char, rgb2bitpair)
 			if err != nil {
-				return c, fmt.Errorf("multiColorcharBytes failed: error in char %d: %w", char, err)
+				return c, fmt.Errorf("multiColorCharBytes failed: error in char %d: %w", char, err)
 			}
 			for i := range cbuf {
 				c.Bitmap[char*8+i] = cbuf[i]
@@ -472,9 +472,9 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 
 	charset := []charBytes{}
 	for char := 0; char < FullScreenChars; char++ {
-		cbuf, err := img.multiColorcharBytes(char, rgb2bitpair)
+		cbuf, err := img.multiColorCharBytes(char, rgb2bitpair)
 		if err != nil {
-			return c, fmt.Errorf("multiColorcharBytes failed: error in char %d: %w", char, err)
+			return c, fmt.Errorf("multiColorCharBytes failed: error in char %d: %w", char, err)
 		}
 		emptyChar := charBytes{}
 		if cbuf == emptyChar && c.BackgroundColor < 8 {
@@ -650,15 +650,15 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 			if img.opt.VeryVerbose {
 				log.Printf("char %d seems to be hires, charcol %d img.charColors: %v, -bpc %s", char, charcol, img.charColors[char], img.preferredBitpairColors)
 			}
-			cbuf, err = img.singleColorcharBytes(char, rgb2bitpair)
+			cbuf, err = img.singleColorCharBytes(char, rgb2bitpair)
 			if err != nil {
-				return c, fmt.Errorf("singleColorcharBytes failed: error in char %d: %w", char, err)
+				return c, fmt.Errorf("singleColorCharBytes failed: error in char %d: %w", char, err)
 			}
 		} else {
 			c.D800Color[char] |= 8
-			cbuf, err = img.multiColorcharBytes(char, rgb2bitpair)
+			cbuf, err = img.multiColorCharBytes(char, rgb2bitpair)
 			if err != nil {
-				return c, fmt.Errorf("multiColorcharBytes failed: error in char %d: %w", char, err)
+				return c, fmt.Errorf("multiColorCharBytes failed: error in char %d: %w", char, err)
 			}
 		}
 
@@ -743,9 +743,9 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 			return c, fmt.Errorf("background ecm color not found in char %d.", char)
 		}
 
-		cbuf, err := img.singleColorcharBytes(char, rgb2bitpair)
+		cbuf, err := img.singleColorCharBytes(char, rgb2bitpair)
 		if err != nil {
-			return c, fmt.Errorf("singleColorcharBytes failed: error in char %d: %w", char, err)
+			return c, fmt.Errorf("singleColorCharBytes failed: error in char %d: %w", char, err)
 		}
 		if cbuf == emptyChar {
 			// use bitpair 11 for empty chars, usually saves 1 char
