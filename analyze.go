@@ -505,7 +505,9 @@ func (img *sourceImage) findECMColors() error {
 	sort.Slice(colors, func(i, j int) bool {
 		return colors[i].count > colors[j].count
 	})
-	colors = colors[:7]
+	if len(colors) > 7 {
+		colors = colors[:7]
+	}
 
 	if img.opt.VeryVerbose {
 		log.Printf("findECMColors sorted len %d: %v", len(colors), colors)
@@ -518,7 +520,10 @@ func (img *sourceImage) findECMColors() error {
 PERMUTE:
 	for p := make([]int, len(colors)); p[0] < len(p); nextPerm(p) {
 		count++
-		s := getPerm(colors, p)[:4]
+		s := getPerm(colors, p)
+		if len(s) > 4 {
+			s = s[:4]
+		}
 		for _, v := range img.charColors {
 			if len(v) != 2 {
 				continue

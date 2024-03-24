@@ -723,6 +723,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 				return 0, fmt.Errorf("img.ECMCharset %q failed: %w", img.sourceFilename, err)
 			}
 			fmt.Printf("falling back to %s because img.ECMCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
+			img.graphicsType = singleColorBitmap
 			if wt, err = img.Hires(); err != nil {
 				return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
 			}
