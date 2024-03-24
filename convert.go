@@ -502,7 +502,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		}
 
 		emptyChar := charBytes{}
-		if cbuf == emptyChar {
+		if cbuf == emptyChar && c.BackgroundColor < 8 {
 			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 			c.D800Color[char] = c.BackgroundColor
 		}
@@ -712,7 +712,7 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		}
 
 		emptyChar := charBytes{}
-		if cbuf == emptyChar {
+		if cbuf == emptyChar && c.BackgroundColor < 8 {
 			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 			c.D800Color[char] = c.BackgroundColor
 		}
