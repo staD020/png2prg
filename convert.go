@@ -344,10 +344,12 @@ LOOP:
 		if err != nil {
 			return c, fmt.Errorf("singleColorCharBytes failed: error in char %d: %w", char, err)
 		}
-		emptyChar := charBytes{}
-		if cbuf == emptyChar {
-			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
-			c.D800Color[char] = c.BackgroundColor
+		if !img.opt.NoPackEmptyChar {
+			emptyChar := charBytes{}
+			if cbuf == emptyChar {
+				cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+				c.D800Color[char] = c.BackgroundColor
+			}
 		}
 		truecount[cbuf]++
 		curChar := slices.Index(charset, cbuf)
@@ -476,10 +478,12 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		if err != nil {
 			return c, fmt.Errorf("multiColorCharBytes failed: error in char %d: %w", char, err)
 		}
-		emptyChar := charBytes{}
-		if cbuf == emptyChar && c.BackgroundColor < 8 {
-			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
-			c.D800Color[char] = c.BackgroundColor
+		if !img.opt.NoPackEmptyChar {
+			emptyChar := charBytes{}
+			if cbuf == emptyChar && c.BackgroundColor < 8 {
+				cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+				c.D800Color[char] = c.BackgroundColor
+			}
 		}
 		curChar := slices.Index(charset, cbuf)
 		if curChar < 0 {
@@ -662,10 +666,12 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 			}
 		}
 
-		emptyChar := charBytes{}
-		if cbuf == emptyChar && c.BackgroundColor < 8 {
-			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
-			c.D800Color[char] = c.BackgroundColor
+		if !img.opt.NoPackEmptyChar {
+			emptyChar := charBytes{}
+			if cbuf == emptyChar && c.BackgroundColor < 8 {
+				cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+				c.D800Color[char] = c.BackgroundColor
+			}
 		}
 		curChar := slices.Index(charset, cbuf)
 		if curChar < 0 {
@@ -747,11 +753,13 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 		if err != nil {
 			return c, fmt.Errorf("singleColorCharBytes failed: error in char %d: %w", char, err)
 		}
-		if cbuf == emptyChar {
-			// use bitpair 11 for empty chars, usually saves 1 char
-			// good example: testdata/ecm/shampoo.png
-			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
-			c.D800Color[char] = emptycharcol
+		if !img.opt.NoPackEmptyChar {
+			if cbuf == emptyChar {
+				// use bitpair 11 for empty chars, usually saves 1 char
+				// good example: testdata/ecm/shampoo.png
+				cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+				c.D800Color[char] = emptycharcol
+			}
 		}
 
 		truecount[cbuf]++

@@ -275,6 +275,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Modified -mode sccharset to use individual d800 colors per char.
  - Added -mode petscii.
  - Added -mode ecm.
+ - Added -no-pack-empty to skip packing empty chars to filled chars to re-use
+   for different colors.
  - Improved auto-detection of graphics modes, including various charset modes.
  - Added sid support to charset displayers.
  - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).
@@ -376,8 +378,12 @@ tables used in the koala and hires displayers.
     	do not guess preferred bitpair-colors
   -no-pack
     	do not pack chars (only for sc/mc charset)
+  -no-pack-empty
+    	do not pack empty chars
   -np
     	no-pack
+  -npe
+    	no-pack-empty
   -o string
     	out
   -out string

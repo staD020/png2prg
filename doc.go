@@ -287,6 +287,8 @@ func PrintHelp() {
 	fmt.Println(" - Modified -mode sccharset to use individual d800 colors per char.")
 	fmt.Println(" - Added -mode petscii.")
 	fmt.Println(" - Added -mode ecm.")
+	fmt.Println(" - Added -no-pack-empty to skip packing empty chars to filled chars to re-use")
+	fmt.Println("   for different colors.")
 	fmt.Println(" - Improved auto-detection of graphics modes, including various charset modes.")
 	fmt.Println(" - Added sid support to charset displayers.")
 	fmt.Println(" - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).")
