@@ -755,11 +755,13 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 		}
 	}
 
+	emptyChar := charBytes{}
 	truecount := make(map[charBytes]int, MaxECMChars)
 	for char := 0; char < FullScreenChars; char++ {
 		rgb2bitpair := PaletteMap{}
 		orchar := byte(0)
 		foundbg := false
+		emptycharcol := byte(0)
 		// undeterministic when 2 ecm colors are used in the same char, which color to choose for bitpair 00?
 		// good example: testdata/ecm/orion.png
 		// only occasionally fits within MaxECMChars
@@ -771,6 +773,7 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 				rgb2bitpair[v.RGB] = 0
 				orchar = byte(i << 6)
 				foundbg = true
+				emptycharcol = v.ColorIndex
 			} else {
 				rgb2bitpair[v.RGB] = 1
 				c.D800Color[char] = v.ColorIndex
@@ -793,6 +796,13 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 				}
 			}
 			cbuf[byteIndex] = bmpbyte
+		}
+
+		if cbuf == emptyChar {
+			// use bitpair 11 for empty chars, usually saves 1 char
+			// good example: testdata/ecm/shampoo.png
+			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+			c.D800Color[char] = emptycharcol
 		}
 
 		truecount[cbuf]++
