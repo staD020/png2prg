@@ -779,10 +779,9 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 		orchar := byte(0)
 		foundbg := false
 		emptycharcol := byte(0)
-		// undeterministic when 2 ecm colors are used in the same char, which color to choose for bitpair 00?
-		// good example: testdata/ecm/orion.png
-		// only occasionally fits within MaxECMChars
-		// so now we try sorting, even testdata/ecm/pvm.png works and orion.png too
+		// when 2 ecm colors are used in the same char, which color to choose for bitpair 00?
+		// good example: testdata/ecm/orion.png testdata/ecm/xpardey.png
+		// so now we sort to at least make it deterministic.
 		cc := sortColors(img.charColors[char])
 		for _, v := range cc {
 			i := slices.Index(img.ecmColors, v.ColorIndex)
