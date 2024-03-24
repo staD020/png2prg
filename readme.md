@@ -130,7 +130,7 @@ packed size.
 If the source image size is a multiple of a 24x21 pixel sprite,
 the image is considered to contain sprites.
 
-The image will be converted left to right, top to bottom.
+The image will be converted from left to right, top to bottom.
 
     Sprite 1: $2000-$203f
     Sprite 2: $2040-$207f
@@ -270,7 +270,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
    individual d800 colors per char.
  - Modified -mode sccharset to use individual d800 colors per char.
  - Added -mode petscii.
- - Added -mode ecm, very experimental though.
+ - Added -mode ecm.
  - Improved auto-detection of graphics modes, including various charset modes.
  - Added sid support to charset displayers.
  - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).

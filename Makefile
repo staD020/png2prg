@@ -80,6 +80,12 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/20.4nki.prg testdata/petscii/deev_4nki.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/21.f4cg.prg testdata/mixedcharset/zscs_f4cg.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/22.charsetcompo.prg -bpc 0 testdata/mixedcharset/charsetcompo.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/23.orion.prg testdata/ecm/orion.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/24.xpardey.prg testdata/ecm/xpardey.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/25.mixin.prg testdata/ecm/mixinmaze.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/26.pvm.prg testdata/ecm/pvm.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/27.rebels.prg testdata/ecm/rebels.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/28.dune.prg testdata/ecm/dune.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg dist/2?.*.prg
 	rm -f dist/*.prg

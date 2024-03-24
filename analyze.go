@@ -135,7 +135,7 @@ func (img *sourceImage) analyze() (err error) {
 			}
 		}
 	case numColors == 3 || numColors == 4:
-		img.graphicsType = mixedCharset
+		img.graphicsType = multiColorCharset
 		if len(img.preferredBitpairColors) == 0 && len(img.backgroundCandidates) == 1 {
 			for _, bgcol := range img.backgroundCandidates {
 				img.preferredBitpairColors = append(img.preferredBitpairColors, bgcol)
@@ -353,32 +353,12 @@ func (img *sourceImage) maxColorsPerChar() (max int, m PaletteMap) {
 
 // findBackgroundColorCandidates iterates over all chars with 4 colors (or 2 for hires) and sets the common color(s) in img.backgroundCandidates.
 func (img *sourceImage) findBackgroundColorCandidates(hires bool) {
-	if img.graphicsType == ecmCharset {
-		hires = true
-	}
 	backgroundCharColors := []PaletteMap{}
 	for _, v := range img.charColors {
 		if (hires && len(v) == 2) || (!hires && len(v) == 4) {
 			backgroundCharColors = append(backgroundCharColors, v)
 		}
 	}
-	if img.graphicsType == ecmCharset {
-		pm := make(PaletteMap, MaxColors)
-		for _, v := range backgroundCharColors {
-			for rgb, col := range v {
-				pm[rgb] = col
-			}
-		}
-		if img.opt.VeryVerbose {
-			log.Printf("ecm: all backgroundCharColors or raw candidates: %v", pm)
-		}
-		img.backgroundCandidates = pm
-		// xpardey.png
-		// >C:d020  fc fd fe fa  fc
-		// 12 13 14 10
-		return
-	}
-
 	// need to copy the map, as we delete false candidates
 	candidates := make(PaletteMap, MaxColors)
 	switch {
@@ -403,7 +383,7 @@ func (img *sourceImage) findBackgroundColorCandidates(hires bool) {
 		}
 	}
 	img.backgroundCandidates = candidates
-	if img.opt.Verbose {
+	if img.opt.Verbose && len(img.backgroundCandidates) > 0 {
 		log.Printf("final BackgroundColor candidates = %v", img.backgroundCandidates)
 	}
 	return
