@@ -379,7 +379,7 @@ tables used in the koala and hires displayers.
   -no-pack
     	do not pack chars (only for sc/mc charset)
   -no-pack-empty
-    	do not pack empty chars (only for mc/mixed/ecm charsets)
+    	do not optimize packing empty chars
   -np
     	no-pack
   -npe

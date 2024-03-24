@@ -344,7 +344,6 @@ LOOP:
 		if err != nil {
 			return c, fmt.Errorf("singleColorCharBytes failed: error in char %d: %w", char, err)
 		}
-		/* disable empty char optimization, rarely useful for singlecolorcharset
 		if !img.opt.NoPackEmptyChar {
 			emptyChar := charBytes{}
 			if cbuf == emptyChar {
@@ -352,7 +351,6 @@ LOOP:
 				c.D800Color[char] = c.BackgroundColor
 			}
 		}
-		*/
 		truecount[cbuf]++
 		curChar := slices.Index(charset, cbuf)
 		if curChar < 0 {
