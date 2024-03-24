@@ -349,17 +349,9 @@ LOOP:
 			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 			c.D800Color[char] = c.BackgroundColor
 		}
-
 		truecount[cbuf]++
-		found := false
-		curChar := 0
-		for curChar = range charset {
-			if cbuf == charset[curChar] {
-				found = true
-				break
-			}
-		}
-		if !found {
+		curChar := slices.Index(charset, cbuf)
+		if curChar < 0 {
 			charset = append(charset, cbuf)
 			curChar = len(charset) - 1
 		}
@@ -489,16 +481,8 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 			c.D800Color[char] = c.BackgroundColor
 		}
-
-		found := false
-		curChar := 0
-		for curChar = range charset {
-			if cbuf == charset[curChar] {
-				found = true
-				break
-			}
-		}
-		if !found {
+		curChar := slices.Index(charset, cbuf)
+		if curChar < 0 {
 			charset = append(charset, cbuf)
 			curChar = len(charset) - 1
 		}
@@ -683,15 +667,8 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 			cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 			c.D800Color[char] = c.BackgroundColor
 		}
-		found := false
-		curChar := 0
-		for curChar = range charset {
-			if cbuf == charset[curChar] {
-				found = true
-				break
-			}
-		}
-		if !found {
+		curChar := slices.Index(charset, cbuf)
+		if curChar < 0 {
 			charset = append(charset, cbuf)
 			curChar = len(charset) - 1
 		}
@@ -778,15 +755,8 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 		}
 
 		truecount[cbuf]++
-		found := false
-		curChar := 0
-		for curChar = range charset {
-			if cbuf == charset[curChar] {
-				found = true
-				break
-			}
-		}
-		if !found {
+		curChar := slices.Index(charset, cbuf)
+		if curChar < 0 {
 			charset = append(charset, cbuf)
 			curChar = len(charset) - 1
 		}
