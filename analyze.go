@@ -181,12 +181,13 @@ func (img *sourceImage) analyze() (err error) {
 		}
 	}
 
-	if !img.opt.NoGuess {
-		if img.graphicsType == multiColorBitmap {
-			maxcolsperchar = 4
-		}
-		img.guessPreferredBitpairColors(maxcolsperchar, sumColors)
+	if img.opt.NoGuess {
+		return nil
 	}
+	if img.graphicsType == multiColorBitmap {
+		maxcolsperchar = 4
+	}
+	img.guessPreferredBitpairColors(maxcolsperchar, sumColors)
 	return nil
 }
 
@@ -518,9 +519,9 @@ func (img *sourceImage) findECMColors() error {
 
 	count := 0
 PERMUTE:
-	for p := make([]int, len(colors)); p[0] < len(p); nextPerm(p) {
+	for p := make([]int, len(colors)); p[0] < len(p); PermuteNext(p) {
 		count++
-		s := getPerm(colors, p)
+		s := Permutation(colors, p)
 		if len(s) > 4 {
 			s = s[:4]
 		}
@@ -554,7 +555,7 @@ PERMUTE:
 	return fmt.Errorf("solution for ecm colors was not found")
 }
 
-func nextPerm(p []int) {
+func PermuteNext(p []int) {
 	for i := len(p) - 1; i >= 0; i-- {
 		if i == 0 || p[i] < len(p)-i-1 {
 			p[i]++
@@ -564,12 +565,12 @@ func nextPerm(p []int) {
 	}
 }
 
-func getPerm(orig []*sortcolor, p []int) []*sortcolor {
-	result := append([]*sortcolor{}, orig...)
+func Permutation[S ~[]E, E any](orig S, p []int) (r S) {
+	r = append(r, orig...)
 	for i, v := range p {
-		result[i], result[i+v] = result[i+v], result[i]
+		r[i], r[i+v] = r[i+v], r[i]
 	}
-	return result
+	return r
 }
 
 // findBorderColor sets img.borderColor to opt.ForceBorderColor or detects it if a vice default screenshot is used.
