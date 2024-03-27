@@ -276,7 +276,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Added -mode petscii.
  - Added -mode ecm.
  - Added -no-pack-empty to skip packing empty chars to filled chars to re-use
-   for different colors.
+   for different colors. Only for multicolor/mixed and ecm charsets.
  - Improved auto-detection of graphics modes, including various charset modes.
  - Added sid support to charset displayers.
  - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).
@@ -379,7 +379,7 @@ tables used in the koala and hires displayers.
   -no-pack
     	do not pack chars (only for sc/mc charset)
   -no-pack-empty
-    	do not optimize packing empty chars
+    	do not optimize packing empty chars (only for mc/mixed/ecm charset)
   -np
     	no-pack
   -npe
