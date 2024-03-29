@@ -276,9 +276,9 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Added -mode petscii.
  - Added -mode ecm.
  - Added -no-pack-empty to skip packing empty chars to filled chars to re-use
-   for different colors. Only for multicolor/mixed and ecm charsets.
- - Added -force-pack-empty for singlecolor charset, may save a char, but
-   usually pack-ratio is worse due to increased d800 color usage.
+   for different colors. Only for mixed and ecm charsets.
+ - Added -force-pack-empty for singlecolor and multicolor charset, may save
+   a char, but usually pack-ratio is worse due to increased d800 color usage.
  - Improved auto-detection of graphics modes, including various charset modes.
  - Added sid support to charset displayers.
  - Added fullscreen fade in/out to charset displayers.
