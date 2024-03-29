@@ -458,7 +458,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 	c.D023Color = bitpair2c64color[2]
 	c.BorderColor = img.borderColor.ColorIndex
 
-	if img.opt.ForcePackEmptyChar {
+	if img.opt.NoPackChars {
 		for char := 0; char < MaxChars; char++ {
 			cbuf, err := img.multiColorCharBytes(char, rgb2bitpair)
 			if err != nil {
@@ -478,7 +478,7 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 		if err != nil {
 			return c, fmt.Errorf("multiColorCharBytes failed: error in char %d: %w", char, err)
 		}
-		if !img.opt.NoPackEmptyChar {
+		if img.opt.ForcePackEmptyChar {
 			emptyChar := charBytes{}
 			if cbuf == emptyChar && c.BackgroundColor < 8 {
 				cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
