@@ -12,7 +12,7 @@ Images in sprite dimensions will be converted to sprites.
 The resulting .prg includes the 2-byte start address and optional displayer.
 The displayers can optionally play a .sid tune.
 
-This tool can be used in all buildchains on most platforms.
+This tool can be used in all buildchains and all common platforms.
 
 ## What it is *not*
 
@@ -277,11 +277,13 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Added -mode ecm.
  - Added -no-pack-empty to skip packing empty chars to filled chars to re-use
    for different colors. Only for multicolor/mixed and ecm charsets.
+ - Added -force-pack-empty for singlecolor charset, may save a char, but
+   usually pack-ratio is worse due to increased d800 color usage.
  - Improved auto-detection of graphics modes, including various charset modes.
  - Added sid support to charset displayers.
  - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).
  - Bug Fix: do not write empty .prg file on error.
- - Standardized 0xd0xx colors in output.prg for charset modes.
+ - Standardized d02x colors in output.prg for charset modes.
 
 ## Changes for version 1.4
 
@@ -354,6 +356,10 @@ tables used in the koala and hires displayers.
     	include displayer
   -force-border-color int
     	force border color (default -1)
+  -force-pack-empty
+    	optimize packing empty chars (only for sccharset)
+  -fpe
+    	force-pack-empty
   -frame-delay int
     	frames to wait before displaying next animation frame (default 6)
   -h	help

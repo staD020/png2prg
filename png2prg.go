@@ -57,6 +57,7 @@ type Options struct {
 	Display             bool
 	NoPackChars         bool
 	NoPackEmptyChar     bool
+	ForcePackEmptyChar  bool
 	NoCrunch            bool
 	Symbols             bool
 	AlternativeFade     bool

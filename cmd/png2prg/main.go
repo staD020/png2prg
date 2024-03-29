@@ -258,6 +258,8 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.BoolVar(&opt.NoPackChars, "no-pack", false, "do not pack chars (only for sc/mc charset)")
 	flag.BoolVar(&opt.NoPackEmptyChar, "npe", false, "no-pack-empty")
 	flag.BoolVar(&opt.NoPackEmptyChar, "no-pack-empty", false, "do not optimize packing empty chars (only for mc/mixed/ecm charset)")
+	flag.BoolVar(&opt.ForcePackEmptyChar, "fpe", false, "force-pack-empty")
+	flag.BoolVar(&opt.ForcePackEmptyChar, "force-pack-empty", false, "optimize packing empty chars (only for sccharset)")
 	flag.BoolVar(&opt.NoCrunch, "nc", false, "no-crunch")
 	flag.BoolVar(&opt.NoCrunch, "no-crunch", false, "do not TSCrunch displayer")
 	flag.BoolVar(&opt.Symbols, "sym", false, "symbols")
