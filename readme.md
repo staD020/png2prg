@@ -281,7 +281,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
    usually pack-ratio is worse due to increased d800 color usage.
  - Improved auto-detection of graphics modes, including various charset modes.
  - Added sid support to charset displayers.
- - Added fullscreen fade in/out to singlecolor/ecm/petscii charset displayers.
+ - Added fullscreen fade in/out to charset displayers.
  - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).
  - Bug Fix: do not write empty .prg file on error.
  - Standardized d02x colors in output.prg for charset modes.
