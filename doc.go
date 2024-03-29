@@ -293,6 +293,7 @@ func PrintHelp() {
 	fmt.Println("   usually pack-ratio is worse due to increased d800 color usage.")
 	fmt.Println(" - Improved auto-detection of graphics modes, including various charset modes.")
 	fmt.Println(" - Added sid support to charset displayers.")
+	fmt.Println(" - Added fullscreen fade in/out to singlecolor/ecm/petscii charset displayers.")
 	fmt.Println(" - Bug Fix: -force-border-color for singlecolor charset (thanks Raistlin).")
 	fmt.Println(" - Bug Fix: do not write empty .prg file on error.")
 	fmt.Println(" - Standardized d02x colors in output.prg for charset modes.")
