@@ -8,7 +8,6 @@
 .const screenram     = $2800
 .const colorram      = $d800
 .const colorram_src  = $2c00
-.const fade_pass_address = $ac00
 
 .const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
 .const zp_screen_lo = zp_start + 0
