@@ -1063,6 +1063,7 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 	if err != nil {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
+	link.Block(0xac00, 0xcf28)
 	if !c.opt.Display {
 		return link.WriteTo(w)
 	}
