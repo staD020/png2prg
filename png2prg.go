@@ -1110,6 +1110,7 @@ func (c ECMCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if !c.opt.Display {
 		return link.WriteTo(w)
 	}
+	link.Block(0xac00, 0xcf28)
 	if _, err = link.WritePrg(ecmCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
