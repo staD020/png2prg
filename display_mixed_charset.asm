@@ -157,14 +157,14 @@ smc_yval:	ldy #steps-1
 
 		jsr vblank
 		ldx #0
-	!:
 	.for (var i=0; i<4; i++) {
+	!:
 		lda colorram_src+i*$100,x
 		and #%00001000
 		sta colorram+i*$100,x
-	}
 		inx
 		bne !-
+	}
 		beq fade_loop
 !done:
 	.if (LOOP) {
