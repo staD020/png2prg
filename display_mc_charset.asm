@@ -155,6 +155,7 @@ smc_yval:	ldy #steps-1
 	!:	cmp $dc01
 		bne !-
 
+		jsr vblank
 		ldx #0
 	!:
 	.for (var i=0; i<4; i++) {
