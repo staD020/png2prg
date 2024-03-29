@@ -999,6 +999,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if !c.opt.Display {
 		return link.WriteTo(w)
 	}
+	link.Block(0xac00, 0xcf28)
 	if _, err = link.WritePrg(singleColorCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
@@ -1063,10 +1064,10 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 	if err != nil {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
-	link.Block(0xac00, 0xcf28)
 	if !c.opt.Display {
 		return link.WriteTo(w)
 	}
+	link.Block(0xac00, 0xcf28)
 	if _, err = link.WritePrg(petsciiCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
