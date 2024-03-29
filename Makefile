@@ -69,7 +69,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/9.extend.prg testdata/hirescharset/extend.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/10.mega.prg testdata/mixedcharset/sarge_mega.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/11.fair.prg testdata/mixedcharset/soya_fair.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/12.shine.prg -bpc 3 testdata/mixedcharset/shine.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/12.shine.prg -bpc 3 -npe testdata/mixedcharset/shine.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/13.hibiscus.prg testdata/petscii/hein_hibiscus.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/14.submarine.prg testdata/petscii/submarine.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/15.triad.prg testdata/petscii/triad.png
@@ -87,8 +87,10 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/27.dune.prg testdata/ecm/dune.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/28.booze.prg testdata/mixedcharset/booze.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/29.pretzel.prg testdata/mixedcharset/pretzel.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/30.horizon.prg testdata/petscii/horizon.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/31.shampoo.prg testdata/ecm/shampoo.png
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg dist/2?.*.prg
+	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg dist/2?.*.prg dist/3?.*.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
