@@ -650,6 +650,7 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		}
 
 		cbuf := charBytes{}
+		emptyChar := charBytes{}
 		if hires {
 			if img.opt.VeryVerbose {
 				log.Printf("char %d seems to be hires, charcol %d img.charColors: %v, -bpc %s", char, charcol, img.charColors[char], img.preferredBitpairColors)
@@ -667,7 +668,6 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 		}
 
 		if !img.opt.NoPackEmptyChar {
-			emptyChar := charBytes{}
 			if cbuf == emptyChar && c.BackgroundColor < 8 {
 				cbuf = charBytes{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 				c.D800Color[char] = c.BackgroundColor

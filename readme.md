@@ -1,4 +1,4 @@
-# PNG2PRG 1.6 by burg
+# PNG2PRG 1.7.0-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -12,7 +12,7 @@ Images in sprite dimensions will be converted to sprites.
 The resulting .prg includes the 2-byte start address and optional displayer.
 The displayers can optionally play a .sid tune.
 
-This tool can be used in all buildchains and all common platforms.
+This tool can be used in all buildchains on all common platforms.
 
 ## What it is *not*
 
@@ -30,6 +30,7 @@ If you do need to wire fullcolor images, check out Youth's [Retropixels](https:/
     mccharset:    multicolor charset (max 4 colors)
     sccharset:    singlecolor charset (max 2 colors per char (fixed bgcol))
     petscii:      singlecolor rom charset (max 2 colors per char (fixed bgcol))
+    ecm:          singlecolor charset (max 2 colors per char (4 fixed bgcolors), max 64 chars)
     mcsprites:    multicolor sprites (max 4 colors)
     scsprites:    singlecolor sprites (max 2 colors)
     mcibitmap:    320x200 multicolor interlace bitmap (max 4 colors per char/frame)
@@ -267,6 +268,10 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 	return p.WriteTo(w)
 }
 ```
+
+## Changes for version 1.7.0-dev
+
+ - ...
 
 ## Changes for version 1.6
 
