@@ -57,7 +57,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp -r testdata/mixedcharset/*.gif dist/testdata/mixedcharset/
 	cp -r testdata/hirescharset/*.png dist/testdata/hirescharset/
 	cp -r testdata/petscii/*.png dist/testdata/petscii/
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/0.neo.prg testdata/mixedcharset/hein_neo.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/0.orion.prg testdata/ecm/orion.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/1.wrath.prg testdata/mixedcharset/joe_wrath.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/2.huntress.prg testdata/mixedcharset/huntress.gif
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/3.ohno.prg testdata/hirescharset/ohno_logo.png
@@ -80,7 +80,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/20.4nki.prg testdata/petscii/deev_4nki.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/21.f4cg.prg testdata/mixedcharset/zscs_f4cg.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/22.charsetcompo.prg -bpc 0 testdata/mixedcharset/charsetcompo.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/23.orion.prg testdata/ecm/orion.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/23.neo.prg testdata/mixedcharset/hein_neo.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/24.xpardey.prg testdata/ecm/xpardey.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/25.pvm.prg testdata/ecm/pvm.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/26.rebels.prg testdata/ecm/rebels.png

@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Version              = "1.5.5-dev"
+	Version              = "1.6"
 	displayerJumpTo      = "$0822"
 	MaxColors            = 16
 	MaxChars             = 256
