@@ -276,8 +276,8 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 				log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %v", wantedMaxColors, img.preferredBitpairColors)
 			}
 			img.preferredBitpairColors[3], img.preferredBitpairColors[i] = img.preferredBitpairColors[i], img.preferredBitpairColors[3]
-			if img.opt.Verbose {
-				log.Printf("now using -bitpair-colors %v", img.preferredBitpairColors)
+			if !img.opt.Quiet {
+				fmt.Printf("now using -bitpair-colors %v\n", img.preferredBitpairColors)
 			}
 			break
 		}

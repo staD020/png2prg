@@ -324,6 +324,28 @@ func (img MultiColorCharset) Symbols() []c64Symbol {
 	}
 }
 
+func (c MultiColorCharset) UsedChars() int {
+	max := byte(0)
+	for i := range c.Screen {
+		if c.Screen[i] > max {
+			max = c.Screen[i]
+		}
+	}
+	return (int(max) + 1)
+}
+
+func (c MultiColorCharset) CharBytes() (cbs []charBytes) {
+	used := c.UsedChars()
+	for i := 0; i < used; i++ {
+		cb := charBytes{}
+		for j := 0; j < 8; j++ {
+			cb[j] = c.Bitmap[(i*8)+j]
+		}
+		cbs = append(cbs, cb)
+	}
+	return cbs
+}
+
 type SingleColorCharset struct {
 	SourceFilename  string
 	Bitmap          [0x800]byte
@@ -468,6 +490,9 @@ var hiresDisplay []byte
 
 //go:embed "display_mc_charset.prg"
 var mcCharsetDisplay []byte
+
+//go:embed "display_mc_charset_anim.prg"
+var mcCharsetDisplayAnim []byte
 
 //go:embed "display_sc_charset.prg"
 var scCharsetDisplay []byte
@@ -731,7 +756,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			}
 		}
 	case multiColorCharset:
-		if wt, err = img.MultiColorCharset(); err != nil {
+		if wt, err = img.MultiColorCharset(nil); err != nil {
 			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("img.MultiColorCharset %q failed: %w", img.sourceFilename, err)
 			}

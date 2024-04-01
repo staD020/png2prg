@@ -271,7 +271,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 
 ## Changes for version 1.7.0-dev
 
- - ...
+ - Added multi-frame support for mccharset, where all frames use the same
+   charset.
 
 ## Changes for version 1.6
 

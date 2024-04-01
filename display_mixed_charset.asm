@@ -174,7 +174,7 @@ smc_yval:	ldy #steps-1
 		jsr reset_phase
 		lda #steps-1
 		sta smc_yval + 1
-		bne fade_loop
+		jmp fade_loop
 	} else {
 		sei
 		lda #$37

@@ -175,6 +175,7 @@ func (l *Linker) WriteTo(w io.Writer) (n int64, err error) {
 // WriteMemoryUsage writes memory usage map in text form to w.
 func (l *Linker) WriteMemoryUsage(w io.Writer) (n int, err error) {
 	fmt.Fprintln(w, "memory usage:")
+	eof := l.EndAddress()
 	for k := 0; k < 16; k++ {
 		s := ""
 		for p := 0; p < 16; p++ {
@@ -203,6 +204,9 @@ func (l *Linker) WriteMemoryUsage(w io.Writer) (n int, err error) {
 		n += m
 		if err != nil {
 			return n, err
+		}
+		if k*0x1000 > int(eof) {
+			return n, nil
 		}
 	}
 	return n, nil

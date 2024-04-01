@@ -1,5 +1,5 @@
 SRC=*.go cmd/png2prg/*.go tools/rom_charset_lowercase.prg tools/rom_charset_uppercase.prg
-DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg display_mci_bitmap.prg display_mixed_charset.prg display_petscii_charset.prg display_ecm_charset.prg
+DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg display_mci_bitmap.prg display_mixed_charset.prg display_petscii_charset.prg display_ecm_charset.prg display_mc_charset_anim.prg
 ASMLIB=lib.asm
 ASM=java -jar ./tools/KickAss-5.25.jar
 ASMFLAGS=-showmem -time
@@ -89,6 +89,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/29.pretzel.prg testdata/mixedcharset/pretzel.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/30.horizon.prg testdata/petscii/horizon.png
 	./$(TARGET) -d -q -sid $(TESTSID) -o dist/31.shampoo.prg testdata/ecm/shampoo.png
+	./$(TARGET) -d -q -sid $(TESTSID) -o dist/32.phatchar.prg testdata/charanim/phatchar?.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg dist/2?.*.prg dist/3?.*.prg
 	rm -f dist/*.prg

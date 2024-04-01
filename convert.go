@@ -417,7 +417,7 @@ func (img *sourceImage) PETSCIICharset() (PETSCIICharset, error) {
 }
 
 // MultiColorCharset converts the img to MultiColorCharset and returns it.
-func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
+func (img *sourceImage) MultiColorCharset(prebuiltCharset []charBytes) (c MultiColorCharset, err error) {
 	c.SourceFilename = img.sourceFilename
 	c.opt = img.opt
 	_, palette := img.maxColorsPerChar()
@@ -473,6 +473,12 @@ func (img *sourceImage) MultiColorCharset() (c MultiColorCharset, err error) {
 	}
 
 	charset := []charBytes{}
+	if len(prebuiltCharset) > 0 {
+		charset = prebuiltCharset
+		if img.opt.VeryVerbose {
+			log.Printf("using prebuiltCharset of %d chars", len(prebuiltCharset))
+		}
+	}
 	for char := 0; char < FullScreenChars; char++ {
 		cbuf, err := img.multiColorCharBytes(char, rgb2bitpair)
 		if err != nil {
