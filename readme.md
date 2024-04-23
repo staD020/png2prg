@@ -220,7 +220,7 @@ Also included are the assets of [Évoluer](https://csdb.dk/release/?id=220170) b
 
 First [install Go 1.20 or higher](https://go.dev/dl/), then:
 
-    go install github.com/staD020/png2prg/cmd/png2prg@latest
+    go install github.com/staD020/png2prg/cmd/png2prg
 
 Png2prg was built on Linux, building on Mac should work out of the box.
 For Windows, try out Windows Subsystem Linux (WSL), works pretty well.

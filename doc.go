@@ -232,7 +232,7 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println("First [install Go 1.20 or higher](https://go.dev/dl/), then:")
 	fmt.Println()
-	fmt.Println("    go install github.com/staD020/png2prg/cmd/png2prg@latest")
+	fmt.Println("    go install github.com/staD020/png2prg/cmd/png2prg")
 	fmt.Println()
 	fmt.Println("Png2prg was built on Linux, building on Mac should work out of the box.")
 	fmt.Println("For Windows, try out Windows Subsystem Linux (WSL), works pretty well.")

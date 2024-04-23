@@ -513,7 +513,7 @@ func (img *sourceImage) findECMColors() error {
 	if img.opt.VeryVerbose {
 		log.Printf("findECMColors sorted len %d: %v", len(colors), colors)
 		for i, v := range colors {
-			log.Printf("%d: %v", i, *v)
+			log.Printf("  %d: %v", i, *v)
 		}
 	}
 

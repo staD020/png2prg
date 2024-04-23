@@ -59,24 +59,17 @@ func (c *Converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	}
 	img0 := &c.images[0]
 	img1 := &c.images[1]
-
-	if len(img0.palette) != len(img1.palette) {
-		// sync both palettes
-		if c.opt.Verbose {
-			log.Printf("len(img0.palette): %d len(img1.palette): %d", len(img0.palette), len(img1.palette))
-		}
-		switch {
-		case len(img0.palette) < len(img1.palette):
-			for k, v := range img1.palette {
-				if _, ok := img0.palette[k]; !ok {
-					img0.palette[k] = v
-				}
+	if len(img0.palette) < MaxColors {
+		for k, v := range img1.palette {
+			if _, ok := img0.palette[k]; !ok {
+				img0.palette[k] = v
 			}
-		case len(img0.palette) > len(img1.palette):
-			for k, v := range img0.palette {
-				if _, ok := img1.palette[k]; !ok {
-					img1.palette[k] = v
-				}
+		}
+	}
+	if len(img1.palette) < MaxColors {
+		for k, v := range img0.palette {
+			if _, ok := img1.palette[k]; !ok {
+				img1.palette[k] = v
 			}
 		}
 	}

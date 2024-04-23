@@ -137,6 +137,16 @@ func (l *Linker) EndAddress() Word {
 	return 0
 }
 
+// LastAddress returns the memory address of the last used or blocked byte + 1.
+func (l *Linker) LastAddress() Word {
+	for i := Word(MaxMemory); i >= 0; i-- {
+		if l.used[i] || l.block[i] {
+			return i + 1
+		}
+	}
+	return 0
+}
+
 // Bytes returns a slice of the used payload.
 func (l *Linker) Bytes() []byte {
 	start := l.StartAddress()
@@ -175,7 +185,7 @@ func (l *Linker) WriteTo(w io.Writer) (n int64, err error) {
 // WriteMemoryUsage writes memory usage map in text form to w.
 func (l *Linker) WriteMemoryUsage(w io.Writer) (n int, err error) {
 	fmt.Fprintln(w, "memory usage:")
-	eof := l.EndAddress()
+	eof := l.LastAddress()
 	for k := 0; k < 16; k++ {
 		s := ""
 		for p := 0; p < 16; p++ {
