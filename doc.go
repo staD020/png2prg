@@ -245,7 +245,7 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println("### Compiling with Make (recommended)")
 	fmt.Println()
-	fmt.Println("    git clone git@github.com:staD020/png2prg.git")
+	fmt.Println("    git clone https://github.com/staD020/png2prg.git")
 	fmt.Println("    cd png2prg")
 	fmt.Println("    make -j")
 	fmt.Println()

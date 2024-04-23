@@ -233,7 +233,7 @@ the displayers with KickAssembler (included in the repo).
 
 ### Compiling with Make (recommended)
 
-    git clone git@github.com:staD020/png2prg.git
+    git clone https://github.com/staD020/png2prg.git
     cd png2prg
     make -j
 
