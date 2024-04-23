@@ -1,4 +1,4 @@
-# PNG2PRG 1.7.0-dev by burg
+# PNG2PRG 1.7.1-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -233,6 +233,8 @@ the displayers with KickAssembler (included in the repo).
 
 ### Compiling with Make (recommended)
 
+    git clone git@github.com:staD020/png2prg.git
+    cd png2prg
     make -j
 
 Build for all common targets:
@@ -269,10 +271,12 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.7.0-dev
+## Changes for version 1.7.1-dev
 
  - Added multi-frame support for mccharset, where all frames use the same
    charset.
+ - Bugfix: docs fixes related to installation from source (thanks jab).
+ - Bugfix: hide findECMColors log behind -verbose mode (thanks jab).
 
 ## Changes for version 1.6
 

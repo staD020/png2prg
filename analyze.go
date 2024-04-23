@@ -122,7 +122,9 @@ func (img *sourceImage) analyze() (err error) {
 	case maxcolsperchar <= 2 && numbgcolcandidateshires != 1:
 		img.graphicsType = singleColorBitmap
 		if err = img.findECMColors(); err != nil {
-			log.Printf("img.findECMColors failed: %v", err)
+			if img.opt.Verbose {
+				log.Printf("img.findECMColors failed: %v", err)
+			}
 		} else {
 			img.graphicsType = ecmCharset
 		}
