@@ -1,4 +1,4 @@
-# PNG2PRG 1.7.1-dev by burg
+# PNG2PRG 1.7.2-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -218,10 +218,6 @@ Also included are the assets of [Évoluer](https://csdb.dk/release/?id=220170) b
 
 ## Install from source
 
-First [install Go 1.20 or higher](https://go.dev/dl/), then:
-
-    go install github.com/staD020/png2prg/cmd/png2prg
-
 Png2prg was built on Linux, building on Mac should work out of the box.
 For Windows, try out Windows Subsystem Linux (WSL), works pretty well.
 However, natively building on Windows should be easy enough, look at
@@ -232,6 +228,8 @@ and importing png2prg as a library. Java is only required to build
 the displayers with KickAssembler (included in the repo).
 
 ### Compiling with Make (recommended)
+
+First [install Go 1.20 or higher](https://go.dev/dl/), then:
 
     git clone https://github.com/staD020/png2prg.git
     cd png2prg
@@ -271,10 +269,11 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.7.1-dev
+## Changes for version 1.7.2-dev
 
  - Added multi-frame support for mccharset, where all frames use the same
    charset.
+ - Add support for Marq's PETSCII tool .png dimension 352x232 (thanks jab).
  - Bugfix: docs fixes related to installation from source (thanks jab).
  - Bugfix: hide findECMColors log behind -verbose mode (thanks jab).
 

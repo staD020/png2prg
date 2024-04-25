@@ -57,6 +57,15 @@ func (img *sourceImage) checkBounds() error {
 		}
 		img.width, img.height = FullScreenWidth, FullScreenHeight
 		return nil
+	case (img.width == MarqScreenWidth) && (img.height == MarqScreenHeight):
+		// Marq's PETSCII editor uses these offsets
+		img.xOffset += (MarqScreenWidth - FullScreenWidth) / 2
+		img.yOffset += ((MarqScreenHeight - FullScreenHeight) / 2)
+		if img.opt.ForceXOffset > 0 || img.opt.ForceYOffset > 0 {
+			img.xOffset, img.yOffset = img.opt.ForceXOffset, img.opt.ForceYOffset
+		}
+		img.width, img.height = FullScreenWidth, FullScreenHeight
+		return nil
 	case img.hasSpriteDimensions():
 		return nil
 	case img.opt.CurrentGraphicsType == singleColorSprites || img.opt.CurrentGraphicsType == multiColorSprites:

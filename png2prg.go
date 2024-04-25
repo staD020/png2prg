@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Version              = "1.7.1-dev"
+	Version              = "1.7.2-dev"
 	displayerJumpTo      = "$0822"
 	MaxColors            = 16
 	MaxChars             = 256
@@ -35,6 +35,8 @@ const (
 	FullScreenHeight     = 200
 	ViceFullScreenWidth  = 384
 	ViceFullScreenHeight = 272
+	MarqScreenWidth      = 352
+	MarqScreenHeight     = 232
 	SpriteWidth          = 24
 	SpriteHeight         = 21
 
