@@ -183,6 +183,12 @@ func (img *sourceImage) Koala() (Koala, error) {
 		}
 	}
 
+	prevbitpair2c64color := map[byte]byte{}
+	j := byte(0)
+	for _, col := range img.preferredBitpairColors {
+		prevbitpair2c64color[j] = col
+		j++
+	}
 	for char := 0; char < FullScreenChars; char++ {
 		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(sortColors(img.charColors[char]), false)
 		if err != nil {
@@ -199,12 +205,22 @@ func (img *sourceImage) Koala() (Koala, error) {
 
 		if _, ok := bitpair2c64color[1]; ok {
 			k.ScreenColor[char] = bitpair2c64color[1] << 4
+		} else if char > 0 {
+			k.ScreenColor[char] = prevbitpair2c64color[1] << 4
 		}
 		if _, ok := bitpair2c64color[2]; ok {
-			k.ScreenColor[char] = k.ScreenColor[char] | bitpair2c64color[2]
+			k.ScreenColor[char] |= bitpair2c64color[2]
+		} else if char > 0 {
+			k.ScreenColor[char] |= prevbitpair2c64color[2]
 		}
 		if _, ok := bitpair2c64color[3]; ok {
 			k.D800Color[char] = bitpair2c64color[3]
+		} else if char > 0 {
+			k.D800Color[char] = prevbitpair2c64color[3]
+		}
+
+		for k, v := range bitpair2c64color {
+			prevbitpair2c64color[k] = v
 		}
 	}
 	return k, nil
