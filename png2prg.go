@@ -35,8 +35,6 @@ const (
 	FullScreenHeight     = 200
 	ViceFullScreenWidth  = 384
 	ViceFullScreenHeight = 272
-	MarqScreenWidth      = 352
-	MarqScreenHeight     = 232
 	SpriteWidth          = 24
 	SpriteHeight         = 21
 

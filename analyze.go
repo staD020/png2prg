@@ -57,15 +57,6 @@ func (img *sourceImage) checkBounds() error {
 		}
 		img.width, img.height = FullScreenWidth, FullScreenHeight
 		return nil
-	case (img.width == MarqScreenWidth) && (img.height == MarqScreenHeight):
-		// Marq's PETSCII editor uses these offsets
-		img.xOffset += (MarqScreenWidth - FullScreenWidth) / 2
-		img.yOffset += ((MarqScreenHeight - FullScreenHeight) / 2)
-		if img.opt.ForceXOffset > 0 || img.opt.ForceYOffset > 0 {
-			img.xOffset, img.yOffset = img.opt.ForceXOffset, img.opt.ForceYOffset
-		}
-		img.width, img.height = FullScreenWidth, FullScreenHeight
-		return nil
 	case img.hasSpriteDimensions():
 		return nil
 	case img.opt.CurrentGraphicsType == singleColorSprites || img.opt.CurrentGraphicsType == multiColorSprites:
@@ -85,6 +76,15 @@ func (img *sourceImage) checkBounds() error {
 		if img.opt.Verbose {
 			log.Printf("forcing dimension %d * %d", img.width, img.height)
 		}
+		return nil
+	case (img.width >= FullScreenWidth) && (img.height >= FullScreenHeight):
+		// Handle arbitrary resolutions like Marq's PETSCII editor (352x232)
+		img.xOffset += (img.width - FullScreenWidth) / 2
+		img.yOffset += (img.height - FullScreenHeight) / 2
+		if img.opt.ForceXOffset > 0 || img.opt.ForceYOffset > 0 {
+			img.xOffset, img.yOffset = img.opt.ForceXOffset, img.opt.ForceYOffset
+		}
+		img.width, img.height = FullScreenWidth, FullScreenHeight
 		return nil
 	}
 	return fmt.Errorf("image is not %dx%d, %dx%d or x*%d x y*%d pixels, but %d x %d pixels", FullScreenWidth, FullScreenHeight, ViceFullScreenWidth, ViceFullScreenHeight, SpriteWidth, SpriteHeight, img.width, img.height)

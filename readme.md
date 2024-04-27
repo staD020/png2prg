@@ -227,9 +227,13 @@ The compiled displayer prgs are included in the repo to ease building
 and importing png2prg as a library. Java is only required to build
 the displayers with KickAssembler (included in the repo).
 
-### Compiling with Make (recommended)
+But first [install Go 1.20 or higher](https://go.dev/dl/).
 
-First [install Go 1.20 or higher](https://go.dev/dl/), then:
+### Simple install
+
+    go install -v github.com/staD020/png2prg.git@master
+
+### Compiling with Make (recommended)
 
     git clone https://github.com/staD020/png2prg.git
     cd png2prg
@@ -273,7 +277,9 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 
  - Added multi-frame support for mccharset, where all frames use the same
    charset.
- - Add support for Marq's PETSCII tool .png dimension 352x232 (thanks jab).
+ - Add support for any centered fullscreen image resolution bigger than
+   320x200 and other than 384x272.
+ - Add support for Marq's PETSCII tool .png resolution 352x232 (thanks jab).
  - Bugfix: docs fixes related to installation from source (thanks jab).
  - Bugfix: hide findECMColors log behind -verbose mode (thanks jab).
 
