@@ -183,11 +183,11 @@ FLORIS=testdata/floris_untitled.png
 MERMAID=testdata/mermaid_song_of_the_sunset.png
 SHORTCIRCUIT=testdata/short_circuit.png
 benchkoala: $(TARGET) $(FLORIS) $(MERMAID) $(SHORTCIRCUIT)
-	./$(TARGET) -bpc 0,6,8,11 -o floris_p2p.prg $(FLORIS)
+	./$(TARGET) -bpc 0,6,11,8 -o floris_p2p.prg $(FLORIS)
 	dali -o floris_p2p.prg.dali floris_p2p.prg
 	spot $(FLORIS) -o floris_spot.kla
 	dali -o floris_spot.kla.dali floris_spot.kla
-	./$(TARGET) -bpc 0,6,7,4 -o mermaid_p2p.prg $(MERMAID)
+	./$(TARGET) -bpc 0,6,4,7 -o mermaid_p2p.prg $(MERMAID)
 	dali -o mermaid_p2p.prg.dali mermaid_p2p.prg
 	spot $(MERMAID) -o mermaid_spot.kla
 	dali -o mermaid_spot.kla.dali mermaid_spot.kla

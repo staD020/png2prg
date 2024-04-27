@@ -164,6 +164,16 @@ func (img *sourceImage) singleColorCharBytes(char int, rgb2bitpair PaletteMap) (
 	return b, nil
 }
 
+func (img *sourceImage) prefBitpair2C64Color() map[byte]byte {
+	bitpair2c64color := map[byte]byte{}
+	j := byte(0)
+	for _, col := range img.preferredBitpairColors {
+		bitpair2c64color[j] = col
+		j++
+	}
+	return bitpair2c64color
+}
+
 // Koala converts the img to Koala and returns it.
 func (img *sourceImage) Koala() (Koala, error) {
 	k := Koala{
@@ -183,12 +193,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 		}
 	}
 
-	prevbitpair2c64color := map[byte]byte{}
-	j := byte(0)
-	for _, col := range img.preferredBitpairColors {
-		prevbitpair2c64color[j] = col
-		j++
-	}
+	prevbitpair2c64color := img.prefBitpair2C64Color()
 	for char := 0; char < FullScreenChars; char++ {
 		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(sortColors(img.charColors[char]), false)
 		if err != nil {
@@ -205,20 +210,19 @@ func (img *sourceImage) Koala() (Koala, error) {
 
 		if _, ok := bitpair2c64color[1]; ok {
 			k.ScreenColor[char] = bitpair2c64color[1] << 4
-		} else if char > 0 {
+		} else {
 			k.ScreenColor[char] = prevbitpair2c64color[1] << 4
 		}
 		if _, ok := bitpair2c64color[2]; ok {
 			k.ScreenColor[char] |= bitpair2c64color[2]
-		} else if char > 0 {
+		} else {
 			k.ScreenColor[char] |= prevbitpair2c64color[2]
 		}
 		if _, ok := bitpair2c64color[3]; ok {
 			k.D800Color[char] = bitpair2c64color[3]
-		} else if char > 0 {
+		} else {
 			k.D800Color[char] = prevbitpair2c64color[3]
 		}
-
 		for k, v := range bitpair2c64color {
 			prevbitpair2c64color[k] = v
 		}
@@ -234,6 +238,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 		opt:            img.opt,
 	}
 
+	prevbitpair2c64color := img.prefBitpair2C64Color()
 	for char := 0; char < FullScreenChars; char++ {
 		cc := sortColors(img.charColors[char])
 		if len(cc) > 2 {
@@ -255,9 +260,16 @@ func (img *sourceImage) Hires() (Hires, error) {
 
 		if _, ok := bitpair2c64color[1]; ok {
 			h.ScreenColor[char] = bitpair2c64color[1] << 4
+		} else {
+			h.ScreenColor[char] = prevbitpair2c64color[1] << 4
 		}
 		if _, ok := bitpair2c64color[0]; ok {
 			h.ScreenColor[char] |= bitpair2c64color[0]
+		} else {
+			h.ScreenColor[char] |= prevbitpair2c64color[2]
+		}
+		for k, v := range bitpair2c64color {
+			prevbitpair2c64color[k] = v
 		}
 	}
 	return h, nil
