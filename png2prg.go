@@ -237,6 +237,7 @@ type sourceImage struct {
 	preferredBitpairColors bitpairColors
 	ecmColors              bitpairColors
 	graphicsType           GraphicsType
+	c64color2bitpairCache  [1000]map[byte]byte
 }
 
 type MultiColorChar struct {

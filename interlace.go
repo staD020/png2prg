@@ -225,7 +225,7 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 	chars := []int{}
 	foundsharedcol := 0
 	for char := 0; char < 1000; char++ {
-		rgb2bitpair0, bitpair2c64color0, err := img0.multiColorIndexes(sortColors(img0.charColors[char]), false)
+		rgb2bitpair0, bitpair2c64color0, err := img0.multiColorIndexes(char, sortColors(img0.charColors[char]), false)
 		if err != nil {
 			return k0, k1, sharedcolors, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 		}
@@ -234,7 +234,7 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 			tempbpc[k] = v
 		}
 		img1.preferredBitpairColors = tempbpc
-		rgb2bitpair1, bitpair2c64color1, err := img1.multiColorIndexes(sortColors(img1.charColors[char]), true)
+		rgb2bitpair1, bitpair2c64color1, err := img1.multiColorIndexes(char, sortColors(img1.charColors[char]), true)
 		if err != nil {
 			sharedcolors = false
 			chars = append(chars, char)
@@ -267,12 +267,12 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 			}
 
 			img0.preferredBitpairColors = forcepreferred
-			rgb2bitpair0, bitpair2c64color0, err = img0.multiColorIndexes(sortColors(img0.charColors[char]), true)
+			rgb2bitpair0, bitpair2c64color0, err = img0.multiColorIndexes(char, sortColors(img0.charColors[char]), true)
 			if err != nil {
 				return k0, k1, sharedcolors, fmt.Errorf("img0.multiColorIndexes failed: error in char %d: %w", char, err)
 			}
 			img1.preferredBitpairColors = forcepreferred
-			rgb2bitpair1, bitpair2c64color1, err = img1.multiColorIndexes(sortColors(img1.charColors[char]), true)
+			rgb2bitpair1, bitpair2c64color1, err = img1.multiColorIndexes(char, sortColors(img1.charColors[char]), true)
 			if err != nil {
 				return k0, k1, sharedcolors, fmt.Errorf("img1.multiColorIndexes failed: error in char %d: %w", char, err)
 			}

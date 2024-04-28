@@ -26,9 +26,12 @@ func In[S ~[]E, E comparable](s S, v E) bool {
 // multiColorIndexes return rgb2bitpair and bitpait2c64color maps.
 // It is the main function taking care of bitpair/color sorting, according to img.preferredBitpairColors.
 // forcePreferred is used with interlaced pictures.
-func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (rgb2bitpair PaletteMap, bitpair2c64color map[byte]byte, err error) {
+func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferred bool) (rgb2bitpair PaletteMap, bitpair2c64color map[byte]byte, err error) {
 	rgb2bitpair = make(PaletteMap)
 	bitpair2c64color = make(map[byte]byte)
+	if img.c64color2bitpairCache[char] == nil {
+		img.c64color2bitpairCache[char] = make(map[byte]byte)
+	}
 
 	// set background
 	if img.graphicsType != singleColorBitmap {
@@ -51,7 +54,7 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 		}
 		// fill preferred
 		for preferBitpair, preferColor := range img.preferredBitpairColors {
-			if preferColor > 15 {
+			if preferColor > 15 || preferColor < 0 {
 				continue
 			}
 			rgb2bitpair[img.palette.RGB(preferColor)] = byte(preferBitpair)
@@ -80,13 +83,19 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 			rgb2bitpair[ci.RGB] = bitpair
 			bitpair2c64color[bitpair] = ci.ColorIndex
 		}
+		for bp, c64col := range bitpair2c64color {
+			if c64col > 15 || c64col < 0 {
+				continue
+			}
+			img.c64color2bitpairCache[char][c64col] = bp
+		}
 		return rgb2bitpair, bitpair2c64color, nil
 	}
 
 	// prefill preferred and used colors
 	if len(img.preferredBitpairColors) > 0 {
 		for preferBitpair, preferColor := range img.preferredBitpairColors {
-			if preferColor > 15 {
+			if preferColor > 15 || preferColor < 0 {
 				continue
 			}
 		OUTER:
@@ -107,7 +116,36 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 	}
 	// bitpair2c64color includes bgcol, which may not be used in the char.
 	if len(bitpair2c64color) > len(cc) {
+		for bp, c64col := range bitpair2c64color {
+			img.c64color2bitpairCache[char][c64col] = bp
+		}
 		return rgb2bitpair, bitpair2c64color, nil
+	}
+
+	// prefer reusing bitpaircolors of previous char
+	if char > 0 {
+	NEXTCOL:
+		for _, ci := range cc {
+			if _, ok := rgb2bitpair[ci.RGB]; ok {
+				continue
+			}
+			if len(bitpairs) == 0 {
+				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
+			}
+			if prevbitpair, ok := img.c64color2bitpairCache[char-1][ci.ColorIndex]; ok {
+				for i, availbitpair := range bitpairs {
+					if prevbitpair == availbitpair {
+						rgb2bitpair[ci.RGB] = prevbitpair
+						bitpair2c64color[prevbitpair] = ci.ColorIndex
+						bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
+						continue NEXTCOL
+					}
+				}
+				if img.opt.VeryVerbose {
+					log.Printf("char %d: match for color %d not found prevbitpair %d (from bitpairs %v)", char, ci.ColorIndex, prevbitpair, bitpairs)
+				}
+			}
+		}
 	}
 
 	// fill or replace missing colors
@@ -124,6 +162,9 @@ func (img *sourceImage) multiColorIndexes(cc []ColorInfo, forcePreferred bool) (
 			rgb2bitpair[ci.RGB] = bitpair
 			bitpair2c64color[bitpair] = ci.ColorIndex
 		}
+	}
+	for bp, c64col := range bitpair2c64color {
+		img.c64color2bitpairCache[char][c64col] = bp
 	}
 	return rgb2bitpair, bitpair2c64color, nil
 }
@@ -168,7 +209,9 @@ func (img *sourceImage) prefBitpair2C64Color() map[byte]byte {
 	bitpair2c64color := map[byte]byte{}
 	j := byte(0)
 	for _, col := range img.preferredBitpairColors {
-		bitpair2c64color[j] = col
+		if col >= 0 && col < 16 {
+			bitpair2c64color[j] = col
+		}
 		j++
 	}
 	return bitpair2c64color
@@ -195,7 +238,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 
 	prevbitpair2c64color := img.prefBitpair2C64Color()
 	for char := 0; char < FullScreenChars; char++ {
-		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(sortColors(img.charColors[char]), false)
+		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(char, sortColors(img.charColors[char]), false)
 		if err != nil {
 			return k, fmt.Errorf("multiColorIndexes failed: error in char %d: %w", char, err)
 		}
@@ -245,7 +288,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 			return h, fmt.Errorf("Too many hires colors in char %d", char)
 		}
 
-		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(cc, false)
+		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(char, cc, false)
 		if err != nil {
 			return h, fmt.Errorf("multiColorIndexes failed: error in char %d: %v", char, err)
 		}
@@ -461,7 +504,7 @@ func (img *sourceImage) MultiColorCharset(prebuiltCharset []charBytes) (c MultiC
 		}
 	}
 
-	rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(cc, false)
+	rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(0, cc, false)
 	if err != nil {
 		return c, fmt.Errorf("multiColorIndexes failed: %w", err)
 	}
@@ -918,7 +961,7 @@ func (img *sourceImage) MultiColorSprites() (MultiColorSprites, error) {
 		}
 	}
 
-	rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(cc, false)
+	rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(0, cc, false)
 	if err != nil {
 		return s, fmt.Errorf("multiColorIndexes failed: %v", err)
 	}

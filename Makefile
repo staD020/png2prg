@@ -182,20 +182,29 @@ testpack: $(TARGET)
 FLORIS=testdata/floris_untitled.png
 MERMAID=testdata/mermaid_song_of_the_sunset.png
 SHORTCIRCUIT=testdata/short_circuit.png
-benchkoala: $(TARGET) $(FLORIS) $(MERMAID) $(SHORTCIRCUIT)
+benchkoala: floris mermaid shortcircuit
+	ls -l *_p2p.prg* *_spot.kla*
+
+floris: $(TARGET) $(FLORIS)
 	./$(TARGET) -bpc 0,6,11,8 -o floris_p2p.prg $(FLORIS)
 	dali -o floris_p2p.prg.dali floris_p2p.prg
 	spot $(FLORIS) -o floris_spot.kla
 	dali -o floris_spot.kla.dali floris_spot.kla
+	ls -l floris*
+
+mermaid: $(TARGET) $(MERMAID)
 	./$(TARGET) -bpc 0,6,4,7 -o mermaid_p2p.prg $(MERMAID)
 	dali -o mermaid_p2p.prg.dali mermaid_p2p.prg
 	spot $(MERMAID) -o mermaid_spot.kla
 	dali -o mermaid_spot.kla.dali mermaid_spot.kla
+	ls -l mermaid*
+
+shortcircuit: $(TARGET) $(SHORTCIRCUIT)
 	./$(TARGET) -bpc 1,11,14,6 -o shortcircuit_p2p.prg $(SHORTCIRCUIT)
 	dali -o shortcircuit_p2p.prg.dali shortcircuit_p2p.prg
 	spot $(SHORTCIRCUIT) -o shortcircuit_spot.kla
 	dali -o shortcircuit_spot.kla.dali shortcircuit_spot.kla
-	ls -l *_p2p.prg* *_spot.kla*
+	ls -l shortcircuit*
 
 clean:
 	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_spot.kla
