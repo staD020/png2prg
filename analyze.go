@@ -483,7 +483,9 @@ type sortcolor struct {
 
 func (img *sourceImage) findECMColors() error {
 	if len(img.preferredBitpairColors) == 4 {
-		log.Printf("skipping findECMColors because we have 4 img.preferredBitpairColors %s", img.preferredBitpairColors)
+		if img.opt.Verbose {
+			log.Printf("skipping findECMColors because we have 4 img.preferredBitpairColors %s", img.preferredBitpairColors)
+		}
 		img.ecmColors = img.preferredBitpairColors
 		return nil
 	}

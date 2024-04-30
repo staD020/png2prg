@@ -1,4 +1,4 @@
-# PNG2PRG 1.7.2-dev by burg
+# PNG2PRG 1.7.3-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -273,8 +273,11 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.7.2-dev
+## Changes for version 1.7.3-dev
 
+ - Improve crunchiness by re-using the previous char's bitpair-colors.
+ - Add experimental -brute-force mode to find bitpair color combinations
+   with better crunchiness. Burns some CPU for a couple seconds.
  - Added multi-frame support for mccharset, where all frames use the same
    charset.
  - Add support for any centered fullscreen image resolution bigger than
@@ -357,10 +360,14 @@ tables used in the koala and hires displayers.
     	use alternate screenshot offset with x,y = 32,36
   -ao
     	alt-offset
+  -bf
+    	brute-force
   -bitpair-colors string
     	prefer these colors in 2bit space, eg 0,6,14,3
   -bpc string
     	bitpair-colors
+  -brute-force
+    	brute force bitpair-colors
   -cpuprofile file
     	write cpu profile to file
   -d	display

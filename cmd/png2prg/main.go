@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/pprof"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -63,6 +65,17 @@ func main() {
 	}
 	if len(filenames) == 0 {
 		log.Printf("no files found")
+		return
+	}
+
+	if opt.BruteForce {
+		if err = bruteForce(opt, filenames[0]); err != nil {
+			log.Fatalf("bruteForce failed: %v", err)
+			return
+		}
+		if !opt.Quiet {
+			fmt.Printf("elapsed: %v\n", time.Since(t0))
+		}
 		return
 	}
 
@@ -169,16 +182,6 @@ func processInParallel(opt *png2prg.Options, filenames ...string) error {
 	return nil
 }
 
-func writeMemProfile(path string) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return fmt.Errorf("Create failed: %w", err)
-	}
-	defer f.Close()
-	runtime.GC()
-	return pprof.WriteHeapProfile(f)
-}
-
 // worker runs one worker to process incoming conversion jobs.
 // The caller is expected to start 1 or more workers to process jobs in parallel.
 // The caller is also expected to close(jobs) when done and wait for wg.Wait().
@@ -193,6 +196,139 @@ func worker(i int, opt png2prg.Options, wg *sync.WaitGroup, jobs <-chan string) 
 			fmt.Printf("worker %d converted %q to %q\n", i, filename, opt.OutFile)
 		}
 	}
+}
+
+type res struct {
+	bpc    string
+	length int
+}
+
+func bruteForce(opt png2prg.Options, filename string) error {
+	origOpt := opt
+	opt.NoCrunch = false
+	bin, err := os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("os.ReadFile %q failed; %w", filename, err)
+	}
+	p1, err := png2prg.New(opt, bytes.NewReader(bin))
+	if err != nil {
+		return fmt.Errorf("png2prg.New failed: %w", err)
+	}
+	buf := &bytes.Buffer{}
+	if _, err = p1.WriteTo(buf); err != nil {
+		return fmt.Errorf("p.WriteTo failed: %w", err)
+	}
+	colors := p1.SortedColors()
+
+	num := numWorkers
+	jobs := make(chan png2prg.Options, num)
+	result := make(chan res, num)
+	wg := &sync.WaitGroup{}
+	wg.Add(num)
+	for i := 1; i <= num; i++ {
+		go bruteWorker(i, wg, jobs, bin, result)
+	}
+	out := []res{}
+	go func() {
+		for v := range result {
+			out = append(out, v)
+		}
+		wg.Done()
+	}()
+	if !opt.Quiet {
+		fmt.Printf("started %d brute-force workers\n", num)
+	}
+
+	const permuteLen = 8
+	if len(colors) > permuteLen {
+		colors = colors[0:permuteLen]
+	}
+	done := map[[4]byte]bool{}
+	count := 0
+	total := 0
+	for p := make([]int, len(colors)); p[0] < len(p); png2prg.PermuteNext(p) {
+		count++
+		s := png2prg.Permutation(colors, p)
+		if len(s) > 4 {
+			s = s[:4]
+		}
+		tmp := [4]byte{s[0], s[1], s[2], s[3]}
+		if _, ok := done[tmp]; ok {
+			continue
+		}
+		done[tmp] = true
+
+		bitpaircols := ""
+		for i, col := range s {
+			bitpaircols += strconv.Itoa(int(col))
+			if i < len(s)-1 {
+				bitpaircols += ","
+			}
+		}
+		opt.BitpairColorsString = bitpaircols
+		opt.Display = true
+		opt.NoCrunch = false
+		opt.Verbose = false
+		opt.VeryVerbose = false
+		opt.Quiet = true
+		jobs <- opt
+		total++
+		if !origOpt.Quiet && total%10 == 0 {
+			fmt.Print(".")
+		}
+	}
+	close(jobs)
+	wg.Wait()
+	wg.Add(1)
+	close(result)
+	wg.Wait()
+	opt = origOpt
+	if !opt.Quiet {
+		fmt.Println()
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].length < out[j].length })
+	if opt.Verbose {
+		for i := range out {
+			log.Printf("out[%d]: %v", i, out[i])
+			if !opt.VeryVerbose && i == 9 {
+				break
+			}
+		}
+	}
+	if !opt.Quiet {
+		fmt.Printf("brute-force winner %q -bpc %v\n", filename, out[0].bpc)
+	}
+	opt.BitpairColorsString = out[0].bpc
+	if err = processAsOne(&opt, filename); err != nil {
+		return fmt.Errorf("processAsOne failed: %w", err)
+	}
+	return nil
+}
+
+func bruteWorker(i int, wg *sync.WaitGroup, jobs <-chan png2prg.Options, bin []byte, result chan res) {
+	defer wg.Done()
+	for opt := range jobs {
+		p2p, err := png2prg.New(opt, bytes.NewReader(bin))
+		if err != nil {
+			log.Printf("worker %d: png2prg.New failed: %v", i, err)
+			continue
+		}
+		buf := bytes.Buffer{}
+		if _, err = p2p.WriteTo(&buf); err != nil {
+			continue
+		}
+		result <- res{bpc: opt.BitpairColorsString, length: buf.Len()}
+	}
+}
+
+func writeMemProfile(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("Create failed: %w", err)
+	}
+	defer f.Close()
+	runtime.GC()
+	return pprof.WriteHeapProfile(f)
 }
 
 // expandWildcards searches all filenames for ? and * characters and manually finds matching files on the filesystem.
@@ -252,6 +388,8 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.StringVar(&opt.BitpairColorsString, "bitpair-colors", "", "prefer these colors in 2bit space, eg 0,6,14,3")
 	flag.IntVar(&opt.ForceBorderColor, "force-border-color", -1, "force border color")
 
+	flag.BoolVar(&opt.BruteForce, "bf", false, "brute-force")
+	flag.BoolVar(&opt.BruteForce, "brute-force", false, "brute force bitpair-colors")
 	flag.BoolVar(&opt.NoGuess, "ng", false, "no-guess")
 	flag.BoolVar(&opt.NoGuess, "no-guess", false, "do not guess preferred bitpair-colors")
 	flag.BoolVar(&opt.NoPackChars, "np", false, "no-pack")

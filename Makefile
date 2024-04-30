@@ -181,30 +181,109 @@ testpack: $(TARGET)
 # https://csdb.dk/forums/?roomid=13&topicid=38311&showallposts=1
 FLORIS=testdata/floris_untitled.png
 MERMAID=testdata/mermaid_song_of_the_sunset.png
+MERMAID2=testdata/mermaid_weee.png
 SHORTCIRCUIT=testdata/short_circuit.png
-benchkoala: floris mermaid shortcircuit
+STE=testdata/ste_gng.png
+SANDER=testdata/sander_ld.png
+SULEVI=testdata/sulevi_daylight.png
+benchkoala: floris mermaid shortcircuit ste mermaid2 sander
 	ls -l *_p2p.prg* *_spot.kla*
 
-floris: $(TARGET) $(FLORIS)
-	./$(TARGET) -bpc 0,6,11,8 -o floris_p2p.prg $(FLORIS)
+# best: -bpc 0,5,11,6
+floris: $(FLORIS) $(TARGET)
+	#./$(TARGET) -o floris_p2p.prg $<
+	./$(TARGET) -bpc 0,5,11,6 -o floris_p2p.prg $<
+	#./$(TARGET) -bf -o floris_p2p.prg $<
 	dali -o floris_p2p.prg.dali floris_p2p.prg
-	spot $(FLORIS) -o floris_spot.kla
+	spot13 $< -o floris_spot.kla
 	dali -o floris_spot.kla.dali floris_spot.kla
 	ls -l floris*
 
-mermaid: $(TARGET) $(MERMAID)
-	./$(TARGET) -bpc 0,6,4,7 -o mermaid_p2p.prg $(MERMAID)
+#:  -bpc 0,7,4,12
+#best: -bpc 0,6,1,12
+mermaid: $(MERMAID) $(TARGET)
+	#./$(TARGET) -o mermaid_p2p.prg $<
+	#./$(TARGET) -bpc 0,6,4,7 -o mermaid_p2p.prg $<
+	./$(TARGET) -bpc 0,6,1,12 -o mermaid_p2p.prg $<
+	#./$(TARGET) -bf -o mermaid_p2p.prg $<
 	dali -o mermaid_p2p.prg.dali mermaid_p2p.prg
-	spot $(MERMAID) -o mermaid_spot.kla
+	spot13 $< -o mermaid_spot.kla
 	dali -o mermaid_spot.kla.dali mermaid_spot.kla
-	ls -l mermaid*
+	ls -l mermaid_*
 
-shortcircuit: $(TARGET) $(SHORTCIRCUIT)
-	./$(TARGET) -bpc 1,11,14,6 -o shortcircuit_p2p.prg $(SHORTCIRCUIT)
+#best: -bpc 1,14,11,6
+#: -bpc 1,11,14,3
+shortcircuit: $(SHORTCIRCUIT) $(TARGET)
+	#./$(TARGET) -o shortcircuit_p2p.prg $<
+	./$(TARGET) -bpc 1,14,11,6 -o shortcircuit_p2p.prg $<
+	#./$(TARGET) -bpc 1,11,14,3 -o shortcircuit_p2p.prg $<
+	#./$(TARGET) -bf -o shortcircuit_p2p.prg $<
 	dali -o shortcircuit_p2p.prg.dali shortcircuit_p2p.prg
-	spot $(SHORTCIRCUIT) -o shortcircuit_spot.kla
+	spot13 $< -o shortcircuit_spot.kla
 	dali -o shortcircuit_spot.kla.dali shortcircuit_spot.kla
 	ls -l shortcircuit*
+
+# bruteforce is best: -bpc 0,9,1,3
+# default: -bpc 0,4,6,11
+sander: $(SANDER) $(TARGET)
+	spot13 $< -o sander_spot.kla
+	dali -o sander_spot.kla.dali sander_spot.kla
+	#./$(TARGET) -o sander_p2p.prg $<
+	./$(TARGET) -bpc 0,9,1,3 -o sander_p2p.prg $<
+	#./$(TARGET) -bpc 0,4,6,11 -o sander_p2p.prg $<
+	#./$(TARGET) -bf -o sander_p2p.prg $<
+	dali -o sander_p2p.prg.dali sander_p2p.prg
+	ls -l sander*
+
+# default is best: -bpc 0,1,8,2
+# bruteforce is bigger: -bpc 0,11,1,2
+# slowtsc best: -bpc 0,1,14,2
+ste: $(STE) $(TARGET)
+	spot13 $< -o ste_spot.kla
+	dali -o ste_spot.kla.dali ste_spot.kla
+	#./$(TARGET) -bf -o ste_p2p.prg $<
+	./$(TARGET) -bpc 0,1,8,2 -o ste_p2p.prg $<
+	#./$(TARGET) -bpc 0,11,1,2 -o ste_p2p.prg $<
+	dali -o ste_p2p.prg.dali ste_p2p.prg
+	ls -l ste*
+
+#bf best: -bpc 15,12,3,5
+#default: -bpc 15,5,12,3
+#15,3,10,5
+mermaid2: $(MERMAID2) $(TARGET)
+	#./$(TARGET) -bf -o mermaid2_p2p.prg $<
+	./$(TARGET) -bpc 15,12,3,5 -o mermaid2_p2p.prg $<
+	#./$(TARGET) -bpc 15,3,12,5 -o mermaid2_p2p.prg $<
+	#./$(TARGET) -bpc 15,3,10,5 -o mermaid2_p2p.prg $<
+	dali -o mermaid2_p2p.prg.dali mermaid2_p2p.prg
+	spot13 $< -o mermaid2_spot.kla
+	dali -o mermaid2_spot.kla.dali mermaid2_spot.kla
+	ls -l mermaid2*
+
+sulevi: $(SULEVI) $(TARGET)
+	spot13 $< -o sulevi_spot.kla
+	dali -o sulevi_spot.kla.dali sulevi_spot.kla
+	#./$(TARGET) -bf -o sulevi_p2p.prg $<
+	./$(TARGET) -bpc 3,10,6,1 -o sulevi_p2p.prg $<
+	#./$(TARGET) -bpc 3,10,1,6 -o sulevi_p2p.prg $<
+	#./$(TARGET) -bpc 3,10,0,1 -o sulevi_p2p.prg $<
+	dali -o sulevi_p2p.prg.dali sulevi_p2p.prg
+	ls -l sulevi*
+
+# best bf: 0,15,12,11
+# default: 0,11,12,15
+ROBIN=testdata/robinlevy_deadlock.png
+# best bf: 0,3,5,9
+# default: 0,9,5,14
+# ROBIN=testdata/robinlevy_huntersmoon.png
+robinlevy: $(ROBIN) $(TARGET)
+	spot13 $< -o robin_spot.kla
+	dali -o robin_spot.kla.dali robin_spot.kla
+	#./$(TARGET) -bf -o robin_p2p.prg $<
+	./$(TARGET) -bpc 0,15,12,11 -o robin_p2p.prg $<
+	#./$(TARGET) -bpc 0,11,12,15 -o robin_p2p.prg $<
+	dali -o robin_p2p.prg.dali robin_p2p.prg
+	ls -l robin*
 
 clean:
 	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_spot.kla

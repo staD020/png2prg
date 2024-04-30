@@ -16,6 +16,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -25,7 +26,7 @@ import (
 )
 
 const (
-	Version              = "1.7.2-dev"
+	Version              = "1.7.3-dev"
 	displayerJumpTo      = "$0822"
 	MaxColors            = 16
 	MaxChars             = 256
@@ -55,6 +56,7 @@ type Options struct {
 	VeryVerbose         bool
 	Quiet               bool
 	Display             bool
+	BruteForce          bool
 	NoPackChars         bool
 	NoPackEmptyChar     bool
 	ForcePackEmptyChar  bool
@@ -661,6 +663,27 @@ func NewFromPath(opt Options, filenames ...string) (*Converter, error) {
 		in = append(in, f)
 	}
 	return New(opt, in...)
+}
+
+func (c *Converter) SortedColors() []byte {
+	bpc := c.images[0].preferredBitpairColors
+	log.Printf("-bpc %s", bpc)
+	_, _, sumColors := c.images[0].countColors()
+	type sumcol struct {
+		col   byte
+		count int
+	}
+	sc := []sumcol{}
+	for col, count := range sumColors {
+		sc = append(sc, sumcol{col: byte(col), count: count})
+	}
+	sort.Slice(sc, func(i, j int) bool { return sc[i].count > sc[j].count })
+	result := make([]byte, len(sc), len(sc))
+	for i, scol := range sc {
+		result[i] = scol.col
+	}
+	log.Printf("result: %v", result)
+	return result
 }
 
 // WriteTo processes the image(s) and writes the resulting .prg to w.
