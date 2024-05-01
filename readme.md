@@ -443,6 +443,6 @@ tables used in the koala and hires displayers.
   -wait-seconds int
     	seconds to wait before animation starts
   -workers int
-    	number of concurrent workers in parallel mode (default 12)
+    	number of concurrent workers in -parallel or -brute-force mode (default 12)
 ```
 

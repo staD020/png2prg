@@ -186,41 +186,41 @@ SHORTCIRCUIT=testdata/short_circuit.png
 STE=testdata/ste_gng.png
 SANDER=testdata/sander_ld.png
 SULEVI=testdata/sulevi_daylight.png
-benchkoala: floris mermaid shortcircuit ste mermaid2 sander
+benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic
 	ls -l *_p2p.prg* *_spot.kla*
 
 # best: -bpc 0,5,11,6
 floris: $(FLORIS) $(TARGET)
-	#./$(TARGET) -o floris_p2p.prg $<
-	./$(TARGET) -bpc 0,5,11,6 -o floris_p2p.prg $<
-	#./$(TARGET) -bf -o floris_p2p.prg $<
-	dali -o floris_p2p.prg.dali floris_p2p.prg
 	spot13 $< -o floris_spot.kla
 	dali -o floris_spot.kla.dali floris_spot.kla
+	./$(TARGET) -v -bf -o floris_p2p.prg $<
+	#./$(TARGET) -bpc 0,5,11,6 -o floris_p2p.prg $<
+	#./$(TARGET) -bf -o floris_p2p.prg $<
+	dali -o floris_p2p.prg.dali floris_p2p.prg
 	ls -l floris*
 
 #:  -bpc 0,7,4,12
 #best: -bpc 0,6,1,12
 mermaid: $(MERMAID) $(TARGET)
-	#./$(TARGET) -o mermaid_p2p.prg $<
-	#./$(TARGET) -bpc 0,6,4,7 -o mermaid_p2p.prg $<
-	./$(TARGET) -bpc 0,6,1,12 -o mermaid_p2p.prg $<
-	#./$(TARGET) -bf -o mermaid_p2p.prg $<
-	dali -o mermaid_p2p.prg.dali mermaid_p2p.prg
 	spot13 $< -o mermaid_spot.kla
 	dali -o mermaid_spot.kla.dali mermaid_spot.kla
+	./$(TARGET) -v -bf -o mermaid_p2p.prg $<
+	#./$(TARGET) -bpc 0,6,1,12 -o mermaid_p2p.prg $<
+	#./$(TARGET) -bpc 0,6,4,7 -o mermaid_p2p.prg $<
+	#./$(TARGET) -bf -o mermaid_p2p.prg $<
+	dali -o mermaid_p2p.prg.dali mermaid_p2p.prg
 	ls -l mermaid_*
 
 #best: -bpc 1,14,11,6
 #: -bpc 1,11,14,3
 shortcircuit: $(SHORTCIRCUIT) $(TARGET)
-	#./$(TARGET) -o shortcircuit_p2p.prg $<
-	./$(TARGET) -bpc 1,14,11,6 -o shortcircuit_p2p.prg $<
+	spot13 $< -o shortcircuit_spot.kla
+	dali -o shortcircuit_spot.kla.dali shortcircuit_spot.kla
+	./$(TARGET) -v -bf -o shortcircuit_p2p.prg $<
+	#./$(TARGET) -bpc 1,14,11,6 -o shortcircuit_p2p.prg $<
 	#./$(TARGET) -bpc 1,11,14,3 -o shortcircuit_p2p.prg $<
 	#./$(TARGET) -bf -o shortcircuit_p2p.prg $<
 	dali -o shortcircuit_p2p.prg.dali shortcircuit_p2p.prg
-	spot13 $< -o shortcircuit_spot.kla
-	dali -o shortcircuit_spot.kla.dali shortcircuit_spot.kla
 	ls -l shortcircuit*
 
 # bruteforce is best: -bpc 0,9,1,3
@@ -228,8 +228,8 @@ shortcircuit: $(SHORTCIRCUIT) $(TARGET)
 sander: $(SANDER) $(TARGET)
 	spot13 $< -o sander_spot.kla
 	dali -o sander_spot.kla.dali sander_spot.kla
-	#./$(TARGET) -o sander_p2p.prg $<
-	./$(TARGET) -bpc 0,9,1,3 -o sander_p2p.prg $<
+	./$(TARGET) -v -bf -o sander_p2p.prg $<
+	#./$(TARGET) -bpc 0,9,1,3 -o sander_p2p.prg $<
 	#./$(TARGET) -bpc 0,4,6,11 -o sander_p2p.prg $<
 	#./$(TARGET) -bf -o sander_p2p.prg $<
 	dali -o sander_p2p.prg.dali sander_p2p.prg
@@ -241,8 +241,8 @@ sander: $(SANDER) $(TARGET)
 ste: $(STE) $(TARGET)
 	spot13 $< -o ste_spot.kla
 	dali -o ste_spot.kla.dali ste_spot.kla
-	#./$(TARGET) -bf -o ste_p2p.prg $<
-	./$(TARGET) -bpc 0,1,8,2 -o ste_p2p.prg $<
+	./$(TARGET) -v -bf -o ste_p2p.prg $<
+	#./$(TARGET) -bpc 0,1,8,2 -o ste_p2p.prg $<
 	#./$(TARGET) -bpc 0,11,1,2 -o ste_p2p.prg $<
 	dali -o ste_p2p.prg.dali ste_p2p.prg
 	ls -l ste*
@@ -251,20 +251,20 @@ ste: $(STE) $(TARGET)
 #default: -bpc 15,5,12,3
 #15,3,10,5
 mermaid2: $(MERMAID2) $(TARGET)
-	#./$(TARGET) -bf -o mermaid2_p2p.prg $<
-	./$(TARGET) -bpc 15,12,3,5 -o mermaid2_p2p.prg $<
+	spot13 $< -o mermaid2_spot.kla
+	dali -o mermaid2_spot.kla.dali mermaid2_spot.kla
+	./$(TARGET) -v -bf -o mermaid2_p2p.prg $<
+	#./$(TARGET) -bpc 15,12,3,5 -o mermaid2_p2p.prg $<
 	#./$(TARGET) -bpc 15,3,12,5 -o mermaid2_p2p.prg $<
 	#./$(TARGET) -bpc 15,3,10,5 -o mermaid2_p2p.prg $<
 	dali -o mermaid2_p2p.prg.dali mermaid2_p2p.prg
-	spot13 $< -o mermaid2_spot.kla
-	dali -o mermaid2_spot.kla.dali mermaid2_spot.kla
 	ls -l mermaid2*
 
 sulevi: $(SULEVI) $(TARGET)
 	spot13 $< -o sulevi_spot.kla
 	dali -o sulevi_spot.kla.dali sulevi_spot.kla
-	#./$(TARGET) -bf -o sulevi_p2p.prg $<
-	./$(TARGET) -bpc 3,10,6,1 -o sulevi_p2p.prg $<
+	./$(TARGET) -v -bf -o sulevi_p2p.prg $<
+	#./$(TARGET) -bpc 3,10,6,1 -o sulevi_p2p.prg $<
 	#./$(TARGET) -bpc 3,10,1,6 -o sulevi_p2p.prg $<
 	#./$(TARGET) -bpc 3,10,0,1 -o sulevi_p2p.prg $<
 	dali -o sulevi_p2p.prg.dali sulevi_p2p.prg
@@ -279,11 +279,41 @@ ROBIN=testdata/robinlevy_deadlock.png
 robinlevy: $(ROBIN) $(TARGET)
 	spot13 $< -o robin_spot.kla
 	dali -o robin_spot.kla.dali robin_spot.kla
-	#./$(TARGET) -bf -o robin_p2p.prg $<
-	./$(TARGET) -bpc 0,15,12,11 -o robin_p2p.prg $<
+	./$(TARGET) -v -bf -o robin_p2p.prg $<
+	#./$(TARGET) -bpc 0,15,12,11 -o robin_p2p.prg $<
 	#./$(TARGET) -bpc 0,11,12,15 -o robin_p2p.prg $<
 	dali -o robin_p2p.prg.dali robin_p2p.prg
 	ls -l robin*
+
+# best: -bpc 9,0,6,5 (also bf, but non deterministic)
+# best bf: 9,15,10,0
+# default: 9,0,12,15
+VETO=testdata/veto_room_with_view.png
+veto: $(VETO) $(TARGET)
+	spot13 $< -o veto_spot.kla
+	dali -o veto_spot.kla.dali veto_spot.kla
+	./$(TARGET) -v -bf -o veto_p2p.prg $<
+	#./$(TARGET) -bpc 9,0,6,5 -o veto_p2p.prg $<
+	#./$(TARGET) -bpc 9,15,10,0 -o veto_p2p.prg $<
+	#./$(TARGET) -bpc 9,0,12,15 -o veto_p2p.prg $<
+	dali -o veto_p2p.prg.dali veto_p2p.prg
+	ls -l veto*
+
+MISCPIC=testdata/carrion_still_waiting.png
+MISCPIC=testdata/the_sarge_obscena_vaselina_palette1.png
+MISCPIC=testdata/joe_earth.png
+MISCPIC=testdata/archmage_mc_god.png
+MISCPIC=testdata/facet_turning_point_320x200.png
+MISCPIC=testdata/bizzmo_wool_colodore.png
+miscpic: $(MISCPIC) $(TARGET)
+	spot13 $< -o misc_spot.kla
+	dali -o misc_spot.kla.dali misc_spot.kla
+	./$(TARGET) -v -bf -o misc_p2p.prg $<
+	#./$(TARGET) -bpc 10,0,13,8 -o misc_p2p.prg $<
+	#./$(TARGET) -bpc 10,0,6,3 -o misc_p2p.prg $<
+	#./$(TARGET) -bpc 10,0,3,6 -o misc_p2p.prg $<
+	dali -o misc_p2p.prg.dali misc_p2p.prg
+	ls -l misc*
 
 clean:
 	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_spot.kla

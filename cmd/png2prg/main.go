@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/pprof"
-	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,7 +22,6 @@ var (
 	cpuProfile string
 	help       bool
 	parallel   bool
-	numWorkers int
 	altOffset  bool
 )
 
@@ -68,20 +65,10 @@ func main() {
 		return
 	}
 
-	if opt.BruteForce {
-		if err = bruteForce(opt, filenames[0]); err != nil {
-			log.Fatalf("bruteForce failed: %v", err)
-			return
-		}
-		if !opt.Quiet {
-			fmt.Printf("elapsed: %v\n", time.Since(t0))
-		}
-		return
-	}
-
 	process := processAsOne
 	if parallel {
 		process = processInParallel
+		opt.BruteForce = false
 	}
 	if err = process(&opt, filenames...); err != nil {
 		log.Fatalf("process failed: %v", err)
@@ -150,7 +137,7 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 // It starts the workers and feeds filenames to them for processing.
 // The function returns when all jobs are finished.
 func processInParallel(opt *png2prg.Options, filenames ...string) error {
-	num := numWorkers
+	num := opt.NumWorkers
 	if num > len(filenames) {
 		num = len(filenames)
 	}
@@ -195,129 +182,6 @@ func worker(i int, opt png2prg.Options, wg *sync.WaitGroup, jobs <-chan string) 
 		if !opt.Quiet {
 			fmt.Printf("worker %d converted %q to %q\n", i, filename, opt.OutFile)
 		}
-	}
-}
-
-type res struct {
-	bpc    string
-	length int
-}
-
-func bruteForce(opt png2prg.Options, filename string) error {
-	origOpt := opt
-	opt.NoCrunch = false
-	bin, err := os.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("os.ReadFile %q failed; %w", filename, err)
-	}
-	p1, err := png2prg.New(opt, bytes.NewReader(bin))
-	if err != nil {
-		return fmt.Errorf("png2prg.New failed: %w", err)
-	}
-	buf := &bytes.Buffer{}
-	if _, err = p1.WriteTo(buf); err != nil {
-		return fmt.Errorf("p.WriteTo failed: %w", err)
-	}
-	colors := p1.SortedColors()
-
-	num := numWorkers
-	jobs := make(chan png2prg.Options, num)
-	result := make(chan res, num)
-	wg := &sync.WaitGroup{}
-	wg.Add(num)
-	for i := 1; i <= num; i++ {
-		go bruteWorker(i, wg, jobs, bin, result)
-	}
-	out := []res{}
-	go func() {
-		for v := range result {
-			out = append(out, v)
-		}
-		wg.Done()
-	}()
-	if !opt.Quiet {
-		fmt.Printf("started %d brute-force workers\n", num)
-	}
-
-	const permuteLen = 8
-	if len(colors) > permuteLen {
-		colors = colors[0:permuteLen]
-	}
-	done := map[[4]byte]bool{}
-	count := 0
-	total := 0
-	for p := make([]int, len(colors)); p[0] < len(p); png2prg.PermuteNext(p) {
-		count++
-		s := png2prg.Permutation(colors, p)
-		if len(s) > 4 {
-			s = s[:4]
-		}
-		tmp := [4]byte{s[0], s[1], s[2], s[3]}
-		if _, ok := done[tmp]; ok {
-			continue
-		}
-		done[tmp] = true
-
-		bitpaircols := ""
-		for i, col := range s {
-			bitpaircols += strconv.Itoa(int(col))
-			if i < len(s)-1 {
-				bitpaircols += ","
-			}
-		}
-		opt.BitpairColorsString = bitpaircols
-		opt.Display = true
-		opt.NoCrunch = false
-		opt.Verbose = false
-		opt.VeryVerbose = false
-		opt.Quiet = true
-		jobs <- opt
-		total++
-		if !origOpt.Quiet && total%10 == 0 {
-			fmt.Print(".")
-		}
-	}
-	close(jobs)
-	wg.Wait()
-	wg.Add(1)
-	close(result)
-	wg.Wait()
-	opt = origOpt
-	if !opt.Quiet {
-		fmt.Println()
-	}
-	sort.Slice(out, func(i, j int) bool { return out[i].length < out[j].length })
-	if opt.Verbose {
-		for i := range out {
-			log.Printf("out[%d]: %v", i, out[i])
-			if !opt.VeryVerbose && i == 9 {
-				break
-			}
-		}
-	}
-	if !opt.Quiet {
-		fmt.Printf("brute-force winner %q -bpc %v\n", filename, out[0].bpc)
-	}
-	opt.BitpairColorsString = out[0].bpc
-	if err = processAsOne(&opt, filename); err != nil {
-		return fmt.Errorf("processAsOne failed: %w", err)
-	}
-	return nil
-}
-
-func bruteWorker(i int, wg *sync.WaitGroup, jobs <-chan png2prg.Options, bin []byte, result chan res) {
-	defer wg.Done()
-	for opt := range jobs {
-		p2p, err := png2prg.New(opt, bytes.NewReader(bin))
-		if err != nil {
-			log.Printf("worker %d: png2prg.New failed: %v", i, err)
-			continue
-		}
-		buf := bytes.Buffer{}
-		if _, err = p2p.WriteTo(&buf); err != nil {
-			continue
-		}
-		result <- res{bpc: opt.BitpairColorsString, length: buf.Len()}
 	}
 }
 
@@ -411,8 +275,8 @@ func initAndParseFlags() (opt png2prg.Options) {
 	if w < 1 {
 		w = 1
 	}
-	flag.IntVar(&numWorkers, "w", w, "workers")
-	flag.IntVar(&numWorkers, "workers", w, "number of concurrent workers in parallel mode")
+	flag.IntVar(&opt.NumWorkers, "w", w, "workers")
+	flag.IntVar(&opt.NumWorkers, "workers", w, "number of concurrent workers in -parallel or -brute-force mode")
 	flag.BoolVar(&parallel, "p", false, "parallel")
 	flag.BoolVar(&parallel, "parallel", false, "run number of workers in parallel for fast conversion, treat each image as a standalone, not to be used for animations")
 	flag.BoolVar(&altOffset, "ao", false, "alt-offset")

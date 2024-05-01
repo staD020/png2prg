@@ -17,6 +17,11 @@ func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 	if img.preferredBitpairColors, err = parseBitPairColors(v); err != nil {
 		return fmt.Errorf("parseBitPairColors %q failed: %w", v, err)
 	}
+	if img.graphicsType == singleColorBitmap {
+		if len(img.preferredBitpairColors) > 2 {
+			img.preferredBitpairColors = img.preferredBitpairColors[0:2]
+		}
+	}
 	if img.opt.Verbose {
 		log.Printf("will prefer bitpair colors: %v", img.preferredBitpairColors)
 	}

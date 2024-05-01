@@ -57,6 +57,7 @@ type Options struct {
 	Quiet               bool
 	Display             bool
 	BruteForce          bool
+	NumWorkers          int
 	NoPackChars         bool
 	NoPackEmptyChar     bool
 	ForcePackEmptyChar  bool
@@ -737,9 +738,25 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		return c.WriteAnimationTo(w)
 	}
 
+	bruteforce := func() error {
+		if !c.opt.BruteForce {
+			return nil
+		}
+		if err = c.BruteForceBitpairColors(); err != nil {
+			return fmt.Errorf("BruteForceBitpairColors %q failed: %w", img.sourceFilename, err)
+		}
+		if err = img.setPreferredBitpairColors(c.opt.BitpairColorsString); err != nil {
+			return fmt.Errorf("img.setPreferredBitpairColors %q failed: %w", c.opt.BitpairColorsString, err)
+		}
+		return nil
+	}
+
 	var wt io.WriterTo
 	switch img.graphicsType {
 	case multiColorBitmap:
+		if err = bruteforce(); err != nil {
+			return 0, err
+		}
 		if wt, err = img.Koala(); err != nil {
 			return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
 		}
