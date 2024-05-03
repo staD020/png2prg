@@ -301,17 +301,19 @@ veto: $(VETO) $(TARGET)
 
 MISCPIC=testdata/carrion_still_waiting.png
 MISCPIC=testdata/the_sarge_obscena_vaselina_palette1.png
-MISCPIC=testdata/joe_earth.png
 MISCPIC=testdata/archmage_mc_god.png
 MISCPIC=testdata/facet_turning_point_320x200.png
 MISCPIC=testdata/bizzmo_wool_colodore.png
+MISCPIC=testdata/joe_earth.png
+MISCPIC=testdata/tentacles.png
+#MISCPIC=testdata/the_sarge_therapy.png
 miscpic: $(MISCPIC) $(TARGET)
 	spot13 $< -o misc_spot.kla
 	dali -o misc_spot.kla.dali misc_spot.kla
 	./$(TARGET) -v -bf -o misc_p2p.prg $<
 	#./$(TARGET) -bpc 10,0,13,8 -o misc_p2p.prg $<
 	#./$(TARGET) -bpc 10,0,6,3 -o misc_p2p.prg $<
-	#./$(TARGET) -bpc 10,0,3,6 -o misc_p2p.prg $<
+	#./$(TARGET) -bpc 0,13,11,6 -o misc_p2p.prg $<
 	dali -o misc_p2p.prg.dali misc_p2p.prg
 	ls -l misc*
 

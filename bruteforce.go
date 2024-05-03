@@ -39,9 +39,9 @@ func (c *Converter) BruteForceBitpairColors() error {
 	}
 
 	colors := c.images[0].SortedColors()
-	const permuteLen = 8
-	if len(colors) > permuteLen {
-		colors = colors[0:permuteLen]
+	const permuteDepth = 8
+	if len(colors) > permuteDepth {
+		colors = colors[0:permuteDepth]
 	}
 	done := map[[4]byte]bool{}
 	count := 0
@@ -104,6 +104,14 @@ func (c *Converter) BruteForceBitpairColors() error {
 		fmt.Println()
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].length < out[j].length })
+	if !c.opt.Quiet && len(out) > 5 {
+		threshold := out[0].length + 5
+		for i := range out {
+			if i > 0 && out[i].length < threshold {
+				fmt.Printf("you may want to manually try -bpc %s\n", out[i].bpc)
+			}
+		}
+	}
 	if c.opt.Verbose {
 		for i := range out {
 			log.Printf("bpc[%d]: %v", i, out[i])
