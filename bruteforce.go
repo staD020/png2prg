@@ -114,7 +114,7 @@ func (c *Converter) BruteForceBitpairColors() error {
 	}
 	if c.opt.Verbose {
 		for i := range out {
-			log.Printf("bpc[%d]: %v", i, out[i])
+			log.Printf("%d: -bpc %s (length: %d)", i, out[i].bpc, out[i].length)
 			if !c.opt.VeryVerbose && i == 9 {
 				break
 			}

@@ -141,6 +141,42 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 						continue NEXTCOL
 					}
 				}
+				if char >= 40 && true {
+					if prevbitpair2, ok := img.c64color2bitpairCache[char-40][ci.ColorIndex]; ok {
+						for i, availbitpair := range bitpairs {
+							if prevbitpair2 == availbitpair {
+								rgb2bitpair[ci.RGB] = prevbitpair2
+								bitpair2c64color[prevbitpair2] = ci.ColorIndex
+								bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
+								continue NEXTCOL
+							}
+						}
+					}
+				}
+				if char >= 2 && false {
+					if prevbitpair2, ok := img.c64color2bitpairCache[char-2][ci.ColorIndex]; ok {
+						for i, availbitpair := range bitpairs {
+							if prevbitpair2 == availbitpair {
+								rgb2bitpair[ci.RGB] = prevbitpair2
+								bitpair2c64color[prevbitpair2] = ci.ColorIndex
+								bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
+								continue NEXTCOL
+							}
+						}
+					}
+				}
+				if char >= 3 && false {
+					if prevbitpair2, ok := img.c64color2bitpairCache[char-3][ci.ColorIndex]; ok {
+						for i, availbitpair := range bitpairs {
+							if prevbitpair2 == availbitpair {
+								rgb2bitpair[ci.RGB] = prevbitpair2
+								bitpair2c64color[prevbitpair2] = ci.ColorIndex
+								bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
+								continue NEXTCOL
+							}
+						}
+					}
+				}
 				if img.opt.VeryVerbose {
 					log.Printf("char %d: match for color %d not found prevbitpair %d (from bitpairs %v)", char, ci.ColorIndex, prevbitpair, bitpairs)
 				}
