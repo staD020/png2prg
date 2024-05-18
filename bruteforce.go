@@ -52,6 +52,10 @@ func (c *Converter) BruteForceBitpairColors() error {
 		if len(s) > 4 {
 			s = s[:4]
 		}
+		if len(s) != 4 {
+			log.Printf("skipping permutation %s as it does not contain 4 colors", s)
+			continue
+		}
 		tmp := [4]byte{s[0], s[1], s[2], s[3]}
 		if _, ok := done[tmp]; ok {
 			continue
@@ -86,6 +90,7 @@ func (c *Converter) BruteForceBitpairColors() error {
 		opt.Quiet = true
 		img, err := NewSourceImage(opt, count, c.images[0].image)
 		if err != nil {
+			log.Printf("skipping permutation %s because NewSourceImage failed: %v", bitpaircols, err)
 			continue
 		}
 		jobs <- img
