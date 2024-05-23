@@ -14,6 +14,7 @@ import (
 
 type bruteResult struct {
 	bpc    string
+	bgcol  ColorInfo
 	length int
 }
 
@@ -133,6 +134,7 @@ func (c *Converter) BruteForceBitpairColors() error {
 	}
 	c.opt.BitpairColorsString = out[0].bpc
 	c.images[0].opt.BitpairColorsString = out[0].bpc
+	c.images[0].backgroundColor = out[0].bgcol
 	return nil
 }
 
@@ -181,7 +183,11 @@ NEXTJOB:
 		if err != nil {
 			panic(err)
 		}
-		result <- bruteResult{bpc: img.opt.BitpairColorsString, length: compressed.Len()}
+		result <- bruteResult{
+			bpc:    img.opt.BitpairColorsString,
+			bgcol:  ColorInfo{ColorIndex: img.preferredBitpairColors[0], RGB: img.palette.RGB(img.preferredBitpairColors[0])},
+			length: compressed.Len(),
+		}
 	}
 }
 
