@@ -18,7 +18,13 @@ type bruteResult struct {
 	length int
 }
 
-func (c *Converter) BruteForceBitpairColors() error {
+func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int) error {
+	if maxColors > 4 {
+		return fmt.Errorf("maxColors has a max of 4, but it is %d", maxColors)
+	}
+	if gfxtype == unknownGraphicsType {
+		return fmt.Errorf("BruteForceBitpairColors failed: unknownGraphicsType")
+	}
 	origOpt := c.opt
 	num := c.opt.NumWorkers
 	jobs := make(chan sourceImage, num)
@@ -50,28 +56,33 @@ func (c *Converter) BruteForceBitpairColors() error {
 	for p := make([]int, len(colors)); p[0] < len(p); PermuteNext(p) {
 		count++
 		s := Permutation(colors, p)
-		if len(s) > 4 {
-			s = s[:4]
+		if len(s) > maxColors {
+			s = s[:maxColors]
 		}
-		if len(s) != 4 {
-			log.Printf("skipping permutation %s as it does not contain 4 colors", s)
+		if len(s) < maxColors {
+			log.Printf("skipping permutation %v as it does not contain %d colors", s, maxColors)
 			continue
 		}
-		tmp := [4]byte{s[0], s[1], s[2], s[3]}
+		tmp := [4]byte{}
+		for i := range s {
+			tmp[i] = s[i]
+		}
 		if _, ok := done[tmp]; ok {
 			continue
 		}
 		done[tmp] = true
 
-		// skip impossible bgcolors
-		bgok := false
-		for _, col := range c.images[0].backgroundCandidates {
-			if col == s[0] {
-				bgok = true
+		if gfxtype == multiColorBitmap {
+			// skip impossible bgcolors
+			bgok := false
+			for _, col := range c.images[0].backgroundCandidates {
+				if col == s[0] {
+					bgok = true
+				}
 			}
-		}
-		if !bgok {
-			continue
+			if !bgok {
+				continue
+			}
 		}
 
 		bitpaircols := ""
@@ -83,6 +94,8 @@ func (c *Converter) BruteForceBitpairColors() error {
 		}
 
 		opt := c.opt
+		opt.GraphicsMode = gfxtype.String()
+		opt.CurrentGraphicsType = gfxtype
 		opt.BitpairColorsString = bitpaircols
 		opt.Display = false
 		opt.NoCrunch = true
@@ -166,10 +179,11 @@ NEXTJOB:
 				continue NEXTJOB
 			}
 		default:
+			log.Printf("skip unsupported bruteforce graphicsType: %s", img.graphicsType)
 			continue NEXTJOB
 		}
 		buf := bytes.Buffer{}
-		if _, err := wt.WriteTo(&buf); err != nil {
+		if _, err = wt.WriteTo(&buf); err != nil {
 			panic(err)
 		}
 
@@ -199,7 +213,9 @@ func (img *sourceImage) SortedColors() []byte {
 	}
 	sc := []sumcol{}
 	for col, count := range sumColors {
-		sc = append(sc, sumcol{col: byte(col), count: count})
+		if count > 0 {
+			sc = append(sc, sumcol{col: byte(col), count: count})
+		}
 	}
 	sort.Slice(sc, func(i, j int) bool { return sc[i].count > sc[j].count })
 	result := make([]byte, len(sc), len(sc))
