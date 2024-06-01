@@ -8,9 +8,9 @@ import (
 )
 
 func TestLinker(t *testing.T) {
+	t.Parallel()
 	start := Word(0x801)
 	bin := []byte{1, 2, 3, 4, 5, 6, 7, 8}
-	t.Parallel()
 	l := NewLinker(start, false)
 	assert.NotNil(t, l)
 	n, err := l.Write(bin)
@@ -34,4 +34,17 @@ func TestLinker(t *testing.T) {
 	assert.Equal(t, len(bin), n)
 	assert.Equal(t, Word(0x0), l.StartAddress())
 	assert.Equal(t, Word(0x8), l.EndAddress())
+
+	l = NewLinker(0xffff, false)
+	assert.NotNil(t, l)
+	assert.Equal(t, Word(0xffff), l.StartAddress())
+	assert.Equal(t, Word(0x0), l.EndAddress())
+	n, err = l.Write(bin[0:2])
+	assert.NotNil(t, err)
+	assert.Zero(t, n)
+	n, err = l.Write(bin[0:1])
+	assert.Nil(t, err)
+	assert.Equal(t, 1, n)
+	assert.Equal(t, Word(0xffff), l.StartAddress())
+	assert.Equal(t, Word(0x0), l.EndAddress())
 }
