@@ -95,7 +95,7 @@ func (l *Linker) WriteMap(m LinkMap) (n int, err error) {
 // Write writes b to payload at cursor address and increases the cursor with amount of bytes written.
 // This implements the io.Writer interface,
 func (l *Linker) Write(b []byte) (n int, err error) {
-	if int(l.cursor)+len(b) > MaxMemory && int(l.cursor)+len(b) != MaxMemory+1 {
+	if int(l.cursor)+len(b) > MaxMemory+1 {
 		return n, fmt.Errorf("linker.Write: out of memory error, cursor %s, length %#04x", l.cursor, len(b))
 	}
 	for i := 0; i < len(b); i++ {
