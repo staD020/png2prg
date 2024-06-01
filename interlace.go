@@ -23,6 +23,10 @@ import (
 // isMultiColorInterlace does a real simple check for hires pixels.
 // returns true if a mismatch of colors is detected on even/odd pixels.
 func (img *sourceImage) isMultiColorInterlace() bool {
+	return img.isHiresPixels()
+}
+
+func (img *sourceImage) isHiresPixels() bool {
 	for y := 0; y < FullScreenHeight; y++ {
 		for x := 0; x < FullScreenWidth; x += 2 {
 			if img.colorAtXY(x, y) != img.colorAtXY(x+1, y) {
@@ -74,6 +78,18 @@ func (c *Converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		}
 	}
 
+	if c.opt.BruteForce {
+		if err = c.BruteForceBitpairColors(multiColorBitmap, 4); err != nil {
+			return 0, fmt.Errorf("BruteForceBitpairColors %q failed: %w", img0.sourceFilename, err)
+		}
+		if err = img0.setPreferredBitpairColors(c.opt.BitpairColorsString); err != nil {
+			return 0, fmt.Errorf("img.setPreferredBitpairColors %q failed: %w", c.opt.BitpairColorsString, err)
+		}
+		if err = img1.setPreferredBitpairColors(c.opt.BitpairColorsString); err != nil {
+			return 0, fmt.Errorf("img.setPreferredBitpairColors %q failed: %w", c.opt.BitpairColorsString, err)
+		}
+	}
+
 	k0, k1, sharedcolors, err := img1.InterlaceKoala(*img0)
 	if err != nil {
 		return n, fmt.Errorf("img1.InterlaceKoala failed: %w", err)
@@ -84,6 +100,9 @@ func (c *Converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	}
 	if !sharedcolors {
 		k0, k1, _, err = img0.InterlaceKoala(*img1)
+		if err != nil {
+			return 0, fmt.Errorf("img0.InterlaceKoala %q failed: %w", img0.sourceFilename, err)
+		}
 	}
 	sharedd800 := k0.D800Color == k1.D800Color
 	sharedscreen := k0.ScreenColor == k1.ScreenColor

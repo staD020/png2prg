@@ -371,5 +371,4 @@ func PrintHelp() {
 	flag.PrintDefaults()
 	fmt.Println("```")
 	fmt.Println()
-	return
 }

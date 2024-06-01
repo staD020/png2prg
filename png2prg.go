@@ -679,7 +679,7 @@ func (c *Converter) SortedColors() []byte {
 		sc = append(sc, sumcol{col: byte(col), count: count})
 	}
 	sort.Slice(sc, func(i, j int) bool { return sc[i].count > sc[j].count })
-	result := make([]byte, len(sc), len(sc))
+	result := make([]byte, len(sc))
 	for i, scol := range sc {
 		result[i] = scol.col
 	}
@@ -782,10 +782,8 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 					return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
 				}
 			}
-		} else {
-			if !c.opt.Quiet {
-				fmt.Printf("detected petscii\n")
-			}
+		} else if !c.opt.Quiet {
+			fmt.Printf("detected petscii\n")
 		}
 	case petsciiCharset:
 		if wt, err = img.PETSCIICharset(); err != nil {
@@ -806,6 +804,9 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			}
 		}
 	case multiColorCharset:
+		if err = bruteforce(multiColorCharset, 4); err != nil {
+			return 0, err
+		}
 		if wt, err = img.MultiColorCharset(nil); err != nil {
 			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("img.MultiColorCharset %q failed: %w", img.sourceFilename, err)
@@ -832,6 +833,9 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			return 0, fmt.Errorf("img.MultiColorSprites %q failed: %w", img.sourceFilename, err)
 		}
 	case mixedCharset:
+		if err = bruteforce(mixedCharset, 4); err != nil {
+			return 0, err
+		}
 		if wt, err = img.MixedCharset(); err != nil {
 			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("img.MixedCharset %q failed: %w", img.sourceFilename, err)
@@ -842,11 +846,13 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			if err = img.findBackgroundColor(); err != nil {
 				return 0, fmt.Errorf("img.findBackgroundColor %q failed: %w", img.sourceFilename, err)
 			}
+			if err = bruteforce(multiColorBitmap, 4); err != nil {
+				return 0, err
+			}
 			if wt, err = img.Koala(); err != nil {
 				return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
 			}
 		}
-
 	default:
 		return 0, fmt.Errorf("unsupported graphicsType %q for %q", img.graphicsType, img.sourceFilename)
 	}
@@ -918,29 +924,6 @@ func injectCrunch(c io.WriterTo, verbose bool) (io.WriterTo, error) {
 // .prg format essentially.
 func defaultHeader() []byte {
 	return []byte{BitmapAddress & 0xff, BitmapAddress >> 8}
-}
-
-// zeroFill appends n bytes to s and returns the new slice.
-func zeroFill(s []byte, n int) []byte {
-	// return s[:len(s)+n]
-	return append(s, make([]byte, n)...)
-}
-
-// injectSIDHeader injects the sid's start song and init/play addresses in predefined locations.
-// Must be called *after* displayer code is linked.
-func injectSIDHeader(header []byte, s *sid.SID) []byte {
-	startSong := s.StartSong().LowByte()
-	if startSong > 0 {
-		startSong--
-	}
-	header[0x819-0x7ff] = startSong
-	init := s.InitAddress()
-	header[0x81b-0x7ff] = init.LowByte()
-	header[0x81c-0x7ff] = init.HighByte()
-	play := s.PlayAddress()
-	header[0x81e-0x7ff] = play.LowByte()
-	header[0x81f-0x7ff] = play.HighByte()
-	return header
 }
 
 // injectSIDLinker injects the sid's start song and init/play addresses in predefined locations in the linker.

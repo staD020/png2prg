@@ -64,9 +64,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 			continue
 		}
 		tmp := [4]byte{}
-		for i := range s {
-			tmp[i] = s[i]
-		}
+		copy(tmp[:], s)
 		if _, ok := done[tmp]; ok {
 			continue
 		}
@@ -125,8 +123,10 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	sort.Slice(out, func(i, j int) bool { return out[i].length < out[j].length })
 	if !c.opt.Quiet && len(out) > 5 {
 		threshold := out[0].length + 5
+		d := 0
 		for i := range out {
-			if i > 0 && out[i].length < threshold {
+			if i > 0 && out[i].length < threshold && d < 10 {
+				d++
 				fmt.Printf("you may want to manually try -bpc %s\n", out[i].bpc)
 			}
 		}
@@ -178,8 +178,27 @@ NEXTJOB:
 				}
 				continue NEXTJOB
 			}
+		case multiColorCharset:
+			if wt, err = img.MultiColorCharset(nil); err != nil {
+				if img.opt.VeryVerbose {
+					log.Printf("img.MultiColorCharset %q failed: %v", img.sourceFilename, err)
+				}
+				continue NEXTJOB
+			}
+		case mixedCharset:
+			if len(img.preferredBitpairColors) > 3 {
+				if img.preferredBitpairColors[3] > 7 {
+					continue NEXTJOB
+				}
+			}
+			if wt, err = img.MixedCharset(); err != nil {
+				if img.opt.VeryVerbose {
+					log.Printf("img.MixedCharset %q failed: %v", img.sourceFilename, err)
+				}
+				continue NEXTJOB
+			}
 		default:
-			log.Printf("skip unsupported bruteforce graphicsType: %s", img.graphicsType)
+			//log.Printf("skip unsupported bruteforce graphicsType: %s", img.graphicsType)
 			continue NEXTJOB
 		}
 		buf := bytes.Buffer{}
@@ -218,7 +237,7 @@ func (img *sourceImage) SortedColors() []byte {
 		}
 	}
 	sort.Slice(sc, func(i, j int) bool { return sc[i].count > sc[j].count })
-	result := make([]byte, len(sc), len(sc))
+	result := make([]byte, len(sc))
 	for i, scol := range sc {
 		result[i] = scol.col
 	}

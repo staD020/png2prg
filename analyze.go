@@ -406,7 +406,6 @@ func (img *sourceImage) findBackgroundColorCandidates(hires bool) {
 	if img.opt.Verbose && len(img.backgroundCandidates) > 0 {
 		log.Printf("final BackgroundColor candidates = %v", img.backgroundCandidates)
 	}
-	return
 }
 
 // findBackgroundColor figures out the background color (forced or detected) and checks if the background color is possible.
@@ -423,7 +422,7 @@ func (img *sourceImage) findBackgroundColor() error {
 
 	var rgb RGB
 	var colorIndex byte
-	forceBgCol := -1
+	var forceBgCol int
 	switch {
 	case len(img.preferredBitpairColors) > 0:
 		forceBgCol = int(img.preferredBitpairColors[0])
@@ -695,8 +694,17 @@ func (img *sourceImage) colorAtXY(x, y int) RGB {
 
 // xyFromChar returns the x and y coordinates for the given char.
 func xyFromChar(i int) (int, int) {
-	return 8*i - (FullScreenWidth * int(math.Floor(float64(i/40)))),
-		8 * int(math.Floor(float64(i/40)))
+	return xFromChar(i), yFromChar(i)
+}
+
+// xFromChar returns the x coordinate for the given char.
+func xFromChar(i int) int {
+	return 8*i - (FullScreenWidth * int(float64(i/40)))
+}
+
+// yFromChar returns the y coordinate for the given char.
+func yFromChar(i int) int {
+	return 8 * int(float64(i/40))
 }
 
 // analyzePalette finds the closest paletteMap and sets img.palette

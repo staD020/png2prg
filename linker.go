@@ -3,6 +3,7 @@ package png2prg
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 )
 
@@ -97,7 +98,9 @@ func (l *Linker) Write(b []byte) (n int, err error) {
 	}
 	for i := 0; i < len(b); i++ {
 		if l.Used() {
-			l.WriteMemoryUsage(os.Stdout)
+			if n, err = l.WriteMemoryUsage(os.Stdout); err != nil {
+				log.Printf("l.WriteMemoryUsage failed: %v", err)
+			}
 			return n, fmt.Errorf("linker.Write: memory overlap error, cursor %s, length %#04x", l.cursor, len(b)-i)
 		}
 		l.payload[l.cursor] = b[i]
@@ -119,9 +122,9 @@ func (l *Linker) WritePrg(prg []byte) (n int, err error) {
 
 // StartAddress returns the memory address of the first used byte.
 func (l *Linker) StartAddress() Word {
-	for i := Word(0); i <= MaxMemory; i++ {
+	for i := 0; i <= MaxMemory; i++ {
 		if l.used[i] {
-			return i
+			return Word(i)
 		}
 	}
 	return MaxMemory
@@ -129,9 +132,9 @@ func (l *Linker) StartAddress() Word {
 
 // EndAddress returns the memory address of the last used byte + 1.
 func (l *Linker) EndAddress() Word {
-	for i := Word(MaxMemory); i >= 0; i-- {
+	for i := MaxMemory; i >= 0; i-- {
 		if l.used[i] {
-			return i + 1
+			return Word(i + 1)
 		}
 	}
 	return 0
@@ -139,9 +142,9 @@ func (l *Linker) EndAddress() Word {
 
 // LastAddress returns the memory address of the last used or blocked byte + 1.
 func (l *Linker) LastAddress() Word {
-	for i := Word(MaxMemory); i >= 0; i-- {
+	for i := MaxMemory; i >= 0; i-- {
 		if l.used[i] || l.block[i] {
-			return i + 1
+			return Word(i + 1)
 		}
 	}
 	return 0
