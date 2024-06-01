@@ -70,7 +70,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		}
 		done[tmp] = true
 
-		if gfxtype == multiColorBitmap {
+		if gfxtype == multiColorBitmap || gfxtype == singleColorCharset || gfxtype == multiColorCharset || gfxtype == mixedCharset {
 			// skip impossible bgcolors
 			bgok := false
 			for _, col := range c.images[0].backgroundCandidates {

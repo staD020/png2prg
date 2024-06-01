@@ -36,6 +36,7 @@ type Linker struct {
 }
 
 // NewLinker returns an empty linker with cursor set to start. When verbose is true, WriteTo also writes the memory map to os.Stdout.
+// A Linker implements to io.Writer interface for writing payload to the linker and io.WriterTo for writing the linked result.
 func NewLinker(start Word, verbose bool) *Linker {
 	return &Linker{cursor: start, Verbose: verbose}
 }
@@ -92,6 +93,7 @@ func (l *Linker) WriteMap(m LinkMap) (n int, err error) {
 }
 
 // Write writes b to payload at cursor address and increases the cursor with amount of bytes written.
+// This implements the io.Writer interface,
 func (l *Linker) Write(b []byte) (n int, err error) {
 	if int(l.cursor)+len(b) > MaxMemory {
 		return n, fmt.Errorf("linker.Write: out of memory error, cursor %s, length %#04x", l.cursor, len(b))
@@ -161,6 +163,7 @@ func (l *Linker) Bytes() []byte {
 }
 
 // WriteTo writes the 2 byte startaddress and all used memory linked in one .prg to w.
+// This implements the io.WriterTo interface,
 func (l *Linker) WriteTo(w io.Writer) (n int64, err error) {
 	start := l.StartAddress()
 	end := l.EndAddress()
