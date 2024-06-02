@@ -198,7 +198,7 @@ NEXTJOB:
 				continue NEXTJOB
 			}
 		default:
-			//log.Printf("skip unsupported bruteforce graphicsType: %s", img.graphicsType)
+			log.Printf("skip unsupported bruteforce graphicsType: %s", img.graphicsType)
 			continue NEXTJOB
 		}
 		buf := bytes.Buffer{}

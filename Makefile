@@ -305,6 +305,7 @@ MISCPIC=testdata/facet_turning_point_320x200.png
 MISCPIC=testdata/bizzmo_wool_colodore.png
 MISCPIC=testdata/joe_earth.png
 MISCPIC=testdata/tentacles.png
+MISCPIC=testdata/hend_temple320x200.png
 #MISCPIC=testdata/the_sarge_therapy.png
 miscpic: $(MISCPIC) $(TARGET)
 	spot13 $< -o misc_spot.kla
