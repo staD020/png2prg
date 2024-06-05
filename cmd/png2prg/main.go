@@ -68,7 +68,6 @@ func main() {
 	process := processAsOne
 	if parallel {
 		process = processInParallel
-		opt.BruteForce = false
 	}
 	if err = process(&opt, filenames...); err != nil {
 		log.Fatalf("process failed: %v", err)
@@ -141,6 +140,12 @@ func processInParallel(opt *png2prg.Options, filenames ...string) error {
 	if num > len(filenames) {
 		num = len(filenames)
 	}
+	if opt.BruteForce && opt.NumWorkers > 2 {
+		opt.NumWorkers = 2
+		if !opt.Quiet {
+			fmt.Printf("restricting each parallel thread to %d bruteforce workers\n", opt.NumWorkers)
+		}
+	}
 	jobs := make(chan string, num)
 	wg := &sync.WaitGroup{}
 	wg.Add(num)
@@ -165,6 +170,9 @@ func processInParallel(opt *png2prg.Options, filenames ...string) error {
 				fmt.Println("writeMemProfile done")
 			}
 		}
+	}
+	if !opt.Quiet {
+		fmt.Printf("sent all %d files to %d workers\n", len(filenames), num)
 	}
 	return nil
 }
