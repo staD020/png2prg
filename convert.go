@@ -229,6 +229,24 @@ func (img *sourceImage) prefBitpair2C64Color() map[byte]byte {
 	return bitpair2c64color
 }
 
+func (img *sourceImage) guessFirstBitpair2C64Color() map[byte]byte {
+	for char := 0; char < FullScreenChars; char++ {
+		x, y := xyFromChar(char)
+		_, charBitpair2c64color, err := img.multiColorIndexes(char, sortColors(img.charColors[char]), false)
+		if err != nil {
+			log.Printf("multiColorIndexes failed: error in char %d (x=%d y=%d): %v", char, x, y, err)
+			continue
+		}
+		if len(charBitpair2c64color) == 4 {
+			if img.opt.Verbose {
+				log.Printf("guessFirstBitpair2C64Color from first 4col char %d (x=%d y=%d): %v", char, x, y, charBitpair2c64color)
+			}
+			return charBitpair2c64color
+		}
+	}
+	return img.prefBitpair2C64Color()
+}
+
 // Koala converts the img to Koala and returns it.
 func (img *sourceImage) Koala() (Koala, error) {
 	k := Koala{
@@ -248,7 +266,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 		}
 	}
 
-	prevbitpair2c64color := img.prefBitpair2C64Color()
+	prevbitpair2c64color := img.guessFirstBitpair2C64Color()
 	for char := 0; char < FullScreenChars; char++ {
 		x, y := xyFromChar(char)
 		rgb2bitpair, bitpair2c64color, err := img.multiColorIndexes(char, sortColors(img.charColors[char]), false)
