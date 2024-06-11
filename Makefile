@@ -311,8 +311,8 @@ miscpic: $(MISCPIC) $(TARGET)
 	spot13 $< -o misc_spot.kla
 	dali -o misc_spot.kla.dali misc_spot.kla
 	#exomizer mem -o misc_spot.kla.exo misc_spot.kla
-	#./$(TARGET) $(P2PBENCHOPTS) -o misc_p2p.prg $<
-	Png2prg-1.6 -v -o misc_p2p.prg $<
+	./$(TARGET) $(P2PBENCHOPTS) -o misc_p2p.prg $<
+	#Png2prg-1.6 -v -o misc_p2p.prg $<
 	#./$(TARGET) -v -o misc_p2p.prg $<
 	dali -o misc_p2p.prg.dali misc_p2p.prg
 	#exomizer mem -o misc_p2p.prg.exo misc_p2p.prg
