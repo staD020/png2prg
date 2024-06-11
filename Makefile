@@ -186,7 +186,7 @@ SHORTCIRCUIT=testdata/short_circuit.png
 STE=testdata/ste_gng.png
 SANDER=testdata/sander_ld.png
 SULEVI=testdata/sulevi_daylight.png
-benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic
+benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg
 	ls -l *_p2p.prg* *_spot.kla*
 
 P2PBENCHOPTS=-v -bf
@@ -311,11 +311,23 @@ miscpic: $(MISCPIC) $(TARGET)
 	spot13 $< -o misc_spot.kla
 	dali -o misc_spot.kla.dali misc_spot.kla
 	#exomizer mem -o misc_spot.kla.exo misc_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o misc_p2p.prg $<
+	#./$(TARGET) $(P2PBENCHOPTS) -o misc_p2p.prg $<
+	Png2prg-1.6 -v -o misc_p2p.prg $<
 	#./$(TARGET) -v -o misc_p2p.prg $<
 	dali -o misc_p2p.prg.dali misc_p2p.prg
 	#exomizer mem -o misc_p2p.prg.exo misc_p2p.prg
 	ls -l misc*
+
+JONEGG=testdata/jonegg_thanos320x200.png
+jonegg: $(JONEGG) $(TARGET)
+	spot13 $< -o jonegg_spot.kla
+	dali -o jonegg_spot.kla.dali jonegg_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o jonegg_p2p.prg $<
+	Png2prg-1.6 -v -o jonegg_p2p16.prg $<
+	dali -o jonegg_p2p16.prg.dali jonegg_p2p16.prg
+	#./$(TARGET) -v -o jonegg_p2p.prg $<
+	dali -o jonegg_p2p.prg.dali jonegg_p2p.prg
+	ls -l jonegg_*
 
 clean:
 	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla
