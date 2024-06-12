@@ -276,8 +276,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 ## Changes for version 1.7.4-dev
 
  - Improve crunchiness by re-using the previous char's bitpair-colors.
- - Add experimental -brute-force mode to find bitpair color combinations
-   with better crunchiness. Burns some CPU for a couple seconds.
+ - Add -brute-force mode to find bitpair color combinations with better
+   crunchiness. Burns some CPU for a couple seconds.
  - Added multi-frame support for mccharset, where all frames use the same
    charset.
  - Add support for any centered fullscreen image resolution bigger than
