@@ -276,6 +276,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 ## Changes for version 1.7.4-dev
 
  - Improve crunchiness by re-using the previous char's bitpair-colors.
+ - Add -no-prev-char-colors flag to disable re-use of the previous char's
+   bitpair-colors, in some cases this optimization causes worse pack results.
  - Add -brute-force mode to find bitpair color combinations with better
    crunchiness. Burns some CPU for a couple seconds.
  - Added multi-frame support for mccharset, where all frames use the same
@@ -409,8 +411,12 @@ tables used in the koala and hires displayers.
     	do not pack chars (only for sc/mc charset)
   -no-pack-empty
     	do not optimize packing empty chars (only for mc/mixed/ecm charset)
+  -no-prev-char-colors
+    	do not look at the previous char's bitpair-colors, in some cases this optimization causes worse pack results
   -np
     	no-pack
+  -npcc
+    	no-prev-char-colors
   -npe
     	no-pack-empty
   -o string

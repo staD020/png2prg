@@ -61,6 +61,7 @@ type Options struct {
 	NoPackChars         bool
 	NoPackEmptyChar     bool
 	ForcePackEmptyChar  bool
+	NoPrevCharColors    bool
 	NoCrunch            bool
 	Symbols             bool
 	AlternativeFade     bool
@@ -241,6 +242,7 @@ type sourceImage struct {
 	ecmColors              bitpairColors
 	graphicsType           GraphicsType
 	c64color2bitpairCache  [1000]map[byte]byte
+	c64colorBitpairCount   [MaxColors]map[byte]int
 }
 
 type MultiColorChar struct {

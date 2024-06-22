@@ -186,7 +186,7 @@ SHORTCIRCUIT=testdata/short_circuit.png
 STE=testdata/ste_gng.png
 SANDER=testdata/sander_ld.png
 SULEVI=testdata/sulevi_daylight.png
-benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg
+benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent
 	ls -l *_p2p.prg* *_spot.kla*
 
 P2PBENCHOPTS=-v -bf
@@ -264,7 +264,9 @@ sulevi: $(SULEVI) $(TARGET)
 	dali -o sulevi_spot.kla.dali sulevi_spot.kla
 	./$(TARGET) $(P2PBENCHOPTS) -o sulevi_p2p.prg $<
 	./$(TARGET) -bpc 3,10,6,1 -o sulevi_p2pbest.prg $<
+	Png2prg-1.6 -o sulevi_p2p16.prg $<
 	dali -o sulevi_p2p.prg.dali sulevi_p2p.prg
+	dali -o sulevi_p2p16.prg.dali sulevi_p2p16.prg
 	dali -o sulevi_p2pbest.prg.dali sulevi_p2pbest.prg
 	ls -l sulevi*
 
@@ -298,6 +300,16 @@ veto: $(VETO) $(TARGET)
 	dali -o veto_p2pbest.prg.dali veto_p2pbest.prg
 	ls -l veto*
 
+LEON=testdata/leon_solar.png
+leon: $(LEON) $(TARGET)
+	spot13 $< -o leon_spot.kla
+	dali -o leon_spot.kla.dali leon_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o leon_p2p.prg $<
+	#./$(TARGET) -bpc 8,0,6,5 -o leon_p2pbest.prg $<
+	dali -o leon_p2p.prg.dali leon_p2p.prg
+	#dali -o leon_p2pbest.prg.dali leon_p2pbest.prg
+	ls -l leon_*
+
 MISCPIC=testdata/carrion_still_waiting.png
 MISCPIC=testdata/the_sarge_obscena_vaselina_palette1.png
 MISCPIC=testdata/archmage_mc_god.png
@@ -305,8 +317,11 @@ MISCPIC=testdata/facet_turning_point_320x200.png
 MISCPIC=testdata/bizzmo_wool_colodore.png
 MISCPIC=testdata/joe_earth.png
 MISCPIC=testdata/tentacles.png
-MISCPIC=testdata/hend_temple320x200.png
+#MISCPIC=testdata/hend_temple320x200.png
 #MISCPIC=testdata/the_sarge_therapy.png
+#MISCPIC=testdata/focuslogo320x200.png
+#MISCPIC=testdata/cisco_heat.png
+#MISCPIC=testdata/yiearkungfu.png
 miscpic: $(MISCPIC) $(TARGET)
 	spot13 $< -o misc_spot.kla
 	dali -o misc_spot.kla.dali misc_spot.kla
@@ -315,7 +330,8 @@ miscpic: $(MISCPIC) $(TARGET)
 	#Png2prg-1.6 -v -o misc_p2p.prg $<
 	#./$(TARGET) -v -o misc_p2p.prg $<
 	dali -o misc_p2p.prg.dali misc_p2p.prg
-	#exomizer mem -o misc_p2p.prg.exo misc_p2p.prg
+	Png2prg-1.6 -v -o misc_p2p16.prg $<
+	dali -o misc_p2p16.prg.dali misc_p2p16.prg
 	ls -l misc*
 
 JONEGG=testdata/jonegg_thanos320x200.png
@@ -329,6 +345,20 @@ jonegg: $(JONEGG) $(TARGET)
 	dali -o jonegg_p2p.prg.dali jonegg_p2p.prg
 	ls -l jonegg_*
 
+# bf: -bpc 11,12,8,0
+# best is not brute force, but default: -bpc 11,0,15,12
+TALENT=testdata/talent_vangelis320x200.png
+talent: $(TALENT) $(TARGET)
+	spot13 $< -o talent_spot.kla
+	dali -o talent_spot.kla.dali talent_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o talent_p2p.prg $<
+	./$(TARGET) -v -o talent_p2pbest.prg -bpc 11,0,15,12 $<
+	Png2prg-1.6 -v -o talent_p2p16.prg $<
+	dali -o talent_p2p16.prg.dali talent_p2p16.prg
+	dali -o talent_p2pbest.prg.dali talent_p2pbest.prg
+	dali -o talent_p2p.prg.dali talent_p2p.prg
+	ls -l talent_*
+
 clean:
-	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla
+	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla *_p2p16.prg
 	rm -rf dist

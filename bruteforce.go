@@ -13,9 +13,10 @@ import (
 )
 
 type bruteResult struct {
-	bpc    string
-	bgcol  ColorInfo
-	length int
+	bpc            string
+	bgcol          ColorInfo
+	noprevcharcols bool
+	length         int
 }
 
 func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int) error {
@@ -50,9 +51,10 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	if len(colors) > permuteDepth {
 		colors = colors[0:permuteDepth]
 	}
-	done := map[[4]byte]bool{}
+
 	count := 0
 	total := 0
+	done := map[[4]byte]bool{}
 	for p := make([]int, len(colors)); p[0] < len(p); PermuteNext(p) {
 		count++
 		s := Permutation(colors, p)
@@ -133,11 +135,16 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	}
 	if c.opt.Verbose {
 		for i := range out {
-			log.Printf("%d: -bpc %s (length: %d)", i, out[i].bpc, out[i].length)
+			npcc := ""
+			if out[i].noprevcharcols {
+				npcc = "-npcc"
+			}
+			log.Printf("%d: -bpc %s %s (length: %d)", i, out[i].bpc, npcc, out[i].length)
 			if !c.opt.VeryVerbose && i == 9 {
 				break
 			}
 		}
+		log.Printf("-brute-force mode tried %d permutations, %d attempts and got %d results, use -vv to display all", count, total, len(out))
 	}
 	if len(out) == 0 {
 		return fmt.Errorf("no color options found to brute-force")
@@ -146,6 +153,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		fmt.Printf("brute-force winner %q -bpc %v\n", c.opt.OutFile, out[0].bpc)
 	}
 	c.opt.BitpairColorsString = out[0].bpc
+	c.opt.NoPrevCharColors = out[0].noprevcharcols
 	c.images[0].opt.BitpairColorsString = out[0].bpc
 	c.images[0].backgroundColor = out[0].bgcol
 	return nil
@@ -206,20 +214,21 @@ NEXTJOB:
 			panic(err)
 		}
 
-		compressed := bytes.Buffer{}
 		tscopt := TSCrunch.Options{PRG: true, QUIET: true, Fast: true}
 		tsc, err := TSCrunch.New(tscopt, &buf)
 		if err != nil {
 			panic(err)
 		}
+		compressed := bytes.Buffer{}
 		_, err = tsc.WriteTo(&compressed)
 		if err != nil {
 			panic(err)
 		}
 		result <- bruteResult{
-			bpc:    img.opt.BitpairColorsString,
-			bgcol:  ColorInfo{ColorIndex: img.preferredBitpairColors[0], RGB: img.palette.RGB(img.preferredBitpairColors[0])},
-			length: compressed.Len(),
+			bpc:            img.opt.BitpairColorsString,
+			bgcol:          ColorInfo{ColorIndex: img.preferredBitpairColors[0], RGB: img.palette.RGB(img.preferredBitpairColors[0])},
+			noprevcharcols: img.opt.NoPrevCharColors,
+			length:         compressed.Len(),
 		}
 	}
 }

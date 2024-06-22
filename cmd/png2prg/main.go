@@ -270,6 +270,8 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.BoolVar(&opt.NoPackEmptyChar, "no-pack-empty", false, "do not optimize packing empty chars (only for mc/mixed/ecm charset)")
 	flag.BoolVar(&opt.ForcePackEmptyChar, "fpe", false, "force-pack-empty")
 	flag.BoolVar(&opt.ForcePackEmptyChar, "force-pack-empty", false, "optimize packing empty chars (only for sccharset)")
+	flag.BoolVar(&opt.NoPrevCharColors, "npcc", false, "no-prev-char-colors")
+	flag.BoolVar(&opt.NoPrevCharColors, "no-prev-char-colors", false, "do not look at the previous char's bitpair-colors, in some cases this optimization causes worse pack results")
 	flag.BoolVar(&opt.NoCrunch, "nc", false, "no-crunch")
 	flag.BoolVar(&opt.NoCrunch, "no-crunch", false, "do not TSCrunch displayer")
 	flag.BoolVar(&opt.Symbols, "sym", false, "symbols")

@@ -32,6 +32,11 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 	if img.c64color2bitpairCache[char] == nil {
 		img.c64color2bitpairCache[char] = make(map[byte]byte)
 	}
+	for c64col := 0; c64col < MaxColors; c64col++ {
+		if img.c64colorBitpairCount[c64col] == nil {
+			img.c64colorBitpairCount[c64col] = make(map[byte]int)
+		}
+	}
 
 	// set background
 	if img.graphicsType != singleColorBitmap {
@@ -88,6 +93,7 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 				continue
 			}
 			img.c64color2bitpairCache[char][c64col] = bp
+			img.c64colorBitpairCount[c64col][bp]++
 		}
 		return rgb2bitpair, bitpair2c64color, nil
 	}
@@ -123,7 +129,7 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 	}
 
 	// prefer reusing bitpaircolors of previous char
-	if char > 0 {
+	if char > 0 && !img.opt.NoPrevCharColors {
 	NEXTCOL:
 		for _, ci := range cc {
 			if _, ok := rgb2bitpair[ci.RGB]; ok {
@@ -177,6 +183,7 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 	}
 	for bp, c64col := range bitpair2c64color {
 		img.c64color2bitpairCache[char][c64col] = bp
+		img.c64colorBitpairCount[c64col][bp]++
 	}
 	return rgb2bitpair, bitpair2c64color, nil
 }
@@ -255,6 +262,9 @@ func (img *sourceImage) Koala() (Koala, error) {
 		SourceFilename:  img.sourceFilename,
 		opt:             img.opt,
 	}
+	for col := byte(0); col < MaxColors; col++ {
+		img.c64colorBitpairCount[col] = map[byte]int{}
+	}
 
 	if len(img.preferredBitpairColors) == 0 {
 		numColors, colorIndexes, _ := img.countColors()
@@ -299,6 +309,11 @@ func (img *sourceImage) Koala() (Koala, error) {
 		}
 		for k, v := range bitpair2c64color {
 			prevbitpair2c64color[k] = v
+		}
+	}
+	if img.opt.VeryVerbose {
+		for c64col, bpcols := range img.c64colorBitpairCount {
+			log.Printf("img.c64colorBitpairCount: col %d: %v", c64col, bpcols)
 		}
 	}
 	return k, nil
