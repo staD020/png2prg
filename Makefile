@@ -322,6 +322,8 @@ MISCPIC=testdata/tentacles.png
 #MISCPIC=testdata/focuslogo320x200.png
 #MISCPIC=testdata/cisco_heat.png
 #MISCPIC=testdata/yiearkungfu.png
+#MISCPIC=testdata/the_sarge_lee320x200.png
+MISCPIC=testdata/mikael_pretzelpilami320x200.png
 miscpic: $(MISCPIC) $(TARGET)
 	spot13 $< -o misc_spot.kla
 	dali -o misc_spot.kla.dali misc_spot.kla

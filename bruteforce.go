@@ -84,6 +84,11 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 				continue
 			}
 		}
+		if gfxtype == multiColorCharset || gfxtype == mixedCharset {
+			if s[3] > 7 {
+				continue
+			}
+		}
 
 		bitpaircols := ""
 		for i, col := range s {
