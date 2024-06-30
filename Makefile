@@ -324,6 +324,7 @@ MISCPIC=testdata/tentacles.png
 #MISCPIC=testdata/yiearkungfu.png
 #MISCPIC=testdata/the_sarge_lee320x200.png
 MISCPIC=testdata/mikael_pretzelpilami320x200.png
+MISCPIC=testdata/veto_eye320x200.png
 miscpic: $(MISCPIC) $(TARGET)
 	spot13 $< -o misc_spot.kla
 	dali -o misc_spot.kla.dali misc_spot.kla
@@ -348,13 +349,13 @@ jonegg: $(JONEGG) $(TARGET)
 	ls -l jonegg_*
 
 # bf: -bpc 11,12,8,0
-# best is not brute force, but default: -bpc 11,0,15,12
+# best is not brute force, but default: -bpc 11,0,15,12 -npcc
 TALENT=testdata/talent_vangelis320x200.png
 talent: $(TALENT) $(TARGET)
 	spot13 $< -o talent_spot.kla
 	dali -o talent_spot.kla.dali talent_spot.kla
 	./$(TARGET) $(P2PBENCHOPTS) -o talent_p2p.prg $<
-	./$(TARGET) -v -o talent_p2pbest.prg -bpc 11,0,15,12 $<
+	./$(TARGET) -v -o talent_p2pbest.prg -bpc 11,0,15,12 -npcc $<
 	Png2prg-1.6 -v -o talent_p2p16.prg $<
 	dali -o talent_p2p16.prg.dali talent_p2p16.prg
 	dali -o talent_p2pbest.prg.dali talent_p2pbest.prg

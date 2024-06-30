@@ -173,7 +173,7 @@ func (img *sourceImage) analyze() (err error) {
 		if img.graphicsType != img.opt.CurrentGraphicsType {
 			img.graphicsType = img.opt.CurrentGraphicsType
 			if !img.opt.Quiet {
-				fmt.Printf("graphics mode forced: %s\n", img.graphicsType)
+				fmt.Printf("graphics mode forced: %s\n", img.opt.CurrentGraphicsType)
 			}
 		}
 	}
@@ -230,6 +230,9 @@ func (img *sourceImage) analyzeSprites() error {
 			img.graphicsType = img.opt.CurrentGraphicsType
 			if !img.opt.Quiet {
 				fmt.Printf("graphics mode forced: %s\n", img.graphicsType)
+			}
+			if img.opt.CurrentGraphicsType != singleColorSprites && img.opt.CurrentGraphicsType != multiColorSprites {
+				return fmt.Errorf("cannot force mode to %s for images in sprite dimensions", img.opt.CurrentGraphicsType)
 			}
 		}
 	}

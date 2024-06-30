@@ -137,6 +137,10 @@ the image is considered to contain sprites.
 
 The image will be converted from left to right, top to bottom.
 
+    ./png2prg image.png
+    ./png2prg -m scsprites image.png
+    ./png2prg -m mcsprites image.png
+
     Sprite 1: $2000-$203f
     Sprite 2: $2040-$207f
     ...
@@ -287,6 +291,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Add support for Marq's PETSCII tool .png resolution 352x232 (thanks jab).
  - Bugfix: docs fixes related to installation from source (thanks jab).
  - Bugfix: hide findECMColors log behind -verbose mode (thanks jab).
+ - Docs fix: add a bit more info for sprites (thanks fungus).
 
 ## Changes for version 1.6
 

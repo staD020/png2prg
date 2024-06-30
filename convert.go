@@ -398,7 +398,7 @@ LOOP:
 		}
 	}
 	if byte(forceBgCol) != cc[0].ColorIndex {
-		return c, fmt.Errorf("forced background color %d was not found in img.backgroundCandidates %s", forceBgCol, img.backgroundCandidates)
+		return c, fmt.Errorf("forced background color %d was not found in (%v) with img.backgroundCandidates %s", forceBgCol, cc, img.backgroundCandidates)
 	}
 
 	rgb2bitpair := PaletteMap{}

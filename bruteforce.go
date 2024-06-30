@@ -141,11 +141,11 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	}
 	if c.opt.Verbose {
 		for i := range out {
-			npcc := ""
+			extra := ""
 			if out[i].noprevcharcols {
-				npcc = "-npcc"
+				extra = "-npcc"
 			}
-			log.Printf("%d: -bpc %s %s (length: %d)", i, out[i].bpc, npcc, out[i].length)
+			log.Printf("%d: -bpc %s %s (length: %d)", i, out[i].bpc, extra, out[i].length)
 			if !c.opt.VeryVerbose && i == 9 {
 				break
 			}
