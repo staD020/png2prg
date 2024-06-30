@@ -85,6 +85,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 			}
 		}
 		if gfxtype == multiColorCharset || gfxtype == mixedCharset {
+			// skip impossible d800 colors
 			if s[3] > 7 {
 				continue
 			}
