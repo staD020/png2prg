@@ -186,20 +186,20 @@ SHORTCIRCUIT=testdata/short_circuit.png
 STE=testdata/ste_gng.png
 SANDER=testdata/sander_ld.png
 SULEVI=testdata/sulevi_daylight.png
-benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend
+benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge
 	ls -l *_p2p.prg* *_spot.kla*
 
 MISCPIC=testdata/carrion_still_waiting.png
 MISCPIC=testdata/the_sarge_obscena_vaselina_palette1.png
 MISCPIC=testdata/archmage_mc_god.png
 MISCPIC=testdata/facet_turning_point_320x200.png
-MISCPIC=testdata/bizzmo_wool_colodore.png
-MISCPIC=testdata/joe_earth.png
-MISCPIC=testdata/tentacles.png
+#MISCPIC=testdata/bizzmo_wool_colodore.png
+#MISCPIC=testdata/joe_earth.png
+#MISCPIC=testdata/tentacles.png
 #MISCPIC=testdata/hend_temple320x200.png
 #MISCPIC=testdata/the_sarge_therapy.png
 #MISCPIC=testdata/focuslogo320x200.png
-MISCPIC=testdata/cisco_heat.png
+#MISCPIC=testdata/cisco_heat.png
 #MISCPIC=testdata/yiearkungfu.png
 #MISCPIC=testdata/the_sarge_lee320x200.png
 #MISCPIC=testdata/mikael_pretzelpilami320x200.png
@@ -253,11 +253,12 @@ sander: $(SANDER) $(TARGET)
 	ls -l sander*
 
 # bruteforce: -bpc 0,2,14,11
+# bf npcc winner: -bpc 0,6,14,1 -npcc
 ste: $(STE) $(TARGET)
 	spot13 $< -o ste_spot.kla
 	dali -o ste_spot.kla.dali ste_spot.kla
 	./$(TARGET) $(P2PBENCHOPTS) -o ste_p2p.prg $<
-	./$(TARGET) -bpc 0,2,14,11 -o ste_p2pbest.prg $<
+	./$(TARGET) -bpc 0,6,14,1 -npcc -o ste_p2pbest.prg $<
 	dali -o ste_p2p.prg.dali ste_p2p.prg
 	dali -o ste_p2pbest.prg.dali ste_p2pbest.prg
 	ls -l ste*
@@ -404,6 +405,19 @@ hend: $(HEND) $(TARGET)
 	dali -o hend_p2pbest.prg.dali hend_p2pbest.prg
 	dali -o hend_p2p.prg.dali hend_p2p.prg
 	ls -l hend_*
+
+# best bf -nbc: -bpc 0,5,4,6 -nbc
+SARGE=testdata/the_sarge_lee320x200.png
+sarge: $(SARGE) $(TARGET)
+	spot13 $< -o sarge_spot.kla
+	dali -o sarge_spot.kla.dali sarge_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o sarge_p2p.prg $<
+	./$(TARGET) -v -bpc 0,5,4,6 -nbc -o sarge_p2pbest.prg $<
+	Png2prg-1.6 -v -o sarge_p2p16.prg $<
+	dali -o sarge_p2p16.prg.dali sarge_p2p16.prg
+	dali -o sarge_p2pbest.prg.dali sarge_p2pbest.prg
+	dali -o sarge_p2p.prg.dali sarge_p2p.prg
+	ls -l sarge_*
 
 clean:
 	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla *_p2p16.prg
