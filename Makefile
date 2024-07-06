@@ -189,6 +189,23 @@ SULEVI=testdata/sulevi_daylight.png
 benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent
 	ls -l *_p2p.prg* *_spot.kla*
 
+MISCPIC=testdata/carrion_still_waiting.png
+MISCPIC=testdata/the_sarge_obscena_vaselina_palette1.png
+MISCPIC=testdata/archmage_mc_god.png
+MISCPIC=testdata/facet_turning_point_320x200.png
+MISCPIC=testdata/bizzmo_wool_colodore.png
+MISCPIC=testdata/joe_earth.png
+MISCPIC=testdata/tentacles.png
+#MISCPIC=testdata/hend_temple320x200.png
+#MISCPIC=testdata/the_sarge_therapy.png
+#MISCPIC=testdata/focuslogo320x200.png
+MISCPIC=testdata/cisco_heat.png
+#MISCPIC=testdata/yiearkungfu.png
+#MISCPIC=testdata/the_sarge_lee320x200.png
+#MISCPIC=testdata/mikael_pretzelpilami320x200.png
+#MISCPIC=testdata/veto_eye320x200.png
+#MISCPIC=testdata/jonegg_tapper320x200.png
+
 P2PBENCHOPTS=-v -bf
 
 # best: -bpc 0,5,11,6
@@ -310,21 +327,6 @@ leon: $(LEON) $(TARGET)
 	#dali -o leon_p2pbest.prg.dali leon_p2pbest.prg
 	ls -l leon_*
 
-MISCPIC=testdata/carrion_still_waiting.png
-MISCPIC=testdata/the_sarge_obscena_vaselina_palette1.png
-MISCPIC=testdata/archmage_mc_god.png
-MISCPIC=testdata/facet_turning_point_320x200.png
-MISCPIC=testdata/bizzmo_wool_colodore.png
-MISCPIC=testdata/joe_earth.png
-MISCPIC=testdata/tentacles.png
-#MISCPIC=testdata/hend_temple320x200.png
-#MISCPIC=testdata/the_sarge_therapy.png
-#MISCPIC=testdata/focuslogo320x200.png
-#MISCPIC=testdata/cisco_heat.png
-#MISCPIC=testdata/yiearkungfu.png
-#MISCPIC=testdata/the_sarge_lee320x200.png
-MISCPIC=testdata/mikael_pretzelpilami320x200.png
-MISCPIC=testdata/veto_eye320x200.png
 miscpic: $(MISCPIC) $(TARGET)
 	spot13 $< -o misc_spot.kla
 	dali -o misc_spot.kla.dali misc_spot.kla
@@ -349,13 +351,13 @@ jonegg: $(JONEGG) $(TARGET)
 	ls -l jonegg_*
 
 # bf: -bpc 11,12,8,0
-# best is not brute force, but default: -bpc 11,0,15,12 -npcc
+# best is not brute force, but default: -bpc 11,12,15,10 -npcc
 TALENT=testdata/talent_vangelis320x200.png
 talent: $(TALENT) $(TARGET)
 	spot13 $< -o talent_spot.kla
 	dali -o talent_spot.kla.dali talent_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o talent_p2p.prg $<
-	./$(TARGET) -v -o talent_p2pbest.prg -bpc 11,0,15,12 -npcc $<
+	./$(TARGET) $(P2PBENCHOPTS) -npcc -o talent_p2p.prg $<
+	./$(TARGET) -v -o talent_p2pbest.prg -bpc 11,12,15,10 -npcc $<
 	Png2prg-1.6 -v -o talent_p2p16.prg $<
 	dali -o talent_p2p16.prg.dali talent_p2p16.prg
 	dali -o talent_p2pbest.prg.dali talent_p2pbest.prg

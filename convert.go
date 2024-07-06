@@ -166,20 +166,65 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 		}
 	}
 
-	// fill or replace missing colors
-	for _, ci := range cc {
-		if _, ok := rgb2bitpair[ci.RGB]; !ok {
+	// try img.c64colorBitpairCount
+	if char > 0 && !img.opt.NoBitpairCounters {
+		for _, ci := range cc {
+			if _, ok := rgb2bitpair[ci.RGB]; ok {
+				continue
+			}
 			if len(bitpairs) == 0 {
 				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
 			}
-			var bitpair byte
-			//works for all general cases, but prefers bitpair 11 should be replaced first
-			//bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[:len(bitpairs)-1]
-			//let's shift the first available one, to avoid taking bitpair 11 (d800)
-			bitpair, bitpairs = bitpairs[0], bitpairs[1:]
-			rgb2bitpair[ci.RGB] = bitpair
-			bitpair2c64color[bitpair] = ci.ColorIndex
+			if len(bitpairs) > 1 {
+				bitpair2c64col := img.c64colorBitpairCount[ci.ColorIndex]
+				if len(bitpair2c64col) == 0 {
+					continue
+				}
+				//log.Printf("char %d: cache for col %d could work %v, this char now %v", char, ci.ColorIndex, bitpair2c64col, rgb2bitpair)
+				max := 0
+				bitpair := byte(0)
+				for bp, count := range bitpair2c64col {
+					if count > max || (count == max && bp > bitpair) {
+						bitpair = bp
+						max = count
+					}
+				}
+				if max == 0 {
+					continue
+				}
+				for i := range bitpairs {
+					if bitpairs[i] == bitpair {
+						rgb2bitpair[ci.RGB] = bitpair
+						bitpair2c64color[bitpair] = ci.ColorIndex
+						bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
+						if img.opt.VeryVerbose {
+							log.Printf("char %d: bitpair counter cache hit for col %d with bitpair %d", char, ci.ColorIndex, bitpair)
+						}
+						break
+					}
+				}
+			}
 		}
+	}
+
+	// fill or replace missing colors
+	for _, ci := range cc {
+		if _, ok := rgb2bitpair[ci.RGB]; ok {
+			continue
+		}
+		if len(bitpairs) == 0 {
+			return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
+		}
+		if img.opt.VeryVerbose {
+			log.Printf("char %d: could not guess bitpair for col %d from bitpairs %v", char, ci.ColorIndex, bitpairs)
+		}
+		var bitpair byte
+		//works for all general cases, but prefers bitpair 11 should be replaced first
+		//bitpair, bitpairs = bitpairs[len(bitpairs)-1], bitpairs[:len(bitpairs)-1]
+		//let's shift the first available one, to avoid taking bitpair 11 (d800)
+		bitpair, bitpairs = bitpairs[0], bitpairs[1:]
+		rgb2bitpair[ci.RGB] = bitpair
+		bitpair2c64color[bitpair] = ci.ColorIndex
 	}
 	for bp, c64col := range bitpair2c64color {
 		img.c64color2bitpairCache[char][c64col] = bp

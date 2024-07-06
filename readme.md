@@ -284,6 +284,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
    bitpair-colors, in some cases this optimization causes worse pack results.
  - Add -brute-force mode to find bitpair color combinations with better
    crunchiness. Burns some CPU for a couple seconds.
+ - Add -no-bitpair-counters flag to disable using bitpair counters per color
+   for color guessing.
  - Added multi-frame support for mccharset, where all frames use the same
    charset.
  - Add support for any centered fullscreen image resolution bigger than
@@ -404,10 +406,14 @@ tables used in the koala and hires displayers.
     	write memory profile to file (only in -parallel mode)
   -mode string
     	force graphics mode to koala, hires, mixedcharset, sccharset, mccharset (4col), scsprites or mcsprites
+  -nbc
+    	no-bitpair-counters
   -nc
     	no-crunch
   -ng
     	no-guess
+  -no-bitpair-counters
+    	do not use c64color bitpar counters optimization
   -no-crunch
     	do not TSCrunch displayer
   -no-guess

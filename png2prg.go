@@ -61,6 +61,7 @@ type Options struct {
 	NoPackEmptyChar     bool
 	ForcePackEmptyChar  bool
 	NoPrevCharColors    bool
+	NoBitpairCounters   bool
 	NoCrunch            bool
 	Symbols             bool
 	AlternativeFade     bool

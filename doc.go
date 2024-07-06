@@ -296,6 +296,8 @@ func PrintHelp() {
 	fmt.Println("   bitpair-colors, in some cases this optimization causes worse pack results.")
 	fmt.Println(" - Add -brute-force mode to find bitpair color combinations with better")
 	fmt.Println("   crunchiness. Burns some CPU for a couple seconds.")
+	fmt.Println(" - Add -no-bitpair-counters flag to disable using bitpair counters per color")
+	fmt.Println("   for color guessing.")
 	fmt.Println(" - Added multi-frame support for mccharset, where all frames use the same")
 	fmt.Println("   charset.")
 	fmt.Println(" - Add support for any centered fullscreen image resolution bigger than")
