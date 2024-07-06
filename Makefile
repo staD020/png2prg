@@ -186,7 +186,7 @@ SHORTCIRCUIT=testdata/short_circuit.png
 STE=testdata/ste_gng.png
 SANDER=testdata/sander_ld.png
 SULEVI=testdata/sulevi_daylight.png
-benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge
+benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge mirage
 	ls -l *_p2p.prg* *_spot.kla*
 
 MISCPIC=testdata/carrion_still_waiting.png
@@ -418,6 +418,19 @@ sarge: $(SARGE) $(TARGET)
 	dali -o sarge_p2pbest.prg.dali sarge_p2pbest.prg
 	dali -o sarge_p2p.prg.dali sarge_p2p.prg
 	ls -l sarge_*
+
+# best bf: -bpc 15,4,9,7
+MIRAGE=testdata/mirage_parrot320x200.png
+mirage: $(MIRAGE) $(TARGET)
+	spot13 $< -o mirage_spot.kla
+	dali -o mirage_spot.kla.dali mirage_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o mirage_p2p.prg $<
+	./$(TARGET) -v -bpc 15,4,9,7 -o mirage_p2pbest.prg $<
+	Png2prg-1.6 -v -o mirage_p2p16.prg $<
+	dali -o mirage_p2p16.prg.dali mirage_p2p16.prg
+	dali -o mirage_p2pbest.prg.dali mirage_p2pbest.prg
+	dali -o mirage_p2p.prg.dali mirage_p2p.prg
+	ls -l mirage_*
 
 clean:
 	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla *_p2p16.prg
