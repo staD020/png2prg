@@ -128,44 +128,6 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 		return rgb2bitpair, bitpair2c64color, nil
 	}
 
-	// prefer reusing bitpaircolors of previous char
-	if char > 0 && !img.opt.NoPrevCharColors {
-	NEXTCOL:
-		for _, ci := range cc {
-			if _, ok := rgb2bitpair[ci.RGB]; ok {
-				continue
-			}
-			if len(bitpairs) == 0 {
-				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
-			}
-			if prevbitpair, ok := img.c64color2bitpairCache[char-1][ci.ColorIndex]; ok {
-				for i, availbitpair := range bitpairs {
-					if prevbitpair == availbitpair {
-						rgb2bitpair[ci.RGB] = prevbitpair
-						bitpair2c64color[prevbitpair] = ci.ColorIndex
-						bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
-						continue NEXTCOL
-					}
-				}
-				if char >= 40 {
-					if prevbitpair2, ok := img.c64color2bitpairCache[char-40][ci.ColorIndex]; ok {
-						for i, availbitpair := range bitpairs {
-							if prevbitpair2 == availbitpair {
-								rgb2bitpair[ci.RGB] = prevbitpair2
-								bitpair2c64color[prevbitpair2] = ci.ColorIndex
-								bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
-								continue NEXTCOL
-							}
-						}
-					}
-				}
-				if img.opt.VeryVerbose {
-					log.Printf("char %d: match for color %d not found prevbitpair %d (from bitpairs %v)", char, ci.ColorIndex, prevbitpair, bitpairs)
-				}
-			}
-		}
-	}
-
 	// try img.c64colorBitpairCount
 	if char > 0 && !img.opt.NoBitpairCounters {
 		for _, ci := range cc {
@@ -202,6 +164,44 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 						}
 						break
 					}
+				}
+			}
+		}
+	}
+
+	// prefer reusing bitpaircolors of previous char
+	if char > 0 && !img.opt.NoPrevCharColors {
+	NEXTCOL:
+		for _, ci := range cc {
+			if _, ok := rgb2bitpair[ci.RGB]; ok {
+				continue
+			}
+			if len(bitpairs) == 0 {
+				return nil, nil, fmt.Errorf("too many colors in char, no bitpairs left")
+			}
+			if prevbitpair, ok := img.c64color2bitpairCache[char-1][ci.ColorIndex]; ok {
+				for i, availbitpair := range bitpairs {
+					if prevbitpair == availbitpair {
+						rgb2bitpair[ci.RGB] = prevbitpair
+						bitpair2c64color[prevbitpair] = ci.ColorIndex
+						bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
+						continue NEXTCOL
+					}
+				}
+				if char >= 40 {
+					if prevbitpair2, ok := img.c64color2bitpairCache[char-40][ci.ColorIndex]; ok {
+						for i, availbitpair := range bitpairs {
+							if prevbitpair2 == availbitpair {
+								rgb2bitpair[ci.RGB] = prevbitpair2
+								bitpair2c64color[prevbitpair2] = ci.ColorIndex
+								bitpairs = append(bitpairs[:i], bitpairs[i+1:]...)
+								continue NEXTCOL
+							}
+						}
+					}
+				}
+				if img.opt.VeryVerbose {
+					log.Printf("char %d: match for color %d not found prevbitpair %d (from bitpairs %v)", char, ci.ColorIndex, prevbitpair, bitpairs)
 				}
 			}
 		}

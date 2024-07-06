@@ -13,10 +13,11 @@ import (
 )
 
 type bruteResult struct {
-	bpc            string
-	bgcol          ColorInfo
-	noprevcharcols bool
-	length         int
+	bpc               string
+	bgcol             ColorInfo
+	noprevcharcols    bool
+	nobitpaircounters bool
+	length            int
 }
 
 func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int) error {
@@ -145,6 +146,13 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 			if out[i].noprevcharcols {
 				extra = "-npcc"
 			}
+			if out[i].nobitpaircounters {
+				if extra != "" {
+					extra += " "
+				}
+				extra += "-nbc"
+			}
+
 			log.Printf("%d: -bpc %s %s (length: %d)", i, out[i].bpc, extra, out[i].length)
 			if !c.opt.VeryVerbose && i == 9 {
 				break
@@ -160,6 +168,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	}
 	c.opt.BitpairColorsString = out[0].bpc
 	c.opt.NoPrevCharColors = out[0].noprevcharcols
+	c.opt.NoBitpairCounters = out[0].nobitpaircounters
 	c.images[0].opt.BitpairColorsString = out[0].bpc
 	c.images[0].backgroundColor = out[0].bgcol
 	return nil
@@ -231,10 +240,11 @@ NEXTJOB:
 			panic(err)
 		}
 		result <- bruteResult{
-			bpc:            img.opt.BitpairColorsString,
-			bgcol:          ColorInfo{ColorIndex: img.preferredBitpairColors[0], RGB: img.palette.RGB(img.preferredBitpairColors[0])},
-			noprevcharcols: img.opt.NoPrevCharColors,
-			length:         compressed.Len(),
+			bpc:               img.opt.BitpairColorsString,
+			bgcol:             ColorInfo{ColorIndex: img.preferredBitpairColors[0], RGB: img.palette.RGB(img.preferredBitpairColors[0])},
+			noprevcharcols:    img.opt.NoPrevCharColors,
+			nobitpaircounters: img.opt.NoBitpairCounters,
+			length:            compressed.Len(),
 		}
 	}
 }
