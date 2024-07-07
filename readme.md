@@ -220,6 +220,9 @@ in hires/koala displayers, increasing sid compatibility.
 By default png2prg 1.8 does a pretty good job at optimizing the resulting prg
 for crunchers and packers. It is not enough to beat [SPOT 1.3](https://csdb.dk/release/?id=242492).
 
+The optimization techniques used by png2prg are also responsible for cleaning
+up the bitmap, making it ideal for animations and color effects.
+
 ### -brute-force (-bf)
 
 Iterates are over many -bitpair-colors permutations automatically, packs

@@ -57,41 +57,24 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp -r testdata/mixedcharset/*.gif dist/testdata/mixedcharset/
 	cp -r testdata/hirescharset/*.png dist/testdata/hirescharset/
 	cp -r testdata/petscii/*.png dist/testdata/petscii/
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/0.orion.prg testdata/ecm/orion.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/1.wrath.prg testdata/mixedcharset/joe_wrath.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/2.huntress.prg testdata/mixedcharset/huntress.gif
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/3.ohno.prg testdata/hirescharset/ohno_logo.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/4.gestalt.prg testdata/hirescharset/gestalt.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/5.samar.prg testdata/hirescharset/jetan_samar.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/6.apace.prg testdata/mixedcharset/zscs_apace.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/7.ocd.prg testdata/mixedcharset/ocd.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/8.hyper.prg testdata/mixedcharset/hein_hyper.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/9.extend.prg testdata/hirescharset/extend.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/10.mega.prg testdata/mixedcharset/sarge_mega.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/11.fair.prg testdata/mixedcharset/soya_fair.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/12.shine.prg -bpc 3 -npe testdata/mixedcharset/shine.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/13.hibiscus.prg testdata/petscii/hein_hibiscus.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/14.submarine.prg testdata/petscii/submarine.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/15.triad.prg testdata/petscii/triad.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/16.proxima.prg testdata/petscii/proxima.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/17.artline.prg testdata/petscii/artline.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/18.gary.prg testdata/petscii/gary.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/19.ernie.prg testdata/petscii/ernie.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/20.4nki.prg testdata/petscii/deev_4nki.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/21.f4cg.prg testdata/mixedcharset/zscs_f4cg.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/22.charsetcompo.prg -bpc 0 testdata/mixedcharset/charsetcompo.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/23.neo.prg testdata/mixedcharset/hein_neo.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/24.xpardey.prg testdata/ecm/xpardey.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/25.pvm.prg testdata/ecm/pvm.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/26.rebels.prg testdata/ecm/rebels.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/27.dune.prg testdata/ecm/dune.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/28.booze.prg testdata/mixedcharset/booze.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/29.pretzel.prg testdata/mixedcharset/pretzel.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/30.horizon.prg testdata/petscii/horizon.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/31.shampoo.prg testdata/ecm/shampoo.png
-	./$(TARGET) -d -q -sid $(TESTSID) -o dist/32.phatchar.prg testdata/charanim/phatchar?.png
+	./$(TARGET) -d -q -bf -nbc -o dist/01.floris.prg testdata/floris_untitled.png
+	./$(TARGET) -d -q -bf -o dist/02.mermaid.prg testdata/mermaid_song_of_the_sunset.png
+	./$(TARGET) -d -q -bf -o dist/03.shortcircuit.prg testdata/short_circuit.png
+	./$(TARGET) -d -q -bf -nbc -o dist/04.sander.prg testdata/sander_ld.png
+	./$(TARGET) -d -q -bpc 15,12,3,5 -o dist/05.mermaid2.prg testdata/mermaid_weee.png
+	./$(TARGET) -d -q -bf -o dist/06.robinlevy.prg testdata/robinlevy_deadlock.png
+	./$(TARGET) -d -q -bf -npcc -o dist/07.veto.prg testdata/veto_room_with_view.png
+	./$(TARGET) -d -q -bf -o dist/08.talent.prg testdata/talent_vangelis320x200.png
+	./$(TARGET) -d -q -bf -o dist/09.hend.prg testdata/hend_temple320x200.png
+	./$(TARGET) -d -q -bf -npcc -o dist/10.jonegg.prg testdata/jonegg_thanos320x200.png
+	./$(TARGET) -d -q -bf -o dist/11.leon.prg testdata/leon_solar.png
+	./$(TARGET) -d -q -bf -o dist/12.ciscoheat.prg testdata/cisco_heat.png
+	./$(TARGET) -d -q -bf -o dist/13.sulevi.prg testdata/sulevi_daylight.png
+	./$(TARGET) -d -q -bf -o dist/14.yiear.prg testdata/yiearkungfu.png
+	./$(TARGET) -d -q -bf -nbc -o dist/15.thesarge.prg testdata/the_sarge_lee320x200.png
+	./$(TARGET) -d -q -bf -o dist/16.mirage.prg testdata/mirage_parrot320x200.png
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/?.*.prg dist/1?.*.prg dist/2?.*.prg dist/3?.*.prg
+	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
@@ -320,13 +303,13 @@ robinlevy: $(ROBIN) $(TARGET)
 # best bf: 9,15,10,0
 # default: 9,0,12,15
 
-# best -bf -npcc: -bpc 9,15,10,5 -npcc
+# best -bf -npcc: -bpc 9,10,15,5 -npcc
 VETO=testdata/veto_room_with_view.png
 veto: $(VETO) $(TARGET)
 	spot13 $< -o $@_spot.kla
 	dali -o $@_spot.kla.dali $@_spot.kla
 	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
-	./$(TARGET) -v -bpc 9,15,10,5 -npcc -o $@_p2pbest.prg $<
+	./$(TARGET) -v -bpc 9,10,15,5 -npcc -o $@_p2pbest.prg $<
 	Png2prg-1.6 -v -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
