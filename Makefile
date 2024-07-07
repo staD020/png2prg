@@ -205,6 +205,8 @@ MISCPIC=testdata/facet_turning_point_320x200.png
 #MISCPIC=testdata/mikael_pretzelpilami320x200.png
 #MISCPIC=testdata/veto_eye320x200.png
 #MISCPIC=testdata/jonegg_tapper320x200.png
+MISCPIC=testdata/fungus/steel/vice320x200.png
+#MISCPIC=testdata/fungus/scorpionpic/vice320x200.png
 
 P2PBENCHOPTS=-v -bf
 
@@ -255,37 +257,41 @@ sander: $(SANDER) $(TARGET)
 # bruteforce: -bpc 0,2,14,11
 # bf npcc winner: -bpc 0,6,14,1 -npcc
 ste: $(STE) $(TARGET)
-	spot13 $< -o ste_spot.kla
-	dali -o ste_spot.kla.dali ste_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o ste_p2p.prg $<
-	./$(TARGET) -bpc 0,6,14,1 -npcc -o ste_p2pbest.prg $<
-	dali -o ste_p2p.prg.dali ste_p2p.prg
-	dali -o ste_p2pbest.prg.dali ste_p2pbest.prg
-	ls -l ste*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 0,6,14,1 -npcc -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 #best: -bpc 15,12,3,5
 #15,5,12,3
 #15,3,10,5
 mermaid2: $(MERMAID2) $(TARGET)
-	spot13 $< -o mermaid2_spot.kla
-	dali -o mermaid2_spot.kla.dali mermaid2_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o mermaid2_p2p.prg $<
-	./$(TARGET) -bpc 15,12,3,5 -o mermaid2_p2pbest.prg $<
-	dali -o mermaid2_p2p.prg.dali mermaid2_p2p.prg
-	dali -o mermaid2_p2pbest.prg.dali mermaid2_p2pbest.prg
-	ls -l mermaid2*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 15,12,3,5 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best bf: -bpc 3,13,1,7
 sulevi: $(SULEVI) $(TARGET)
-	spot13 $< -o sulevi_spot.kla
-	dali -o sulevi_spot.kla.dali sulevi_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o sulevi_p2p.prg $<
-	./$(TARGET) -bpc 3,13,1,7 -o sulevi_p2pbest.prg $<
-	Png2prg-1.6 -o sulevi_p2p16.prg $<
-	dali -o sulevi_p2p.prg.dali sulevi_p2p.prg
-	dali -o sulevi_p2p16.prg.dali sulevi_p2p16.prg
-	dali -o sulevi_p2pbest.prg.dali sulevi_p2pbest.prg
-	ls -l sulevi*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 3,13,1,7 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best bf: -bpc 0,12,9,11
 # default: -bpc 0,15,12,11
@@ -293,14 +299,15 @@ ROBIN=testdata/robinlevy_deadlock.png
 # best bf: 0,14,15,3
 #ROBIN=testdata/robinlevy_huntersmoon.png
 robinlevy: $(ROBIN) $(TARGET)
-	spot13 $< -o robin_spot.kla
-	dali -o robin_spot.kla.dali robin_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o robin_p2p.prg $<
-	./$(TARGET) -bpc 0,12,9,11 -o robin_p2pbest.prg $<
-	#./$(TARGET) -bpc 0,14,15,3 -o robin_p2pbest.prg $<
-	dali -o robin_p2p.prg.dali robin_p2p.prg
-	dali -o robin_p2pbest.prg.dali robin_p2pbest.prg
-	ls -l robin*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 0,12,9,11 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best: -bpc 9,0,6,5 (also bf, but non deterministic)
 # best bf: 9,15,10,0
@@ -309,128 +316,132 @@ robinlevy: $(ROBIN) $(TARGET)
 # best -bf -npcc: -bpc 9,15,10,5 -npcc
 VETO=testdata/veto_room_with_view.png
 veto: $(VETO) $(TARGET)
-	spot13 $< -o veto_spot.kla
-	dali -o veto_spot.kla.dali veto_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o veto_p2p.prg $<
-	./$(TARGET) -bpc 9,10,15,5 -npcc -o veto_p2pbest.prg $<
-	dali -o veto_p2p.prg.dali veto_p2p.prg
-	dali -o veto_p2pbest.prg.dali veto_p2pbest.prg
-	ls -l veto*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 9,15,10,5 -npcc -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best -bf: -bpc 8,0,6,5
 LEON=testdata/leon_solar.png
 leon: $(LEON) $(TARGET)
-	spot13 $< -o leon_spot.kla
-	dali -o leon_spot.kla.dali leon_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o leon_p2p.prg $<
-	./$(TARGET) -bpc 8,0,6,5 -o leon_p2pbest.prg $<
-	dali -o leon_p2p.prg.dali leon_p2p.prg
-	dali -o leon_p2pbest.prg.dali leon_p2pbest.prg
-	ls -l leon_*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 8,0,6,5 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 miscpic: $(MISCPIC) $(TARGET)
-	spot13 $< -o misc_spot.kla
-	dali -o misc_spot.kla.dali misc_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o misc_p2p.prg $<
-	#Png2prg-1.6 -v -o misc_p2p.prg $<
-	#./$(TARGET) -v -o misc_p2p.prg $<
-	dali -o misc_p2p.prg.dali misc_p2p.prg
-	Png2prg-1.6 -v -o misc_p2p16.prg $<
-	dali -o misc_p2p16.prg.dali misc_p2p16.prg
-	ls -l misc*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	# ./$(TARGET) -v -bpc 11,12,15,10 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	#dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 #
 # best default: -bpc 14,0,15,11
-# best: -bpc 14,8,7,0 -bf -npcc
+# best bf npcc: -bpc 14,8,7,0 -npcc
 JONEGG=testdata/jonegg_thanos320x200.png
 jonegg: $(JONEGG) $(TARGET)
-	spot13 $< -o jonegg_spot.kla
-	dali -o jonegg_spot.kla.dali jonegg_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o jonegg_p2p.prg $<
-	dali -o jonegg_p2p.prg.dali jonegg_p2p.prg
-	./$(TARGET) -v -bpc 14,8,7,0 -npcc -o jonegg_p2pbest.prg $<
-	dali -o jonegg_p2pbest.prg.dali jonegg_p2pbest.prg
-	Png2prg-1.6 -v -o jonegg_p2p16.prg $<
-	dali -o jonegg_p2p16.prg.dali jonegg_p2p16.prg
-	ls -l jonegg_*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 14,8,7,0 -npcc -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best bf: -bpc 11,12,15,10
 TALENT=testdata/talent_vangelis320x200.png
 talent: $(TALENT) $(TARGET)
-	spot13 $< -o talent_spot.kla
-	dali -o talent_spot.kla.dali talent_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o talent_p2p.prg $<
-	./$(TARGET) -v -o talent_p2pbest.prg -bpc 11,12,15,10 $<
-	Png2prg-1.6 -v -o talent_p2p16.prg $<
-	dali -o talent_p2p16.prg.dali talent_p2p16.prg
-	dali -o talent_p2pbest.prg.dali talent_p2pbest.prg
-	dali -o talent_p2p.prg.dali talent_p2p.prg
-	ls -l talent_*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 11,12,15,10 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best bf: -bpc 0,8,6,2
 CISCO=testdata/cisco_heat.png
 cisco: $(CISCO) $(TARGET)
-	spot13 $< -o cisco_spot.kla
-	dali -o cisco_spot.kla.dali cisco_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o cisco_p2p.prg $<
-	./$(TARGET) -v -bpc 0,8,6,2 -o cisco_p2pbest.prg $<
-	Png2prg-1.6 -v -o cisco_p2p16.prg $<
-	dali -o cisco_p2p16.prg.dali cisco_p2p16.prg
-	dali -o cisco_p2pbest.prg.dali cisco_p2pbest.prg
-	dali -o cisco_p2p.prg.dali cisco_p2p.prg
-	ls -l cisco_*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 0,8,6,2 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best bf: -bpc 6,8,0,15
 YIEAR=testdata/yiearkungfu.png
 yiear: $(YIEAR) $(TARGET)
-	spot13 $< -o yiear_spot.kla
-	dali -o yiear_spot.kla.dali yiear_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o yiear_p2p.prg $<
-	./$(TARGET) -v -bpc 6,8,0,15 -o yiear_p2pbest.prg $<
-	Png2prg-1.6 -v -o yiear_p2p16.prg $<
-	dali -o yiear_p2p16.prg.dali yiear_p2p16.prg
-	dali -o yiear_p2pbest.prg.dali yiear_p2pbest.prg
-	dali -o yiear_p2p.prg.dali yiear_p2p.prg
-	ls -l yiear_*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 6,8,0,15 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best bf: -bpc 12,1,9,11
 HEND=testdata/hend_temple320x200.png
 hend: $(HEND) $(TARGET)
-	spot13 $< -o hend_spot.kla
-	dali -o hend_spot.kla.dali hend_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o hend_p2p.prg $<
-	./$(TARGET) -v -bpc 12,1,9,11 -o hend_p2pbest.prg $<
-	Png2prg-1.6 -v -o hend_p2p16.prg $<
-	dali -o hend_p2p16.prg.dali hend_p2p16.prg
-	dali -o hend_p2pbest.prg.dali hend_p2pbest.prg
-	dali -o hend_p2p.prg.dali hend_p2p.prg
-	ls -l hend_*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 12,1,9,11 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best bf -nbc: -bpc 0,5,4,6 -nbc
 SARGE=testdata/the_sarge_lee320x200.png
 sarge: $(SARGE) $(TARGET)
-	spot13 $< -o sarge_spot.kla
-	dali -o sarge_spot.kla.dali sarge_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o sarge_p2p.prg $<
-	./$(TARGET) -v -bpc 0,5,4,6 -nbc -o sarge_p2pbest.prg $<
-	Png2prg-1.6 -v -o sarge_p2p16.prg $<
-	dali -o sarge_p2p16.prg.dali sarge_p2p16.prg
-	dali -o sarge_p2pbest.prg.dali sarge_p2pbest.prg
-	dali -o sarge_p2p.prg.dali sarge_p2p.prg
-	ls -l sarge_*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 0,5,4,6 -nbc -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # best bf: -bpc 15,4,9,7
 MIRAGE=testdata/mirage_parrot320x200.png
 mirage: $(MIRAGE) $(TARGET)
-	spot13 $< -o mirage_spot.kla
-	dali -o mirage_spot.kla.dali mirage_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o mirage_p2p.prg $<
-	./$(TARGET) -v -bpc 15,4,9,7 -o mirage_p2pbest.prg $<
-	Png2prg-1.6 -v -o mirage_p2p16.prg $<
-	dali -o mirage_p2p16.prg.dali mirage_p2p16.prg
-	dali -o mirage_p2pbest.prg.dali mirage_p2pbest.prg
-	dali -o mirage_p2p.prg.dali mirage_p2p.prg
-	ls -l mirage_*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 15,4,9,7 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 clean:
 	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla *_p2p16.prg
