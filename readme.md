@@ -215,6 +215,74 @@ If needed, you can relocate most sids using lft's [sidreloc](http://www.linusake
 Zeropages $08-$0f are used in the animation displayers, while none are used
 in hires/koala displayers, increasing sid compatibility.
 
+## Brute Force Mode and Pack Optimization
+
+By default png2prg 1.8 does a pretty good job at optimizing the resulting prg
+for crunchers and packers. It is not enough to beat [SPOT 1.3](https://csdb.dk/release/?id=242492).
+
+### -brute-force (-bf)
+
+Iterates are over many -bitpair-colors permutations automatically, packs
+with the built in TSCrunch and selects the shortest.
+
+    ./png2prg -bf image.png
+
+The -brute-force mode can be used in combination with additional flags.
+
+### -no-bitpair-counters (-nbc)
+
+Disable counting of bitpairs per color to guess a bitpair for a color.
+
+    ./png2prg -bf -nbc image.png
+
+### -no-prev-char-colors (-npcc)
+
+Disable lookback to previous char's charcolors to guess a bitpair for a color.
+
+    ./png2prg -bf -npcc image.png
+
+Since TSCrunch is optimized for speed, packing with Dali can give varying
+results. This is also the reason for not including these options in the
+brute force permutations automatically.
+
+## Benchmark
+
+The [koala otpimizing thread](https://csdb.dk/forums/?roomid=13&topicid=38311&showallposts=1) on csdb has gained some interest in the scene.
+Since Sparta released [SPOT](https://csdb.dk/release/?id=242492) it has been the best optimizer available.
+
+Png2prg 1.8 has improved optimization techniques but requires -brute-force
+mode to beat SPOT 1.3. Manual flags can optimize even better in some cases.
+
+All koalas are packed with [Dali 0.3.2](https://csdb.dk/release/?id=223584).
+
+    +---------+--------+----------+------------+--------+
+    | spot1.3 | p2p1.8 | p2p1.8bf | p2p1.8best | p2p1.6 |
+    +---------+--------+----------+------------+--------+
+    |    7332 |   7372 |     7332 |       7324 |   7546 | Untitled/Floris
+    |    5136 |   5190 |     5149 |         bf |   5464 | Song of the Sunset/Mermaid
+    |    5968 |   5998 |     5963 |         bf |   6155 | Short Circuit/Karen Davies
+    |    3618 |   3647 |     3616 |       3589 |   3830 | Portait L+D/Sander
+    |    5094 |   5080 |     5083 |       5078 |   5320 | Weee/Mermaid
+    |    7497 |   7471 |     7458 |         bf |   7612 | Deadlock/Robin Levy
+    |    8068 |   8097 |     8046 |       8038 |   8227 | Room with a view/Veto
+    |    7445 |   7490 |     7432 |         bf |   7582 | Vangelis/Talent
+    |    6759 |   6739 |     6737 |         bf |   6963 | Temple of Tears/Hend
+    |    7859 |   7848 |     7839 |       7821 |   7998 | Thanos/JonEgg
+    |    4859 |   4849 |     4782 |         bf |   4983 | Solar-Sonar/Leon
+    |    5640 |   5671 |     5613 |         bf |   5869 | Cisco Heat/Alan Grier
+    |    6243 |   6286 |     6228 |         bf |   6430 | Daylight/Sulevi
+    |    2850 |   2884 |     2848 |         bf |   3092 | Yie Ar Kung Fu/Steve Wahid
+    |    6727 |   6721 |     6730 |       6711 |   6901 | Lee/The Sarge
+    |    7837 |   7828 |     7798 |         bf |   7960 | Parrot/Mirage
+    +---------+--------+----------+------------+--------+
+    |   98932 |  99171 |    98654 |      98569 | 101932 | Total
+    +---------+--------+----------+------------+--------+
+
+ - p2p1.8: default png2prg result w/o options
+ - p2p1.8bf: -brute-force mode
+ - p2p1.8best: hand-picked -bitpair-colors, or bruteforced with -npcc and/or -nbc flags
+ - p2p1.6: default png2prg 1.6 result w/o options
+
 ## Examples
 
 This release contains examples with all assets included for you to test with.

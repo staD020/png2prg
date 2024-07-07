@@ -205,54 +205,61 @@ MISCPIC=testdata/facet_turning_point_320x200.png
 #MISCPIC=testdata/mikael_pretzelpilami320x200.png
 #MISCPIC=testdata/veto_eye320x200.png
 #MISCPIC=testdata/jonegg_tapper320x200.png
-MISCPIC=testdata/fungus/steel/vice320x200.png
 #MISCPIC=testdata/fungus/scorpionpic/vice320x200.png
+MISCPIC=testdata/fungus/steel/vice320x200.png
 
 P2PBENCHOPTS=-v -bf
 
 # bestbf: -bpc 0,11,14,6
 # best: -bpc 0,5,11,6 -nbc
 floris: $(FLORIS) $(TARGET)
-	spot13 $< -o floris_spot.kla
-	dali -o floris_spot.kla.dali floris_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o floris_p2p.prg $<
-	./$(TARGET) -bpc 0,5,11,6 -nbc -o floris_p2pbest.prg $<
-	dali -o floris_p2p.prg.dali floris_p2p.prg
-	dali -o floris_p2pbest.prg.dali floris_p2pbest.prg
-	ls -l floris*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 0,5,11,6 -nbc -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 #best: -bpc 0,1,12,4
 mermaid: $(MERMAID) $(TARGET)
-	spot13 $< -o mermaid_spot.kla
-	dali -o mermaid_spot.kla.dali mermaid_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o mermaid_p2p.prg $<
-	./$(TARGET) -bpc 0,1,12,4 -o mermaid_p2pbest.prg $<
-	dali -o mermaid_p2p.prg.dali mermaid_p2p.prg
-	dali -o mermaid_p2pbest.prg.dali mermaid_p2pbest.prg
-	ls -l mermaid_*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 0,1,12,4 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 #best bf: -bpc 1,6,11,0
 #: -bpc 1,11,14,3
 shortcircuit: $(SHORTCIRCUIT) $(TARGET)
-	spot13 $< -o shortcircuit_spot.kla
-	dali -o shortcircuit_spot.kla.dali shortcircuit_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o shortcircuit_p2p.prg $<
-	./$(TARGET) -bpc 1,6,11,0 -o shortcircuit_p2pbest.prg $<
-	#./$(TARGET) -bpc 1,14,11,6 -o shortcircuit_p2p.prg $<
-	dali -o shortcircuit_p2p.prg.dali shortcircuit_p2p.prg
-	dali -o shortcircuit_p2pbest.prg.dali shortcircuit_p2pbest.prg
-	ls -l shortcircuit*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 1,6,11,0 -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # bruteforce: -bpc 0,6,4,7
 # best-bf-nbc: -bpc 0,9,1,3 -nbc
 sander: $(SANDER) $(TARGET)
-	spot13 $< -o sander_spot.kla
-	dali -o sander_spot.kla.dali sander_spot.kla
-	./$(TARGET) $(P2PBENCHOPTS) -o sander_p2p.prg $<
-	./$(TARGET) -bpc 0,9,1,3 -nbc -o sander_p2pbest.prg $<
-	dali -o sander_p2p.prg.dali sander_p2p.prg
-	dali -o sander_p2pbest.prg.dali sander_p2pbest.prg
-	ls -l sander*
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	./$(TARGET) -v -bpc 0,9,1,3 -nbc -o $@_p2pbest.prg $<
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
 
 # bruteforce: -bpc 0,2,14,11
 # bf npcc winner: -bpc 0,6,14,1 -npcc
