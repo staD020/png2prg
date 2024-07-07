@@ -136,7 +136,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		for i := range out {
 			if i > 0 && out[i].length < threshold && d < 10 {
 				d++
-				fmt.Printf("you may want to manually try -bpc %s\n", out[i].bpc)
+				fmt.Printf("you may want to manually try -bpc %s (%d bytes)\n", out[i].bpc, out[i].length)
 			}
 		}
 	}
@@ -164,7 +164,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		return fmt.Errorf("no color options found to brute-force")
 	}
 	if !c.opt.Quiet {
-		fmt.Printf("brute-force winner %q -bpc %v\n", c.opt.OutFile, out[0].bpc)
+		fmt.Printf("brute-force winner %q -bpc %v (%d bytes)\n", c.opt.OutFile, out[0].bpc, out[0].length)
 	}
 	c.opt.BitpairColorsString = out[0].bpc
 	c.opt.NoPrevCharColors = out[0].noprevcharcols
