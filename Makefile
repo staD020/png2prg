@@ -53,10 +53,12 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	mkdir -p dist/testdata/mixedcharset
 	mkdir -p dist/testdata/hirescharset
 	mkdir -p dist/testdata/petscii
+	mkdir -p dist/testdata/charanim
 	cp -r testdata/mixedcharset/*.png dist/testdata/mixedcharset/
 	cp -r testdata/mixedcharset/*.gif dist/testdata/mixedcharset/
 	cp -r testdata/hirescharset/*.png dist/testdata/hirescharset/
 	cp -r testdata/petscii/*.png dist/testdata/petscii/
+	cp -r testdata/charanim/*.png dist/testdata/charanim/
 	cp testdata/floris_untitled.png dist/testdata/
 	cp testdata/floris_untitled.png dist/testdata/
 	cp testdata/short_circuit.png dist/testdata/
@@ -73,6 +75,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp testdata/yiearkungfu.png dist/testdata/
 	cp testdata/the_sarge_lee320x200.png dist/testdata/
 	cp testdata/mirage_parrot320x200.png dist/testdata/
+	cp testdata/dragonslair320x200.png dist/testdata/
 	./$(TARGET) -d -q -bf -nbc -o dist/01.floris.prg testdata/floris_untitled.png
 	./$(TARGET) -d -q -bf -o dist/02.mermaid.prg testdata/mermaid_song_of_the_sunset.png
 	./$(TARGET) -d -q -bf -o dist/03.shortcircuit.prg testdata/short_circuit.png
@@ -89,6 +92,8 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -bf -o dist/14.yiear.prg testdata/yiearkungfu.png
 	./$(TARGET) -d -q -bf -nbc -o dist/15.thesarge.prg testdata/the_sarge_lee320x200.png
 	./$(TARGET) -d -q -bf -o dist/16.mirage.prg testdata/mirage_parrot320x200.png
+	./$(TARGET) -d -q -bf -o dist/17.dragonslair.prg testdata/dragonslair320x200.png
+	./$(TARGET) -d -q -o dist/18.cupid.prg testdata/charanim/phatchar*.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg
 	rm -f dist/*.prg
@@ -185,7 +190,7 @@ SHORTCIRCUIT=testdata/short_circuit.png
 STE=testdata/ste_gng.png
 SANDER=testdata/sander_ld.png
 SULEVI=testdata/sulevi_daylight.png
-benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge mirage
+benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge mirage dragon
 	ls -l *_p2p.prg* *_spot.kla*
 
 MISCPIC=testdata/carrion_still_waiting.png
@@ -447,6 +452,19 @@ mirage: $(MIRAGE) $(TARGET)
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
 	dali -o $@_p2p.prg.dali $@_p2p.prg
+	ls -l $@_*
+
+# best bf: -bpc 0,12,11,2
+DRAGON=testdata/dragonslair320x200.png
+dragon: $(DRAGON) $(TARGET)
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	./$(TARGET) -v -bpc 0,12,11,2 -o $@_p2pbest.prg $<
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
 
 clean:

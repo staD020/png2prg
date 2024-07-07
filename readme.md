@@ -14,6 +14,15 @@ The displayers can optionally play a .sid tune.
 
 This tool can be used in all buildchains on all common platforms.
 
+## What is new
+
+Png2prg 1.8 introduces multiple image optimization techniques to improve
+pack ratio of output images.
+See 'Brute Force Mode and Pack Optimization' below.
+
+Multicolor charsets of multiple frames is now supported.
+See testdata/charanim for an example.
+
 ## What it is *not*
 
 Png2prg is not a tool to wire fullcolor images. It needs input images to
@@ -277,8 +286,9 @@ All koalas are packed with [Dali 0.3.2](https://csdb.dk/release/?id=223584).
     |    2850 |   2884 |     2848 |         bf |   3092 | Yie Ar Kung Fu/Steve Wahid
     |    6727 |   6721 |     6730 |       6711 |   6901 | Lee/The Sarge
     |    7837 |   7828 |     7798 |         bf |   7960 | Parrot/Mirage
+    |    4559 |   4536 |     4494 |         bf |   4821 | Dragon's Lair
     +---------+--------+----------+------------+--------+
-    |   98932 |  99171 |    98654 |      98569 | 101932 | Total
+    |  103491 | 103707 |   103148 |     103063 | 106753 | Total
     +---------+--------+----------+------------+--------+
 
  - p2p1.8: default png2prg result w/o options
