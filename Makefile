@@ -193,10 +193,10 @@ SULEVI=testdata/sulevi_daylight.png
 benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge mirage dragon
 	ls -l *_p2p.prg* *_spot.kla*
 
-MISCPIC=testdata/carrion_still_waiting.png
-MISCPIC=testdata/the_sarge_obscena_vaselina_palette1.png
-MISCPIC=testdata/archmage_mc_god.png
-MISCPIC=testdata/facet_turning_point_320x200.png
+#MISCPIC=testdata/carrion_still_waiting.png
+#MISCPIC=testdata/the_sarge_obscena_vaselina_palette1.png
+#MISCPIC=testdata/archmage_mc_god.png
+#MISCPIC=testdata/facet_turning_point_320x200.png
 #MISCPIC=testdata/bizzmo_wool_colodore.png
 #MISCPIC=testdata/joe_earth.png
 #MISCPIC=testdata/tentacles.png
@@ -206,11 +206,11 @@ MISCPIC=testdata/facet_turning_point_320x200.png
 #MISCPIC=testdata/cisco_heat.png
 #MISCPIC=testdata/yiearkungfu.png
 #MISCPIC=testdata/the_sarge_lee320x200.png
-#MISCPIC=testdata/mikael_pretzelpilami320x200.png
+MISCPIC=testdata/mikael_pretzelpilami320x200.png
 #MISCPIC=testdata/veto_eye320x200.png
 #MISCPIC=testdata/jonegg_tapper320x200.png
 #MISCPIC=testdata/fungus/scorpionpic/vice320x200.png
-MISCPIC=testdata/fungus/steel/vice320x200.png
+#MISCPIC=testdata/fungus/steel/vice320x200.png
 
 P2PBENCHOPTS=-v -bf
 
@@ -354,11 +354,11 @@ miscpic: $(MISCPIC) $(TARGET)
 	spot13 $< -o $@_spot.kla
 	dali -o $@_spot.kla.dali $@_spot.kla
 	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
-	# ./$(TARGET) -v -bpc 11,12,15,10 -o $@_p2pbest.prg $<
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	 ./$(TARGET) -v -o $@_p2pdefault.prg $<
+	dali -o $@_p2pdefault.prg.dali $@_p2pdefault.prg
 	Png2prg-1.6 -v -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
-	#dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
-	dali -o $@_p2p.prg.dali $@_p2p.prg
 	ls -l $@_*
 
 #
