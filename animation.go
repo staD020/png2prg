@@ -31,6 +31,30 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	if len(imgs) < 1 {
 		return n, fmt.Errorf("no sourceImage given")
 	}
+
+	bruteforce := func(gfxtype GraphicsType, maxColors int) error {
+		if !c.opt.BruteForce {
+			return nil
+		}
+		if err = c.BruteForceBitpairColors(gfxtype, maxColors); err != nil {
+			return fmt.Errorf("BruteForceBitpairColors %q failed: %w", imgs[0].sourceFilename, err)
+		}
+		if err = imgs[0].setPreferredBitpairColors(c.opt.BitpairColorsString); err != nil {
+			return fmt.Errorf("img.setPreferredBitpairColors %q failed: %w", c.opt.BitpairColorsString, err)
+		}
+		return nil
+	}
+
+	if imgs[0].graphicsType == multiColorBitmap {
+		err = bruteforce(imgs[0].graphicsType, 4)
+	}
+	if imgs[0].graphicsType == singleColorBitmap {
+		err = bruteforce(imgs[0].graphicsType, 2)
+	}
+	if err != nil {
+		log.Printf("bruteforce failed: %f", err)
+	}
+
 	wantedGraphicsType := imgs[0].graphicsType
 	currentBitpairColors := bitpairColors{}
 	charset := []charBytes{}
@@ -39,6 +63,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			fmt.Printf("processing %q frame %d\n", img.sourceFilename, i)
 		}
 		if i > 0 {
+			img.preferredBitpairColors = currentBitpairColors
 			if err := img.analyze(); err != nil {
 				return n, fmt.Errorf("warning: skipping frame %d, analyze failed: %w", i, err)
 			}
