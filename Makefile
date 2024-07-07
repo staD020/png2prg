@@ -57,6 +57,22 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp -r testdata/mixedcharset/*.gif dist/testdata/mixedcharset/
 	cp -r testdata/hirescharset/*.png dist/testdata/hirescharset/
 	cp -r testdata/petscii/*.png dist/testdata/petscii/
+	cp testdata/floris_untitled.png dist/testdata/
+	cp testdata/floris_untitled.png dist/testdata/
+	cp testdata/short_circuit.png dist/testdata/
+	cp testdata/sander_ld.png dist/testdata/
+	cp testdata/mermaid_weee.png dist/testdata/
+	cp testdata/robinlevy_deadlock.png dist/testdata/
+	cp testdata/veto_room_with_view.png dist/testdata/
+	cp testdata/talent_vangelis320x200.png dist/testdata/
+	cp testdata/hend_temple320x200.png dist/testdata/
+	cp testdata/jonegg_thanos320x200.png dist/testdata/
+	cp testdata/leon_solar.png dist/testdata/
+	cp testdata/cisco_heat.png dist/testdata/
+	cp testdata/sulevi_daylight.png dist/testdata/
+	cp testdata/yiearkungfu.png dist/testdata/
+	cp testdata/the_sarge_lee320x200.png dist/testdata/
+	cp testdata/mirage_parrot320x200.png dist/testdata/
 	./$(TARGET) -d -q -bf -nbc -o dist/01.floris.prg testdata/floris_untitled.png
 	./$(TARGET) -d -q -bf -o dist/02.mermaid.prg testdata/mermaid_song_of_the_sunset.png
 	./$(TARGET) -d -q -bf -o dist/03.shortcircuit.prg testdata/short_circuit.png
