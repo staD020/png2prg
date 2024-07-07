@@ -93,9 +93,9 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -bf -nbc -o dist/15.thesarge.prg testdata/the_sarge_lee320x200.png
 	./$(TARGET) -d -q -bf -o dist/16.mirage.prg testdata/mirage_parrot320x200.png
 	./$(TARGET) -d -q -bf -o dist/17.dragonslair.prg testdata/dragonslair320x200.png
-	./$(TARGET) -d -q -o dist/18.cupid.prg testdata/charanim/phatchar*.png
+	./$(TARGET) -d -q -o dist/phatchar.prg testdata/charanim/phatchar*.png
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg
+	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg dist/phatchar.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
