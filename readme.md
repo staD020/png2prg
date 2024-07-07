@@ -290,6 +290,7 @@ All koalas are packed with [Dali 0.3.2](https://csdb.dk/release/?id=223584).
 
 This release contains examples with all assets included for you to test with.
 Also included are the assets of [Évoluer](https://csdb.dk/release/?id=220170) by The Sarge and Flotsam.
+A larger set of testdata can be found in the [github repo](https://github.com/staD020/png2prg/tree/master/testdata).
 
 ## Install from source
 

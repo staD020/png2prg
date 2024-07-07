@@ -302,6 +302,7 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println("This release contains examples with all assets included for you to test with.")
 	fmt.Println("Also included are the assets of [Évoluer](https://csdb.dk/release/?id=220170) by The Sarge and Flotsam.")
+	fmt.Println("A larger set of testdata can be found in the [github repo](https://github.com/staD020/png2prg/tree/master/testdata).")
 	fmt.Println()
 	fmt.Println("## Install from source")
 	fmt.Println()
