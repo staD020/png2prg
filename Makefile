@@ -76,6 +76,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp testdata/the_sarge_lee320x200.png dist/testdata/
 	cp testdata/mirage_parrot320x200.png dist/testdata/
 	cp testdata/dragonslair320x200.png dist/testdata/
+	cp testdata/sir_scorpion320x200.png dist/testdata/
 	./$(TARGET) -d -q -bf -nbc -o dist/01.floris.prg testdata/floris_untitled.png
 	./$(TARGET) -d -q -bf -o dist/02.mermaid.prg testdata/mermaid_song_of_the_sunset.png
 	./$(TARGET) -d -q -bf -o dist/03.shortcircuit.prg testdata/short_circuit.png
@@ -93,6 +94,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -bf -nbc -o dist/15.thesarge.prg testdata/the_sarge_lee320x200.png
 	./$(TARGET) -d -q -bf -o dist/16.mirage.prg testdata/mirage_parrot320x200.png
 	./$(TARGET) -d -q -bf -o dist/17.dragonslair.prg testdata/dragonslair320x200.png
+	./$(TARGET) -d -q -bf -nbc -o dist/18.scorpion.prg testdata/sir_scorpion320x200.png
 	./$(TARGET) -d -q -o dist/phatchar.prg testdata/charanim/phatchar*.png
 	rm -f dist/examples.d64
 	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg dist/phatchar.prg
@@ -190,7 +192,7 @@ SHORTCIRCUIT=testdata/short_circuit.png
 STE=testdata/ste_gng.png
 SANDER=testdata/sander_ld.png
 SULEVI=testdata/sulevi_daylight.png
-benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge mirage dragon
+benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge mirage dragon scorpion
 	ls -l *_p2p.prg* *_spot.kla*
 
 #MISCPIC=testdata/carrion_still_waiting.png
@@ -206,11 +208,12 @@ benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy vet
 #MISCPIC=testdata/cisco_heat.png
 #MISCPIC=testdata/yiearkungfu.png
 #MISCPIC=testdata/the_sarge_lee320x200.png
-MISCPIC=testdata/mikael_pretzelpilami320x200.png
+#MISCPIC=testdata/mikael_pretzelpilami320x200.png
 #MISCPIC=testdata/veto_eye320x200.png
 #MISCPIC=testdata/jonegg_tapper320x200.png
 #MISCPIC=testdata/fungus/scorpionpic/vice320x200.png
 #MISCPIC=testdata/fungus/steel/vice320x200.png
+MISCPIC=testdata/mirage_culture320x200.png
 
 P2PBENCHOPTS=-v -bf
 
@@ -462,6 +465,18 @@ dragon: $(DRAGON) $(TARGET)
 	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
 	dali -o $@_p2p.prg.dali $@_p2p.prg
 	./$(TARGET) -v -bpc 0,12,11,2 -o $@_p2pbest.prg $<
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	Png2prg-1.6 -v -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	ls -l $@_*
+
+SCORPION=testdata/sir_scorpion320x200.png
+scorpion:$(SCORPION) $(TARGET)
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	./$(TARGET) -v -bf -nbc -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
 	Png2prg-1.6 -v -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
