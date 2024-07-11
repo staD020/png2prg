@@ -63,7 +63,9 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 			s = s[:maxColors]
 		}
 		if len(s) < maxColors {
-			log.Printf("skipping permutation %v as it does not contain %d colors", s, maxColors)
+			if c.opt.Verbose {
+				log.Printf("skipping permutation %v as it does not contain %d colors", s, maxColors)
+			}
 			continue
 		}
 		tmp := [4]byte{}
@@ -111,7 +113,9 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		opt.Quiet = true
 		img, err := NewSourceImage(opt, count, c.images[0].image)
 		if err != nil {
-			log.Printf("skipping permutation %s because NewSourceImage failed: %v", bitpaircols, err)
+			if c.opt.Verbose {
+				log.Printf("skipping permutation %s because NewSourceImage failed: %v", bitpaircols, err)
+			}
 			continue
 		}
 		jobs <- img
