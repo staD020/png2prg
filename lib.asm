@@ -1,7 +1,7 @@
 .importonce
 
 .function versionString() {
-	.return "1.7"
+	.return "1.8"
 }
 
 .function year() {

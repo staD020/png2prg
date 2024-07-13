@@ -1,4 +1,4 @@
-# PNG2PRG 1.7.7-dev by burg
+# PNG2PRG 1.8 by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -17,7 +17,7 @@ This tool can be used in all buildchains on all common platforms.
 ## What is new
 
 Png2prg 1.8 introduces multiple image optimization techniques to improve
-pack ratio of output images.
+the pack ratio of output images.
 See 'Brute Force Mode and Pack Optimization' below.
 
 Multicolor charsets of multiple frames is now supported.
@@ -273,7 +273,7 @@ All koalas are packed with [Dali 0.3.2](https://csdb.dk/release/?id=223584).
     |    7332 |   7372 |     7332 |       7324 |   7546 | Untitled/Floris
     |    5136 |   5190 |     5149 |         bf |   5464 | Song of the Sunset/Mermaid
     |    5968 |   5998 |     5963 |         bf |   6155 | Short Circuit/Karen Davies
-    |    3618 |   3647 |     3616 |       3589 |   3830 | Portait L+D/Sander
+    |    3618 |   3647 |     3616 |       3589 |   3830 | Portrait L+D/Sander
     |    5094 |   5080 |     5083 |       5078 |   5320 | Weee/Mermaid
     |    7497 |   7471 |     7458 |         bf |   7612 | Deadlock/Robin Levy
     |    8068 |   8097 |     8046 |       8038 |   8227 | Room with a view/Veto
@@ -361,7 +361,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.7.7-dev
+## Changes for version 1.8
 
  - Improve crunchiness by re-using the previous char's bitpair-colors.
  - Add -no-prev-char-colors flag to disable re-use of the previous char's

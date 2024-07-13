@@ -78,6 +78,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp testdata/dragonslair320x200.png dist/testdata/
 	cp testdata/sir_scorpion320x200.png dist/testdata/
 	cp testdata/joe_hatching320x200.png dist/testdata/
+	cp testdata/the_sarge_1337*.gif dist/testdata/
 	./$(TARGET) -d -q -bf -nbc -o dist/01.floris.prg testdata/floris_untitled.png
 	./$(TARGET) -d -q -bf -o dist/02.mermaid.prg testdata/mermaid_song_of_the_sunset.png
 	./$(TARGET) -d -q -bf -o dist/03.shortcircuit.prg testdata/short_circuit.png
@@ -98,8 +99,11 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -bf -nbc -o dist/18.scorpion.prg testdata/sir_scorpion320x200.png
 	./$(TARGET) -d -q -bf -o dist/19.joe.prg testdata/joe_hatching320x200.png
 	./$(TARGET) -d -q -o dist/phatchar.prg testdata/charanim/phatchar*.png
+	./$(TARGET) -d -q -bf -o "dist/1337 1.prg" testdata/the_sarge_1337_1.gif
+	./$(TARGET) -d -q -bf -o "dist/1337 2.prg" testdata/the_sarge_1337_2.gif
+	./$(TARGET) -d -q -bf -o "dist/1337 3.prg" testdata/the_sarge_1337_3.gif
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg dist/phatchar.prg
+	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg dist/phatchar.prg dist/1337*.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
