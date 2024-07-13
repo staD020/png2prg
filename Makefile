@@ -192,7 +192,7 @@ SHORTCIRCUIT=testdata/short_circuit.png
 STE=testdata/ste_gng.png
 SANDER=testdata/sander_ld.png
 SULEVI=testdata/sulevi_daylight.png
-benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge mirage dragon scorpion
+benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy veto miscpic jonegg leon talent cisco yiear hend sarge mirage dragon scorpion joe
 	ls -l *_p2p.prg* *_spot.kla*
 
 #MISCPIC=testdata/carrion_still_waiting.png
@@ -478,6 +478,19 @@ scorpion:$(SCORPION) $(TARGET)
 	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
 	dali -o $@_p2p.prg.dali $@_p2p.prg
 	./$(TARGET) -bf -nbc -o $@_p2pbest.prg $<
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	Png2prg-1.6 -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	ls -l $@_*
+
+# best bf: -bpc 0,11,14,5
+JOE=testdata/joe_hatching320x200.png
+joe:$(JOE) $(TARGET)
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	./$(TARGET) -bpc 0,11,14,5 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
