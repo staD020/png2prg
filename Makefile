@@ -213,7 +213,8 @@ benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy vet
 #MISCPIC=testdata/jonegg_tapper320x200.png
 #MISCPIC=testdata/fungus/scorpionpic/vice320x200.png
 #MISCPIC=testdata/fungus/steel/vice320x200.png
-MISCPIC=testdata/mirage_culture320x200.png
+#MISCPIC=testdata/mirage_culture320x200.png
+MISCPIC=testdata/joe_hatching320x200.png
 
 P2PBENCHOPTS=-bf
 
