@@ -113,7 +113,7 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 		return fmt.Errorf("WriteTo failed: %w", err)
 	}
 	if !opt.Quiet {
-		fmt.Printf("write %d bytes to %q\n", n, opt.OutFile)
+		fmt.Printf("write %d bytes to %q in %q format.\n", n, opt.OutFile, p.FinalGraphicsType)
 	}
 	if opt.Symbols && len(p.Symbols) > 0 {
 		fn := strings.TrimSuffix(opt.OutFile, ".prg") + ".sym"
@@ -122,6 +122,9 @@ func processAsOne(opt *png2prg.Options, filenames ...string) error {
 			return fmt.Errorf("os.Create failed: %w", err)
 		}
 		defer wsym.Close()
+		if _, err = fmt.Fprintf(wsym, "gfxmode = %q\n", p.FinalGraphicsType); err != nil {
+			return fmt.Errorf("write to symbols file failed: %w", err)
+		}
 		if _, err = p.WriteSymbolsTo(wsym); err != nil {
 			return fmt.Errorf("p.WriteSymbolsTo failed: %w", err)
 		}

@@ -1,4 +1,4 @@
-# PNG2PRG 1.8 by burg
+# PNG2PRG 1.9.0-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -360,6 +360,10 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 	return p.WriteTo(w)
 }
 ```
+
+## Changes for version 1.9.0-dev
+
+ - Add gfxmode to .sym files and display in terminal output (thanks Spider-J).
 
 ## Changes for version 1.8
 

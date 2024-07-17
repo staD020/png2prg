@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Version              = "1.8"
+	Version              = "1.9.0-dev"
 	displayerJumpTo      = "$0822"
 	MaxColors            = 16
 	MaxChars             = 256
@@ -558,9 +558,10 @@ func (t GraphicsType) newHeader() []byte {
 
 // A Converter implements the io.WriterTo interface.
 type Converter struct {
-	opt     Options
-	images  []sourceImage
-	Symbols []c64Symbol
+	opt               Options
+	images            []sourceImage
+	Symbols           []c64Symbol
+	FinalGraphicsType GraphicsType
 }
 
 // New processes the input pngs and the returns the Converter.
@@ -699,6 +700,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.Verbose {
 		log.Printf("processing file %q", img.sourceFilename)
 	}
+	defer func() { c.FinalGraphicsType = img.graphicsType }()
 	if err = img.analyze(); err != nil {
 		return 0, fmt.Errorf("analyze %q failed: %w", img.sourceFilename, err)
 	}
