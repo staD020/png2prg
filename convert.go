@@ -462,7 +462,8 @@ LOOP:
 
 	c.BackgroundColor = bitpair2c64color[0]
 	for i := 0; i < FullScreenChars; i++ {
-		c.D800Color[i] = bitpair2c64color[1]
+		// disable for animations
+		//c.D800Color[i] = bitpair2c64color[1]
 	}
 
 	if img.opt.NoPackChars {

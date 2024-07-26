@@ -26,6 +26,8 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	var hh []Hires
 	var scSprites []SingleColorSprites
 	var mcSprites []MultiColorSprites
+	var scCharsets []SingleColorCharset
+	var petCharsets []PETSCIICharset
 	var mcCharsets []MultiColorCharset
 	imgs := c.images
 	if len(imgs) < 1 {
@@ -56,6 +58,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	}
 
 	wantedGraphicsType := imgs[0].graphicsType
+	defer func() { c.FinalGraphicsType = imgs[0].graphicsType }()
 	currentBitpairColors := bitpairColors{}
 	charset := []charBytes{}
 	for i, img := range imgs {
@@ -108,17 +111,52 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		case multiColorCharset:
 			ch, err := img.MultiColorCharset(charset)
 			if err != nil {
-				return n, fmt.Errorf("img.SingleColorSprites failed: %w", err)
+				return n, fmt.Errorf("img.multiColorCharset failed: %w", err)
 			}
 			mcCharsets = append(mcCharsets, ch)
 			charset = ch.CharBytes()
+		case singleColorCharset:
+			if c.opt.GraphicsMode == "sccharset" {
+				ch, err := img.SingleColorCharset(charset)
+				if err != nil {
+					return n, fmt.Errorf("img.SingleColorCharset failed: %w", err)
+				}
+				scCharsets = append(scCharsets, ch)
+				charset = ch.CharBytes()
+				break
+			}
+			if pet, err := img.PETSCIICharset(); err != nil {
+				ch, err := img.SingleColorCharset(charset)
+				if err != nil {
+					return n, fmt.Errorf("img.SingleColorCharset failed: %w", err)
+				}
+				scCharsets = append(scCharsets, ch)
+				charset = ch.CharBytes()
+			} else {
+				petCharsets = append(petCharsets, pet)
+			}
+		case petsciiCharset:
+			if c.opt.GraphicsMode == "sccharset" {
+				ch, err := img.SingleColorCharset(charset)
+				if err != nil {
+					return n, fmt.Errorf("img.SingleColorCharset failed: %w", err)
+				}
+				scCharsets = append(scCharsets, ch)
+				charset = ch.CharBytes()
+				break
+			}
+			pet, err := img.PETSCIICharset()
+			if err != nil {
+				return n, fmt.Errorf("img.SingleColorCharset failed: %w", err)
+			}
+			petCharsets = append(petCharsets, pet)
 		default:
 			return n, fmt.Errorf("animations do not support %q yet", img.graphicsType)
 		}
 	}
 
 	if c.opt.Display {
-		m, err := c.writeAnimationDisplayerTo(w, imgs, kk, hh, scSprites, mcSprites, mcCharsets)
+		m, err := c.writeAnimationDisplayerTo(w, imgs, kk, hh, scSprites, mcSprites, mcCharsets, scCharsets, petCharsets)
 		n += m
 		if err != nil {
 			return n, fmt.Errorf("writeAnimationDisplayerTo failed: %w", err)
@@ -223,12 +261,38 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			return n, fmt.Errorf("WriteMultiColorCharsetAnimationTo failed: %w", err)
 		}
 		return n, nil
+	case len(scCharsets) > 0:
+		c.Symbols = append(c.Symbols,
+			c64Symbol{"bitmap", 0x2000},
+			c64Symbol{"screen", 0x2800},
+			c64Symbol{"d800color", 0x2c00},
+			c64Symbol{"animation", 0x3000},
+			c64Symbol{"d020color", int(scCharsets[0].BorderColor)},
+			c64Symbol{"d021color", int(scCharsets[0].BackgroundColor)},
+		)
+		if _, err = WriteSingleColorCharsetAnimationTo(w, scCharsets); err != nil {
+			return n, fmt.Errorf("WriteSingleColorCharsetAnimationTo failed: %w", err)
+		}
+		return n, nil
+	case len(petCharsets) > 0:
+		c.Symbols = append(c.Symbols,
+			c64Symbol{"screen", 0x2800},
+			c64Symbol{"d800color", 0x2c00},
+			c64Symbol{"animation", 0x3000},
+			c64Symbol{"d020color", int(petCharsets[0].BorderColor)},
+			c64Symbol{"d021color", int(petCharsets[0].BackgroundColor)},
+			c64Symbol{"lowercase", int(petCharsets[0].Lowercase)},
+		)
+		if _, err = WritePETSCIICharsetAnimationTo(w, petCharsets); err != nil {
+			return n, fmt.Errorf("WritePETSCIICharsetAnimationTo failed: %w", err)
+		}
+		return n, nil
 	}
 	return n, fmt.Errorf("handleAnimation %q failed: no frames written", imgs[0].sourceFilename)
 }
 
 // writeAnimationDisplayerTo processes the images and writes the .prg including displayer to w.
-func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites, mcCharsets []MultiColorCharset) (n int64, err error) {
+func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites, mcCharsets []MultiColorCharset, scCharsets []SingleColorCharset, petCharsets []PETSCIICharset) (n int64, err error) {
 	buf := &bytes.Buffer{}
 	switch {
 	case len(kk) > 0:
@@ -279,6 +343,41 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 		}
 		if _, err = WriteMultiColorCharsetAnimationTo(buf, mcCharsets); err != nil {
 			return n, fmt.Errorf("WriteMultiColorCharsetAnimationTo buf failed: %w", err)
+		}
+	case len(scCharsets) > 0:
+		c.Symbols = append(c.Symbols,
+			c64Symbol{"bitmap", 0x2000},
+			c64Symbol{"screen", 0x2800},
+			c64Symbol{"d800color", 0x2c00},
+			c64Symbol{"animation", 0x3000},
+		)
+		if c.opt.NoCrunch {
+			m, err := WriteSingleColorCharsetAnimationTo(w, scCharsets)
+			n += m
+			if err != nil {
+				return n, fmt.Errorf("WriteSingleColorCharsetAnimationTo failed: %w", err)
+			}
+			return n, nil
+		}
+		if _, err = WriteSingleColorCharsetAnimationTo(buf, scCharsets); err != nil {
+			return n, fmt.Errorf("WriteSingleColorCharsetAnimationTo buf failed: %w", err)
+		}
+	case len(petCharsets) > 0:
+		c.Symbols = append(c.Symbols,
+			c64Symbol{"screen", 0x2800},
+			c64Symbol{"d800color", 0x2c00},
+			c64Symbol{"animation", 0x3000},
+		)
+		if c.opt.NoCrunch {
+			m, err := WritePETSCIICharsetAnimationTo(w, petCharsets)
+			n += m
+			if err != nil {
+				return n, fmt.Errorf("WritePETSCIICharsetAnimationTo failed: %w", err)
+			}
+			return n, nil
+		}
+		if _, err = WritePETSCIICharsetAnimationTo(buf, petCharsets); err != nil {
+			return n, fmt.Errorf("WritePETSCIICharsetAnimationTo buf failed: %w", err)
 		}
 	default:
 		return n, fmt.Errorf("animation displayers do not support %q", imgs[0].graphicsType)
@@ -634,6 +733,196 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 		if _, err = link.WritePrg(mcCharsetDisplayAnim); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
+		if cc[0].opt.IncludeSID != "" {
+			s, err := sid.LoadSID(cc[0].opt.IncludeSID)
+			if err != nil {
+				return n, fmt.Errorf("sid.LoadSID failed: %w", err)
+			}
+			if _, err = link.WritePrg(s.Bytes()); err != nil {
+				return n, fmt.Errorf("link.WritePrg failed: %w", err)
+			}
+			injectSIDLinker(link, s)
+		}
+	}
+	return link.WriteTo(w)
+}
+
+type charChunk struct {
+	charIndex int
+	charCount byte
+	bytes     []byte
+}
+
+func (cc charChunk) ScreenLow() byte {
+	return Word(cc.charIndex).Low()
+}
+
+func (cc charChunk) ScreenHigh() byte {
+	return Word(cc.charIndex).High()
+}
+
+func newCharChunk(charIndex int) charChunk {
+	return charChunk{
+		charIndex: charIndex,
+		bytes:     []byte{},
+	}
+}
+
+// WriteSingleColorCharsetAnimationTo writes the SingleColorCharset to w, optionally with displayer code.
+func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n int64, err error) {
+	if len(cc) < 2 {
+		return n, fmt.Errorf("not enough images %d < 2", len(cc))
+	}
+	cc = append(cc, cc[0]) // for clean loop
+	link := NewLinker(0x2000, cc[0].opt.VeryVerbose)
+	_, err = link.WriteMap(LinkMap{
+		0x2000: cc[len(cc)-1].Bitmap[:],
+		0x2800: cc[0].Screen[:],
+		0x2c00: cc[0].D800Color[:],
+		0x2fe8: []byte{cc[0].BorderColor, cc[0].BackgroundColor},
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.WriteMap failed: %w", err)
+	}
+
+	pos := Word(0x3000)
+	buf := []byte{}
+	curChunk := charChunk{charIndex: -10}
+	flushedtotal := 0
+	flushedchartotal := 0
+	flushChunk := func() {
+		if curChunk.charCount > 0 {
+			log.Printf("got chunk: %v", curChunk)
+			buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
+			buf = append(buf, curChunk.bytes...)
+			flushedtotal++
+			flushedchartotal += int(curChunk.charCount)
+			curChunk = charChunk{charIndex: -10}
+		}
+	}
+	for i := 1; i < len(cc); i++ {
+		for char := 0; char < FullScreenChars; char++ {
+			if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
+				log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
+				log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+				if curChunk.charCount == 0 {
+					curChunk = charChunk{
+						charIndex: char,
+						charCount: 1,
+						bytes:     []byte{cc[i].Screen[char], cc[i].D800Color[char]},
+					}
+				} else {
+					curChunk.bytes = append(curChunk.bytes, cc[i].Screen[char], cc[i].D800Color[char])
+					curChunk.charCount++
+					if curChunk.charCount > 250 {
+						return n, fmt.Errorf("chunk too large: %d", curChunk.charCount)
+					}
+				}
+				continue
+			}
+			flushChunk()
+		}
+		flushChunk()
+		buf = append(buf, 0x00) // end of chunks and frame
+	}
+	_, err = link.WriteMap(LinkMap{
+		pos: buf,
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.WriteMap failed: %w", err)
+	}
+	log.Printf("flushed %d chunks, %d chars", flushedtotal, flushedchartotal)
+
+	if cc[0].opt.Display {
+		if _, err = link.WritePrg(scCharsetDisplayAnim); err != nil {
+			return n, fmt.Errorf("link.WritePrg failed: %w", err)
+		}
+		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
+		link.Block(hiresFadePassStart, 0xcfff)
+		if cc[0].opt.IncludeSID != "" {
+			s, err := sid.LoadSID(cc[0].opt.IncludeSID)
+			if err != nil {
+				return n, fmt.Errorf("sid.LoadSID failed: %w", err)
+			}
+			if _, err = link.WritePrg(s.Bytes()); err != nil {
+				return n, fmt.Errorf("link.WritePrg failed: %w", err)
+			}
+			injectSIDLinker(link, s)
+		}
+	}
+	return link.WriteTo(w)
+}
+
+// WriteSingleColorCharsetAnimationTo writes the SingleColorCharset to w, optionally with displayer code.
+func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, err error) {
+	if len(cc) < 2 {
+		return n, fmt.Errorf("not enough images %d < 2", len(cc))
+	}
+	cc = append(cc, cc[0]) // for clean loop
+	link := NewLinker(0x2000, cc[0].opt.VeryVerbose)
+	_, err = link.WriteMap(LinkMap{
+		0x2800: cc[0].Screen[:],
+		0x2c00: cc[0].D800Color[:],
+		0x2fe8: []byte{cc[0].BorderColor, cc[0].BackgroundColor},
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.WriteMap failed: %w", err)
+	}
+
+	pos := Word(0x3000)
+	buf := []byte{}
+	curChunk := charChunk{charIndex: -10}
+	flushedtotal := 0
+	flushedchartotal := 0
+	flushChunk := func() {
+		if curChunk.charCount > 0 {
+			log.Printf("got chunk: %v", curChunk)
+			buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
+			buf = append(buf, curChunk.bytes...)
+			flushedchartotal += int(curChunk.charCount)
+			curChunk = charChunk{charIndex: -10}
+			flushedtotal++
+		}
+	}
+	for i := 1; i < len(cc); i++ {
+		for char := 0; char < FullScreenChars; char++ {
+			if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
+				log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
+				log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+				if curChunk.charCount == 0 {
+					curChunk = charChunk{
+						charIndex: char,
+						charCount: 1,
+						bytes:     []byte{cc[i].Screen[char], cc[i].D800Color[char]},
+					}
+				} else {
+					curChunk.bytes = append(curChunk.bytes, cc[i].Screen[char], cc[i].D800Color[char])
+					curChunk.charCount++
+					if curChunk.charCount > 250 {
+						return n, fmt.Errorf("chunk too large: %d", curChunk.charCount)
+					}
+				}
+				continue
+			}
+			flushChunk()
+		}
+		flushChunk()
+		buf = append(buf, 0x00) // end of chunks and frame
+	}
+	_, err = link.WriteMap(LinkMap{
+		pos: buf,
+	})
+	if err != nil {
+		return n, fmt.Errorf("link.WriteMap failed: %w", err)
+	}
+	log.Printf("flushed %d chunks, %d chars", flushedtotal, flushedchartotal)
+
+	if cc[0].opt.Display {
+		if _, err = link.WritePrg(petsciiCharsetDisplayAnim); err != nil {
+			return n, fmt.Errorf("link.WritePrg failed: %w", err)
+		}
+		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].Lowercase))
+		link.Block(hiresFadePassStart, 0xcfff)
 		if cc[0].opt.IncludeSID != "" {
 			s, err := sid.LoadSID(cc[0].opt.IncludeSID)
 			if err != nil {

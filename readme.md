@@ -205,6 +205,26 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
     ...          // next frame(s)
     .byte $ff    // end of all frames
 
+## Charset Animation
+
+Each frame consists of 1 or more chunks. A chunk looks like this:
+
+    .byte $03    // number of chars in this chunk
+                 // $00 marks end of frame
+                 // $ff marks end of all frames
+    .word screen // screenram address (the high byte is <$04)
+
+    For each char in this chunk:
+
+      .byte $03                  // character
+      .byte $01                  // colorram color
+      ...                        // next char(s)
+
+    ...          // next chunks
+    .byte 0      // end of frame
+    ...          // next frame(s)
+    .byte $ff    // end of all frames
+
 ## Displayer
 
 The -d or -display flag will link displayer code infront of the picture.
@@ -364,6 +384,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 ## Changes for version 1.9.0-dev
 
  - Add gfxmode to .sym files and display in terminal output (thanks Spider-J).
+ - Add experimental petscii animation support.
 
 ## Changes for version 1.8
 

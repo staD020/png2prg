@@ -372,6 +372,28 @@ func (img SingleColorCharset) Symbols() []c64Symbol {
 	}
 }
 
+func (c SingleColorCharset) UsedChars() int {
+	max := byte(0)
+	for i := range c.Screen {
+		if c.Screen[i] > max {
+			max = c.Screen[i]
+		}
+	}
+	return (int(max) + 1)
+}
+
+func (c SingleColorCharset) CharBytes() (cbs []charBytes) {
+	used := c.UsedChars()
+	for i := 0; i < used; i++ {
+		cb := charBytes{}
+		for j := 0; j < 8; j++ {
+			cb[j] = c.Bitmap[(i*8)+j]
+		}
+		cbs = append(cbs, cb)
+	}
+	return cbs
+}
+
 type MixedCharset struct {
 	SourceFilename  string
 	Bitmap          [0x800]byte
@@ -503,6 +525,9 @@ var mcCharsetDisplayAnim []byte
 //go:embed "display_sc_charset.prg"
 var scCharsetDisplay []byte
 
+//go:embed "display_sc_charset_anim.prg"
+var scCharsetDisplayAnim []byte
+
 //go:embed "display_mc_sprites.prg"
 var mcSpritesDisplay []byte
 
@@ -526,6 +551,9 @@ var mixedCharsetDisplay []byte
 
 //go:embed "display_petscii_charset.prg"
 var petsciiCharsetDisplay []byte
+
+//go:embed "display_petscii_charset_anim.prg"
+var petsciiCharsetDisplayAnim []byte
 
 //go:embed "display_ecm_charset.prg"
 var ecmCharsetDisplay []byte

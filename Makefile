@@ -1,12 +1,12 @@
 SRC=*.go cmd/png2prg/*.go tools/rom_charset_lowercase.prg tools/rom_charset_uppercase.prg
-DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg display_mci_bitmap.prg display_mixed_charset.prg display_petscii_charset.prg display_ecm_charset.prg display_mc_charset_anim.prg
+DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg display_mci_bitmap.prg display_mixed_charset.prg display_petscii_charset.prg display_ecm_charset.prg display_mc_charset_anim.prg display_sc_charset_anim.prg display_petscii_charset_anim.prg
 ASMLIB=lib.asm
 ASM=java -jar ./tools/KickAss-5.25.jar
 ASMFLAGS=-showmem -time
 X64=x64sc
 UPX=upx
 UPXFLAGS=--best
-EXO=echo exomizer
+EXO=exomizer
 
 LDFLAGS=-s -w
 CGO=0
@@ -224,6 +224,7 @@ benchkoala: floris mermaid shortcircuit ste mermaid2 sander sulevi robinlevy vet
 MISCPIC=testdata/joe_hatching320x200.png
 MISCPIC=testdata/dokk_last_ninja320x200.png
 MISCPIC=testdata/carrion_still_waiting320x200.png
+MISCPIC=testdata/bob_io320x200.png
 
 P2PBENCHOPTS=-bf
 
@@ -238,6 +239,7 @@ floris: $(FLORIS) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 0,5,11,6 -nbc -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -252,6 +254,7 @@ mermaid: $(MERMAID) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 0,1,12,4 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -267,6 +270,7 @@ shortcircuit: $(SHORTCIRCUIT) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 1,6,11,0 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -282,6 +286,7 @@ sander: $(SANDER) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 0,9,1,3 -nbc -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -297,6 +302,7 @@ ste: $(STE) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 0,6,14,1 -npcc -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -313,6 +319,7 @@ mermaid2: $(MERMAID2) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 15,12,3,5 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -327,6 +334,7 @@ sulevi: $(SULEVI) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 3,13,1,7 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -345,6 +353,7 @@ robinlevy: $(ROBIN) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 0,12,9,11 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -364,6 +373,7 @@ veto: $(VETO) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 9,10,15,5 -npcc -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -379,6 +389,7 @@ leon: $(LEON) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 8,0,6,5 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -392,6 +403,7 @@ miscpic: $(MISCPIC) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	 ./$(TARGET) -o $@_p2pdefault.prg $<
 	dali -o $@_p2pdefault.prg.dali $@_p2pdefault.prg
+	$(EXO) level -o $@_p2pdefault.prg.exo $@_p2pdefault.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -409,6 +421,7 @@ jonegg: $(JONEGG) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 14,8,7,0 -npcc -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -424,6 +437,7 @@ talent: $(TALENT) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 11,12,15,10 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -439,6 +453,7 @@ cisco: $(CISCO) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 0,8,6,2 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -454,6 +469,7 @@ yiear: $(YIEAR) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 6,8,0,15 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -469,6 +485,7 @@ hend: $(HEND) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 12,1,9,11 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -484,6 +501,7 @@ sarge: $(SARGE) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 0,5,4,6 -nbc -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -499,6 +517,7 @@ mirage: $(MIRAGE) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 15,4,9,7 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -514,6 +533,7 @@ dragon: $(DRAGON) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 0,12,11,2 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -528,6 +548,7 @@ scorpion:$(SCORPION) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bf -nbc -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
@@ -543,6 +564,7 @@ joe:$(JOE) $(TARGET)
 	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
 	./$(TARGET) -bpc 0,11,14,5 -o $@_p2pbest.prg $<
 	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
