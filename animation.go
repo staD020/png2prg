@@ -827,6 +827,7 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 		flushChunk()
 		buf = append(buf, 0x00) // end of chunks and frame
 	}
+	buf = append(buf, 0xff) // end of frames
 	_, err = link.WriteMap(LinkMap{
 		pos: buf,
 	})
@@ -911,6 +912,7 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		flushChunk()
 		buf = append(buf, 0x00) // end of chunks and frame
 	}
+	buf = append(buf, 0xff) // end of frames
 	_, err = link.WriteMap(LinkMap{
 		pos: buf,
 	})

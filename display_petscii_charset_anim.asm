@@ -24,12 +24,10 @@
 .const zp_anim_start  = $08
 .const zp_anim_lo     = zp_anim_start + 0
 .const zp_anim_hi     = zp_anim_start + 1
-.const zp_bitmap_lo   = zp_anim_start + 2
-.const zp_bitmap_hi   = zp_anim_start + 3
-.const zp_char_lo     = zp_anim_start + 4
-.const zp_char_hi     = zp_anim_start + 5
-.const zp_d800_lo     = zp_anim_start + 6
-.const zp_d800_hi     = zp_anim_start + 7
+.const zp_char_lo     = zp_anim_start + 2
+.const zp_char_hi     = zp_anim_start + 3
+.const zp_d800_lo     = zp_anim_start + 4
+.const zp_d800_hi     = zp_anim_start + 5
 
 .import source "lib.asm"
 

@@ -175,6 +175,26 @@ evoluer: $(TARGET)
 	./$(TARGET) $(FLAGS) -frame-delay 4 -o q.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/PIC??.png
 	$(X64) q.prg >/dev/null
 
+rose: $(TARGET)
+	./$(TARGET) $(FLAGS) -frame-delay 4 -o q.prg \
+	testdata/petscii/anim/rose0.png \
+	testdata/petscii/anim/rose1.png \
+	testdata/petscii/anim/rose2.png \
+	testdata/petscii/anim/rose3.png \
+	testdata/petscii/anim/rose4.png \
+	testdata/petscii/anim/rose5.png \
+	testdata/petscii/anim/rose6.png \
+	testdata/petscii/anim/rose5.png \
+	testdata/petscii/anim/rose4.png \
+	testdata/petscii/anim/rose3.png \
+	testdata/petscii/anim/rose2.png \
+	testdata/petscii/anim/rose1.png
+	$(X64) q.prg >/dev/null
+
+oceanborn: $(TARGET)
+	./$(TARGET) $(FLAGS) -frame-delay 13 -o q.prg testdata/petscii/anim/oceanborn?.png
+	$(X64) q.prg >/dev/null
+
 testpack: $(TARGET)
 	./$(TARGET) $(FLAGS) -nc -np -i -o q.prg $(TESTPIC)
 	$(EXO) sfx basic -q -o qq_guess.sfx.exo q.prg
