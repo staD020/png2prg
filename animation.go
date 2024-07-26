@@ -794,7 +794,9 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 	flushedchartotal := 0
 	flushChunk := func() {
 		if curChunk.charCount > 0 {
-			log.Printf("got chunk: %v", curChunk)
+			if cc[0].opt.VeryVerbose {
+				log.Printf("got chunk: %v", curChunk)
+			}
 			buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
 			buf = append(buf, curChunk.bytes...)
 			flushedtotal++
@@ -805,8 +807,10 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 	for i := 1; i < len(cc); i++ {
 		for char := 0; char < FullScreenChars; char++ {
 			if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
-				log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
-				log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+				if cc[0].opt.VeryVerbose {
+					log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
+					log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+				}
 				if curChunk.charCount == 0 {
 					curChunk = charChunk{
 						charIndex: char,
@@ -834,7 +838,9 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 	if err != nil {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
-	log.Printf("flushed %d chunks, %d chars", flushedtotal, flushedchartotal)
+	if cc[0].opt.Verbose {
+		log.Printf("flushed %d chunks, %d chars", flushedtotal, flushedchartotal)
+	}
 
 	if cc[0].opt.Display {
 		if _, err = link.WritePrg(scCharsetDisplayAnim); err != nil {
@@ -879,7 +885,9 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 	flushedchartotal := 0
 	flushChunk := func() {
 		if curChunk.charCount > 0 {
-			log.Printf("got chunk: %v", curChunk)
+			if cc[0].opt.VeryVerbose {
+				log.Printf("got chunk: %v", curChunk)
+			}
 			buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
 			buf = append(buf, curChunk.bytes...)
 			flushedchartotal += int(curChunk.charCount)
@@ -890,8 +898,10 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 	for i := 1; i < len(cc); i++ {
 		for char := 0; char < FullScreenChars; char++ {
 			if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
-				log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
-				log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+				if cc[0].opt.VeryVerbose {
+					log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
+					log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+				}
 				if curChunk.charCount == 0 {
 					curChunk = charChunk{
 						charIndex: char,
@@ -919,7 +929,9 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 	if err != nil {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
-	log.Printf("flushed %d chunks, %d chars", flushedtotal, flushedchartotal)
+	if cc[0].opt.Verbose {
+		log.Printf("flushed %d chunks, %d chars", flushedtotal, flushedchartotal)
+	}
 
 	if cc[0].opt.Display {
 		if _, err = link.WritePrg(petsciiCharsetDisplayAnim); err != nil {
