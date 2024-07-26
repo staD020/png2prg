@@ -820,8 +820,9 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 				} else {
 					curChunk.bytes = append(curChunk.bytes, cc[i].Screen[char], cc[i].D800Color[char])
 					curChunk.charCount++
-					if curChunk.charCount > 250 {
-						return n, fmt.Errorf("chunk too large: %d", curChunk.charCount)
+					if curChunk.charCount > 254 {
+						log.Printf("large chunck detected (%d chars), flushing...", curChunk.charCount)
+						flushChunk()
 					}
 				}
 				continue
@@ -911,8 +912,9 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 				} else {
 					curChunk.bytes = append(curChunk.bytes, cc[i].Screen[char], cc[i].D800Color[char])
 					curChunk.charCount++
-					if curChunk.charCount > 250 {
-						return n, fmt.Errorf("chunk too large: %d", curChunk.charCount)
+					if curChunk.charCount > 254 {
+						log.Printf("large chunck detected (%d chars), flushing...", curChunk.charCount)
+						flushChunk()
 					}
 				}
 				continue
