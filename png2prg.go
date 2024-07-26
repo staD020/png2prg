@@ -728,7 +728,11 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.Verbose {
 		log.Printf("processing file %q", img.sourceFilename)
 	}
-	defer func() { c.FinalGraphicsType = img.graphicsType }()
+	defer func() {
+		if len(c.images) == 1 {
+			c.FinalGraphicsType = img.graphicsType
+		}
+	}()
 	if err = img.analyze(); err != nil {
 		return 0, fmt.Errorf("analyze %q failed: %w", img.sourceFilename, err)
 	}
@@ -764,6 +768,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		if err = c.images[1].analyze(); err != nil {
 			return n, fmt.Errorf("analyze %q failed: %w", c.images[1].sourceFilename, err)
 		}
+		c.FinalGraphicsType = img.graphicsType
 		return c.WriteInterlaceTo(w)
 	}
 	if len(c.images) > 1 {

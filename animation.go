@@ -58,7 +58,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	}
 
 	wantedGraphicsType := imgs[0].graphicsType
-	defer func() { c.FinalGraphicsType = imgs[0].graphicsType }()
+	c.FinalGraphicsType = imgs[0].graphicsType
 	currentBitpairColors := bitpairColors{}
 	charset := []charBytes{}
 	for i, img := range imgs {
@@ -133,6 +133,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 				scCharsets = append(scCharsets, ch)
 				charset = ch.CharBytes()
 			} else {
+				c.FinalGraphicsType = petsciiCharset
 				petCharsets = append(petCharsets, pet)
 			}
 		case petsciiCharset:
@@ -149,6 +150,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			if err != nil {
 				return n, fmt.Errorf("img.SingleColorCharset failed: %w", err)
 			}
+			c.FinalGraphicsType = petsciiCharset
 			petCharsets = append(petCharsets, pet)
 		default:
 			return n, fmt.Errorf("animations do not support %q yet", img.graphicsType)
