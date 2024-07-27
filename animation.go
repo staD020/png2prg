@@ -775,7 +775,6 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 	if len(cc) < 2 {
 		return n, fmt.Errorf("not enough images %d < 2", len(cc))
 	}
-	cc = append(cc, cc[0]) // for clean loop
 	link := NewLinker(0x2000, cc[0].opt.VeryVerbose)
 	_, err = link.WriteMap(LinkMap{
 		0x2000: cc[len(cc)-1].Bitmap[:],
@@ -787,6 +786,7 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
 
+	cc = append(cc, cc[0]) // for clean loop
 	pos := Word(0x3000)
 	buf := []byte{}
 	curChunk := charChunk{charIndex: -10}
@@ -799,8 +799,8 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 			}
 			buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
 			buf = append(buf, curChunk.bytes...)
-			flushedtotal++
 			flushedchartotal += int(curChunk.charCount)
+			flushedtotal++
 			curChunk = charChunk{charIndex: -10}
 		}
 	}
@@ -868,7 +868,6 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 	if len(cc) < 2 {
 		return n, fmt.Errorf("not enough images %d < 2", len(cc))
 	}
-	cc = append(cc, cc[0]) // for clean loop
 	link := NewLinker(0x2000, cc[0].opt.VeryVerbose)
 	_, err = link.WriteMap(LinkMap{
 		0x2800: cc[0].Screen[:],
@@ -879,6 +878,7 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
 
+	cc = append(cc, cc[0]) // for clean loop
 	pos := Word(0x3000)
 	buf := []byte{}
 	curChunk := charChunk{charIndex: -10}
@@ -892,8 +892,8 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 			buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
 			buf = append(buf, curChunk.bytes...)
 			flushedchartotal += int(curChunk.charCount)
-			curChunk = charChunk{charIndex: -10}
 			flushedtotal++
+			curChunk = charChunk{charIndex: -10}
 		}
 	}
 	for i := 1; i < len(cc); i++ {

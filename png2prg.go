@@ -337,6 +337,21 @@ func (c MultiColorCharset) UsedChars() int {
 			max = c.Screen[i]
 		}
 	}
+	// check for empty chars too, this is for animations
+	empty := charBytes{}
+	emptyCount := 0
+	for i := range c.Screen {
+		cb := charBytes{}
+		for j := 0; j < 8; j++ {
+			cb[j] = c.Bitmap[i*8+j]
+		}
+		if cb == empty {
+			emptyCount++
+			if emptyCount > 1 && i > int(max) {
+				return i
+			}
+		}
+	}
 	return (int(max) + 1)
 }
 
@@ -359,6 +374,7 @@ type SingleColorCharset struct {
 	D800Color       [1000]byte
 	BackgroundColor byte
 	BorderColor     byte
+	used            int
 	opt             Options
 }
 
@@ -377,6 +393,21 @@ func (c SingleColorCharset) UsedChars() int {
 	for i := range c.Screen {
 		if c.Screen[i] > max {
 			max = c.Screen[i]
+		}
+	}
+	// check for empty chars too, this is for animations
+	empty := charBytes{}
+	emptyCount := 0
+	for i := range c.Screen {
+		cb := charBytes{}
+		for j := 0; j < 8; j++ {
+			cb[j] = c.Bitmap[i*8+j]
+		}
+		if cb == empty {
+			emptyCount++
+			if emptyCount > 1 && i > int(max) {
+				return i
+			}
 		}
 	}
 	return (int(max) + 1)
