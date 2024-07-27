@@ -157,12 +157,7 @@ smc_yval:	ldy #steps-1
 		ldx src_colorram+1000
 		lda t_color_fade,x
 		sta $d020
-		lda src_colorram+1001
-		lsr
-		lsr
-		lsr
-		lsr
-		tax
+		ldx src_colorram+1001
 		lda t_color_fade,x
 		sta $d021
 
