@@ -578,6 +578,9 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
 		injectSIDLinker(link, s)
+		if !opt.Quiet {
+			fmt.Printf("injected %q: %s\n", opt.IncludeSID, s)
+		}
 	}
 	m, err := link.WriteTo(w)
 	n += int64(m)
@@ -649,6 +652,9 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
 		injectSIDLinker(link, s)
+		if !opt.Quiet {
+			fmt.Printf("injected %q: %s\n", opt.IncludeSID, s)
+		}
 	}
 
 	m, err := link.WriteTo(w)
@@ -752,6 +758,9 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 				return n, fmt.Errorf("link.WritePrg failed: %w", err)
 			}
 			injectSIDLinker(link, s)
+			if !cc[0].opt.Quiet {
+				fmt.Printf("injected %q: %s\n", cc[0].opt.IncludeSID, s)
+			}
 		}
 	}
 	return link.WriteTo(w)
@@ -866,6 +875,9 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 				return n, fmt.Errorf("link.WritePrg failed: %w", err)
 			}
 			injectSIDLinker(link, s)
+			if !cc[0].opt.Quiet {
+				fmt.Printf("injected %q: %s\n", cc[0].opt.IncludeSID, s)
+			}
 		}
 	}
 	return link.WriteTo(w)
@@ -958,6 +970,9 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 				return n, fmt.Errorf("link.WritePrg failed: %w", err)
 			}
 			injectSIDLinker(link, s)
+			if !cc[0].opt.Quiet {
+				fmt.Printf("injected %q: %s\n", cc[0].opt.IncludeSID, s)
+			}
 		}
 	}
 	return link.WriteTo(w)
