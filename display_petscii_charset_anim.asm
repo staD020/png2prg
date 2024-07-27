@@ -1,4 +1,4 @@
-.const DEBUG = true
+.const DEBUG = false
 .const GENDEBUG = false
 .const MUSICDEBUG = false
 .const LOOP = false
