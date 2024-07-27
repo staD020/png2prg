@@ -1,4 +1,4 @@
-.const DEBUG = false
+.const DEBUG = true
 .const GENDEBUG = false
 .const MUSICDEBUG = false
 .const LOOP = false
@@ -156,15 +156,15 @@ smc_yval:	ldy #steps-1
 }
 		ldx src_colorram+1000
 		lda t_color_fade,x
-		sta $d021
-		lda src_colorram+1000
+		sta $d020
+		lda src_colorram+1001
 		lsr
 		lsr
 		lsr
 		lsr
 		tax
 		lda t_color_fade,x
-		sta $d020
+		sta $d021
 
 	!:	lda $d012
 		cmp #$70

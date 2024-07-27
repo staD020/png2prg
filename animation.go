@@ -255,6 +255,8 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		c.Symbols = append(c.Symbols,
 			c64Symbol{"d800color", 0x3c00},
 			c64Symbol{"bitmap", 0x4000},
+			c64Symbol{"d020color", int(scCharsets[0].BorderColor)},
+			c64Symbol{"d021color", int(scCharsets[0].BackgroundColor)},
 		)
 		for i := 0; i < len(mcCharsets); i++ {
 			c.Symbols = append(c.Symbols, c64Symbol{"screen" + strconv.Itoa(i), 0x4800 + i*0x400})
@@ -331,6 +333,8 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 		c.Symbols = append(c.Symbols,
 			c64Symbol{"d800color", 0x3c00},
 			c64Symbol{"bitmap", 0x4000},
+			c64Symbol{"d020color", int(mcCharsets[0].BorderColor)},
+			c64Symbol{"d021color", int(mcCharsets[0].BackgroundColor)},
 		)
 		for i := 0; i < len(mcCharsets); i++ {
 			c.Symbols = append(c.Symbols, c64Symbol{"screen" + strconv.Itoa(i), 0x4800 + i*0x400})
@@ -352,6 +356,8 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 			c64Symbol{"screen", 0x2800},
 			c64Symbol{"d800color", 0x2c00},
 			c64Symbol{"animation", 0x3000},
+			c64Symbol{"d020color", int(scCharsets[0].BorderColor)},
+			c64Symbol{"d021color", int(scCharsets[0].BackgroundColor)},
 		)
 		if c.opt.NoCrunch {
 			m, err := WriteSingleColorCharsetAnimationTo(w, scCharsets)
@@ -369,6 +375,8 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 			c64Symbol{"screen", 0x2800},
 			c64Symbol{"d800color", 0x2c00},
 			c64Symbol{"animation", 0x3000},
+			c64Symbol{"d020color", int(petCharsets[0].BorderColor)},
+			c64Symbol{"d021color", int(petCharsets[0].BackgroundColor)},
 		)
 		if c.opt.NoCrunch {
 			m, err := WritePETSCIICharsetAnimationTo(w, petCharsets)
