@@ -728,7 +728,8 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 	if len(cc) < 2 {
 		return n, fmt.Errorf("not enough images %d < 2", len(cc))
 	}
-	link := NewLinker(0x3c00, cc[0].opt.VeryVerbose)
+	opt := cc[0].opt
+	link := NewLinker(0x3c00, opt.VeryVerbose)
 	_, err = link.WriteMap(LinkMap{
 		0x3c00: cc[0].D800Color[:],
 		0x3fe8: []byte{cc[0].BorderColor, cc[0].BackgroundColor, cc[0].D022Color, cc[0].D023Color, byte(len(cc)) & 0xff},
@@ -745,12 +746,12 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
 	}
-	if cc[0].opt.Display {
+	if opt.Display {
 		if _, err = link.WritePrg(mcCharsetDisplayAnim); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		if cc[0].opt.IncludeSID != "" {
-			s, err := sid.LoadSID(cc[0].opt.IncludeSID)
+		if opt.IncludeSID != "" {
+			s, err := sid.LoadSID(opt.IncludeSID)
 			if err != nil {
 				return n, fmt.Errorf("sid.LoadSID failed: %w", err)
 			}
@@ -758,8 +759,8 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 				return n, fmt.Errorf("link.WritePrg failed: %w", err)
 			}
 			injectSIDLinker(link, s)
-			if !cc[0].opt.Quiet {
-				fmt.Printf("injected %q: %s\n", cc[0].opt.IncludeSID, s)
+			if !opt.Quiet {
+				fmt.Printf("injected %q: %s\n", opt.IncludeSID, s)
 			}
 		}
 	}

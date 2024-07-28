@@ -332,15 +332,15 @@ func (img MultiColorCharset) Symbols() []c64Symbol {
 
 func (c MultiColorCharset) UsedChars() int {
 	max := byte(0)
-	for i := range c.Screen {
-		if c.Screen[i] > max {
-			max = c.Screen[i]
+	for _, v := range c.Screen {
+		if v > max {
+			max = v
 		}
 	}
 	// check for empty chars too, this is for animations
 	empty := charBytes{}
 	emptyCount := 0
-	for i := range c.Screen {
+	for i := 0; i < MaxChars; i++ {
 		cb := charBytes{}
 		for j := 0; j < 8; j++ {
 			cb[j] = c.Bitmap[i*8+j]
@@ -390,15 +390,15 @@ func (img SingleColorCharset) Symbols() []c64Symbol {
 
 func (c SingleColorCharset) UsedChars() int {
 	max := byte(0)
-	for i := range c.Screen {
-		if c.Screen[i] > max {
-			max = c.Screen[i]
+	for _, v := range c.Screen {
+		if v > max {
+			max = v
 		}
 	}
 	// check for empty chars too, this is for animations
 	empty := charBytes{}
 	emptyCount := 0
-	for i := range c.Screen {
+	for i := 0; i < MaxChars; i++ {
 		cb := charBytes{}
 		for j := 0; j < 8; j++ {
 			cb[j] = c.Bitmap[i*8+j]
