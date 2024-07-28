@@ -397,6 +397,8 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println(" - Add gfxmode to .sym files and display in terminal output (thanks Spider-J).")
 	fmt.Println(" - Add experimental petscii animation support.")
+	fmt.Println(" - Add -no-anim flag disable charset animations and store frames as separate")
+	fmt.Println("   screens.")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.8")
 	fmt.Println()

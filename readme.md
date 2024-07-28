@@ -385,6 +385,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 
  - Add gfxmode to .sym files and display in terminal output (thanks Spider-J).
  - Add experimental petscii animation support.
+ - Add -no-anim flag disable charset animations and store frames as separate
+   screens.
 
 ## Changes for version 1.8
 
@@ -515,12 +517,16 @@ tables used in the koala and hires displayers.
     	write memory profile to file (only in -parallel mode)
   -mode string
     	force graphics mode to koala, hires, mixedcharset, sccharset, mccharset (4col), scsprites or mcsprites
+  -na
+    	no-anim
   -nbc
     	no-bitpair-counters
   -nc
     	no-crunch
   -ng
     	no-guess
+  -no-anim
+    	disable charset animations and store frames as separate screens
   -no-bitpair-counters
     	do not use c64color bitpar counters optimization
   -no-crunch

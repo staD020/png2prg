@@ -72,6 +72,7 @@ type Options struct {
 	D016Offset          int
 	ForceBorderColor    int
 	IncludeSID          string
+	NoAnimation         bool
 	FrameDelay          int
 	WaitSeconds         int
 	ForceXOffset        int
@@ -552,6 +553,9 @@ var mcCharsetDisplay []byte
 
 //go:embed "display_mc_charset_anim.prg"
 var mcCharsetDisplayAnim []byte
+
+//go:embed "display_mc_charset_multi.prg"
+var mcCharsetDisplayMulti []byte
 
 //go:embed "display_sc_charset.prg"
 var scCharsetDisplay []byte
