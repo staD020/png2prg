@@ -36,7 +36,8 @@ music_play:
 .pc = * "charset_case"
 charset_case:
 		.byte 0 // 0 = uppercase, 1 = lowercase
-.pc = $0822 "start"
+
+.pc = basicsys() "start"
 start:
 		sei
 		jsr $e544

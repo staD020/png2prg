@@ -8,6 +8,10 @@
 	.return 2024
 }
 
+.function basicsys() {
+	.return 2088
+}
+
 .macro vblank() {
 	!:	bit $d011
 		bpl !-

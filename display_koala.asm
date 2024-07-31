@@ -46,7 +46,8 @@ frame_delay:
 .pc = * "wait_seconds"
 wait_seconds:
 		.byte 0
-.pc = * "start"
+
+.pc = basicsys() "start"
 start:
 		sei
 		jsr $e544

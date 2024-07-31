@@ -32,7 +32,8 @@ music_init:
 .pc = * "music_play"
 music_play:
 		jmp rrts
-.pc = $0822 "start"
+
+.pc = basicsys() "start"
 start:
 		sei
 		jsr $e544
