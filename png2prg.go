@@ -563,6 +563,9 @@ var scCharsetDisplay []byte
 //go:embed "display_sc_charset_anim.prg"
 var scCharsetDisplayAnim []byte
 
+//go:embed "display_sc_charset_multi.prg"
+var scCharsetDisplayMulti []byte
+
 //go:embed "display_mc_sprites.prg"
 var mcSpritesDisplay []byte
 

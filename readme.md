@@ -384,9 +384,10 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 ## Changes for version 1.9.1-dev
 
  - Add gfxmode to .sym files and display in terminal output (thanks Spider-J).
- - Add experimental petscii animation support.
- - Add -no-anim flag disable charset animations and store frames as separate
+ - Add petscii animation support.
+ - Add -no-anim flag disable mccharset animations and store frames as separate
    screens.
+ - Add sccharset animation support and move separate screens to -no-anim.
 
 ## Changes for version 1.8
 
