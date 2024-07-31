@@ -1112,7 +1112,7 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		if _, err = link.WritePrg(petsciiCharsetDisplayAnim); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].Lowercase))
+		link.SetByte(0x820, byte(cc[0].Lowercase), byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
 		link.Block(hiresFadePassStart, 0xcfff)
 		if cc[0].opt.IncludeSID != "" {
 			s, err := sid.LoadSID(cc[0].opt.IncludeSID)

@@ -46,15 +46,15 @@ music_init:
 .pc = * "music_play"
 music_play:
 		jmp rrts
-.pc = * "frame_delay"
-frame_delay:
-		.byte 0
 .pc = * "charset_case"
 charset_case:
 		.byte 0 // 0 = uppercase, 1 = lowercase
-//.pc = * "wait_seconds"
-//wait_seconds:
-//		.byte 0
+.pc = * "frame_delay"
+frame_delay:
+		.byte 0
+.pc = * "wait_seconds"
+wait_seconds:
+		.byte 0
 
 .pc = basicsys() "start"
 start:
@@ -180,7 +180,6 @@ smc_yval:	ldy #steps-1
 
 		jsr anim_init
 
-/*
 		// optional wait before anim start
 		ldy wait_seconds
 		beq loop_anim
@@ -191,7 +190,6 @@ smc_yval:	ldy #steps-1
 		bne !-
 		dey
 		bne !waitloop-
-*/
 
 loop_anim:
 		ldx frame_delay

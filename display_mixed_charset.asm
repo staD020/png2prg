@@ -35,6 +35,12 @@ music_play:
 .pc = * "charset_case"
 charset_case:
 		.byte 0 // 0 = uppercase, 1 = lowercase
+.pc = * "frame_delay"
+frame_delay:
+		.byte 0
+.pc = * "wait_seconds"
+wait_seconds:
+		.byte 0
 
 .pc = basicsys() "start"
 start:
