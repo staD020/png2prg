@@ -1135,14 +1135,14 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 	return link.WriteTo(w)
 }
 
-// WriteMixedCharsetAnimationTo writes the SingleColorCharset to w, optionally with displayer code.
+// WriteMixedCharsetAnimationTo writes the MixedCharset to w, optionally with displayer code.
 func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err error) {
 	if len(cc) < 2 {
 		return n, fmt.Errorf("not enough images %d < 2", len(cc))
 	}
 	opt := cc[0].opt
 	var link *Linker
-	displayer := scCharsetDisplayMulti
+	displayer := mcCharsetDisplayMulti
 	if opt.NoAnimation {
 		link = NewLinker(0x3fe8, opt.VeryVerbose)
 		_, err = link.WriteMap(LinkMap{
