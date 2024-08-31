@@ -1162,7 +1162,7 @@ func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err 
 			}
 		}
 	} else {
-		displayer = scCharsetDisplayAnim
+		displayer = mcCharsetDisplayAnim
 		link = NewLinker(0x2000, cc[0].opt.VeryVerbose)
 		_, err = link.WriteMap(LinkMap{
 			0x2000: cc[len(cc)-1].Bitmap[:],
