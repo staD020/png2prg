@@ -388,6 +388,10 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Add -no-anim flag disable mccharset animations and store frames as separate
    screens.
  - Add sccharset animation support and move separate screens to -no-anim.
+ - Add mixedcharset animation support and move separate screens to -no-anim.
+ - Bugfix: handle blank ECM images as well as ECM images using few bg colors
+   (thanks Brush).
+ - Add -no-fade flag for koala animations.
 
 ## Changes for version 1.8
 
@@ -524,6 +528,8 @@ tables used in the koala and hires displayers.
     	no-bitpair-counters
   -nc
     	no-crunch
+  -nf
+    	no-fade
   -ng
     	no-guess
   -no-anim
@@ -532,6 +538,8 @@ tables used in the koala and hires displayers.
     	do not use c64color bitpar counters optimization
   -no-crunch
     	do not TSCrunch displayer
+  -no-fade
+    	do not use fade in/out for animation displayers
   -no-guess
     	do not guess preferred bitpair-colors
   -no-pack

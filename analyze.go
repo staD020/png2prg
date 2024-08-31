@@ -524,7 +524,20 @@ func (img *sourceImage) findECMColors() error {
 			}
 		}
 	}
-
+	if len(colm) == 0 {
+		for _, v := range img.charColors {
+			if len(v) > 1 {
+				continue
+			}
+			for rgb, col := range v {
+				if c, ok := colm[col]; ok {
+					c.count++
+				} else {
+					colm[col] = &sortcolor{colorIndex: col, rgb: rgb, count: 1}
+				}
+			}
+		}
+	}
 	colors := make([]*sortcolor, 0)
 	for _, col := range colm {
 		if col != nil {

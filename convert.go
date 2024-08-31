@@ -871,17 +871,24 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 // ECMCharset converts the img to ECMCharset and returns it.
 func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, error) {
 	if len(img.ecmColors) < 4 {
-		return ECMCharset{}, fmt.Errorf("not enough img.ecmColors: %v", img.ecmColors)
+		log.Printf("not enough img.ecmColors: %v", img.ecmColors)
+		//return ECMCharset{}, fmt.Errorf("not enough img.ecmColors: %v", img.ecmColors)
 	}
 
 	c := ECMCharset{
 		SourceFilename:  img.sourceFilename,
 		BorderColor:     img.borderColor.ColorIndex,
 		BackgroundColor: img.ecmColors[0],
-		D022Color:       img.ecmColors[1],
-		D023Color:       img.ecmColors[2],
-		D024Color:       img.ecmColors[3],
 		opt:             img.opt,
+	}
+	if len(img.ecmColors) > 1 {
+		c.D022Color = img.ecmColors[1]
+	}
+	if len(img.ecmColors) > 2 {
+		c.D023Color = img.ecmColors[2]
+	}
+	if len(img.ecmColors) > 3 {
+		c.D024Color = img.ecmColors[3]
 	}
 
 	charset := []charBytes{}

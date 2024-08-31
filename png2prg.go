@@ -65,6 +65,7 @@ type Options struct {
 	NoCrunch            bool
 	Symbols             bool
 	AlternativeFade     bool
+	NoFade              bool
 	BitpairColorsString string
 	NoGuess             bool
 	GraphicsMode        string
@@ -78,6 +79,13 @@ type Options struct {
 	ForceXOffset        int
 	ForceYOffset        int
 	CurrentGraphicsType GraphicsType
+}
+
+func (o Options) NoFadeByte() byte {
+	if o.NoFade {
+		return 1
+	}
+	return 0
 }
 
 type RGB struct {
@@ -670,6 +678,9 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 			log.Printf("file %q has %d frames", path, len(g.Image))
 		}
 		for i, rawImage := range g.Image {
+			if opt.VeryVerbose {
+				log.Printf("processing frame %d", i)
+			}
 			img := sourceImage{
 				sourceFilename: path,
 				opt:            opt,
@@ -678,8 +689,14 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 			}
-			if err = img.checkBounds(); err != nil {
-				return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", path, i, err)
+			switch {
+			case i == 0:
+				if err = img.checkBounds(); err != nil {
+					return nil, fmt.Errorf("img.checkBounds failed %q frame %d: %w", path, i, err)
+				}
+			case i > 0:
+				img.xOffset, img.yOffset = imgs[0].xOffset, imgs[0].yOffset
+				img.width, img.height = imgs[0].width, imgs[0].height
 			}
 			imgs = append(imgs, img)
 		}
@@ -843,22 +860,26 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
 		}
 	case singleColorCharset:
-		if wt, err = img.PETSCIICharset(); err != nil {
+		if c.opt.GraphicsMode != "" {
 			if wt, err = img.SingleColorCharset(nil); err != nil {
-				if c.opt.GraphicsMode != "" {
-					return 0, fmt.Errorf("img.SingleColorCharset %q failed: %w", img.sourceFilename, err)
-				}
-				fmt.Printf("falling back to %s because img.SingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
-				img.graphicsType = singleColorBitmap
-				if err = bruteforce(singleColorBitmap, 2); err != nil {
-					return 0, err
-				}
-				if wt, err = img.Hires(); err != nil {
-					return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
-				}
+				return 0, fmt.Errorf("img.SingleColorCharset %q failed: %w", img.sourceFilename, err)
 			}
-		} else if !c.opt.Quiet {
-			fmt.Printf("detected petscii\n")
+		} else {
+			if wt, err = img.PETSCIICharset(); err != nil {
+				if wt, err = img.SingleColorCharset(nil); err != nil {
+					fmt.Printf("falling back to %s because img.SingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
+					img.graphicsType = singleColorBitmap
+					if err = bruteforce(singleColorBitmap, 2); err != nil {
+						return 0, err
+					}
+					if wt, err = img.Hires(); err != nil {
+						return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
+					}
+				}
+			} else if !c.opt.Quiet {
+				fmt.Printf("detected petscii\n")
+				img.graphicsType = petsciiCharset
+			}
 		}
 	case petsciiCharset:
 		if wt, err = img.PETSCIICharset(); err != nil {
