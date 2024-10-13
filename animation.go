@@ -29,6 +29,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	var scCharsets []SingleColorCharset
 	var petCharsets []PETSCIICharset
 	var mcCharsets []MultiColorCharset
+	var mixCharsets []MixedCharset
 	imgs := c.images
 	if len(imgs) < 1 {
 		return n, fmt.Errorf("no sourceImage given")
@@ -154,13 +155,20 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			}
 			c.FinalGraphicsType = petsciiCharset
 			petCharsets = append(petCharsets, pet)
+		case mixedCharset:
+			ch, err := img.MixedCharset(charset)
+			if err != nil {
+				return n, fmt.Errorf("img.MixedCharset failed: %w", err)
+			}
+			mixCharsets = append(mixCharsets, ch)
+			charset = ch.CharBytes()
 		default:
 			return n, fmt.Errorf("animations do not support %q yet", img.graphicsType)
 		}
 	}
 
 	if c.opt.Display {
-		m, err := c.writeAnimationDisplayerTo(w, imgs, kk, hh, scSprites, mcSprites, mcCharsets, scCharsets, petCharsets)
+		m, err := c.writeAnimationDisplayerTo(w, imgs, kk, hh, scSprites, mcSprites, mcCharsets, scCharsets, petCharsets, mixCharsets)
 		n += m
 		if err != nil {
 			return n, fmt.Errorf("writeAnimationDisplayerTo failed: %w", err)
@@ -282,6 +290,39 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			return n, fmt.Errorf("WriteMultiColorCharsetAnimationTo failed: %w", err)
 		}
 		return n, nil
+	case len(mixCharsets) > 0:
+		if c.opt.NoAnimation {
+			c.Symbols = append(c.Symbols,
+				c64Symbol{"d800color", 0x3c00},
+				c64Symbol{"bitmap", 0x4000},
+				c64Symbol{"d020color", int(mixCharsets[0].BorderColor)},
+				c64Symbol{"d021color", int(mixCharsets[0].BackgroundColor)},
+				c64Symbol{"d022color", int(mixCharsets[0].D022Color)},
+				c64Symbol{"d023color", int(mixCharsets[0].D023Color)},
+			)
+			for i := 0; i < len(mixCharsets); i++ {
+				c.Symbols = append(c.Symbols, c64Symbol{"screen" + strconv.Itoa(i), 0x4800 + i*0x800})
+				c.Symbols = append(c.Symbols, c64Symbol{"colorram" + strconv.Itoa(i), 0x4c00 + i*0x800})
+			}
+		} else {
+			c.Symbols = append(c.Symbols,
+				c64Symbol{"bitmap", 0x2000},
+				c64Symbol{"screen", 0x2800},
+				c64Symbol{"d800color", 0x2c00},
+				c64Symbol{"animation", 0x3000},
+				c64Symbol{"d020color", int(mixCharsets[0].BorderColor)},
+				c64Symbol{"d021color", int(mixCharsets[0].BackgroundColor)},
+				c64Symbol{"d022color", int(mixCharsets[0].D022Color)},
+				c64Symbol{"d023color", int(mixCharsets[0].D023Color)},
+			)
+		}
+		for i := 0; i < len(mixCharsets); i++ {
+			c.Symbols = append(c.Symbols, c64Symbol{"screen" + strconv.Itoa(i), 0x4800 + i*0x400})
+		}
+		if _, err = WriteMixedCharsetAnimationTo(w, mixCharsets); err != nil {
+			return n, fmt.Errorf("WriteMixedCharsetAnimationTo failed: %w", err)
+		}
+		return n, nil
 	case len(scCharsets) > 0:
 		if c.opt.NoAnimation {
 			c.Symbols = append(c.Symbols,
@@ -326,7 +367,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 }
 
 // writeAnimationDisplayerTo processes the images and writes the .prg including displayer to w.
-func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites, mcCharsets []MultiColorCharset, scCharsets []SingleColorCharset, petCharsets []PETSCIICharset) (n int64, err error) {
+func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, kk []Koala, hh []Hires, scSprites []SingleColorSprites, mcSprites []MultiColorSprites, mcCharsets []MultiColorCharset, scCharsets []SingleColorCharset, petCharsets []PETSCIICharset, mixCharsets []MixedCharset) (n int64, err error) {
 	buf := &bytes.Buffer{}
 	switch {
 	case len(kk) > 0:
@@ -394,6 +435,42 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 		}
 		if _, err = WriteMultiColorCharsetAnimationTo(buf, mcCharsets); err != nil {
 			return n, fmt.Errorf("WriteMultiColorCharsetAnimationTo buf failed: %w", err)
+		}
+	case len(mixCharsets) > 0:
+		if c.opt.NoAnimation {
+			c.Symbols = append(c.Symbols,
+				c64Symbol{"d800color", 0x3c00},
+				c64Symbol{"bitmap", 0x4000},
+				c64Symbol{"d020color", int(mixCharsets[0].BorderColor)},
+				c64Symbol{"d021color", int(mixCharsets[0].BackgroundColor)},
+				c64Symbol{"d022color", int(mixCharsets[0].D022Color)},
+				c64Symbol{"d023color", int(mixCharsets[0].D023Color)},
+			)
+		} else {
+			c.Symbols = append(c.Symbols,
+				c64Symbol{"bitmap", 0x2000},
+				c64Symbol{"screen", 0x2800},
+				c64Symbol{"d800color", 0x2c00},
+				c64Symbol{"animation", 0x3000},
+				c64Symbol{"d020color", int(mixCharsets[0].BorderColor)},
+				c64Symbol{"d021color", int(mixCharsets[0].BackgroundColor)},
+				c64Symbol{"d022color", int(mixCharsets[0].D022Color)},
+				c64Symbol{"d023color", int(mixCharsets[0].D023Color)},
+			)
+		}
+		for i := 0; i < len(mixCharsets); i++ {
+			c.Symbols = append(c.Symbols, c64Symbol{"screen" + strconv.Itoa(i), 0x4800 + i*0x400})
+		}
+		if c.opt.NoCrunch {
+			m, err := WriteMixedCharsetAnimationTo(w, mixCharsets)
+			n += m
+			if err != nil {
+				return n, fmt.Errorf("WriteMixedCharsetAnimationTo failed: %w", err)
+			}
+			return n, nil
+		}
+		if _, err = WriteMixedCharsetAnimationTo(buf, mixCharsets); err != nil {
+			return n, fmt.Errorf("WriteMixedCharsetAnimationTo buf failed: %w", err)
 		}
 	case len(scCharsets) > 0:
 		if c.opt.NoAnimation {
@@ -1040,7 +1117,7 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 	return link.WriteTo(w)
 }
 
-// WriteSingleColorCharsetAnimationTo writes the SingleColorCharset to w, optionally with displayer code.
+// WritePETSCIICharsetAnimationTo writes the PETSCIICharset to w, optionally with displayer code.
 func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, err error) {
 	if len(cc) < 2 {
 		return n, fmt.Errorf("not enough images %d < 2", len(cc))

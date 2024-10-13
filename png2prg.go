@@ -458,6 +458,43 @@ func (img MixedCharset) Symbols() []c64Symbol {
 	}
 }
 
+func (c MixedCharset) UsedChars() int {
+	max := byte(0)
+	for _, v := range c.Screen {
+		if v > max {
+			max = v
+		}
+	}
+	// check for empty chars too, this is for animations
+	empty := charBytes{}
+	emptyCount := 0
+	for i := 0; i < MaxChars; i++ {
+		cb := charBytes{}
+		for j := 0; j < 8; j++ {
+			cb[j] = c.Bitmap[i*8+j]
+		}
+		if cb == empty {
+			emptyCount++
+			if emptyCount > 1 && i > int(max) {
+				return i
+			}
+		}
+	}
+	return (int(max) + 1)
+}
+
+func (c MixedCharset) CharBytes() (cbs []charBytes) {
+	used := c.UsedChars()
+	for i := 0; i < used; i++ {
+		cb := charBytes{}
+		for j := 0; j < 8; j++ {
+			cb[j] = c.Bitmap[(i*8)+j]
+		}
+		cbs = append(cbs, cb)
+	}
+	return cbs
+}
+
 type PETSCIICharset struct {
 	SourceFilename  string
 	Lowercase       byte // 0 = uppercase, 1 = lowercase
@@ -960,7 +997,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 				return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
 			}
 		}
-		if wt, err = img.MixedCharset(); err != nil {
+		if wt, err = img.MixedCharset(nil); err != nil {
 			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("img.MixedCharset %q failed: %w", img.sourceFilename, err)
 			}

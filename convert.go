@@ -681,7 +681,7 @@ func (img *sourceImage) MultiColorCharset(prebuiltCharset []charBytes) (c MultiC
 	return c, nil
 }
 
-func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
+func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharset, err error) {
 	c.SourceFilename = img.sourceFilename
 	c.BorderColor = img.borderColor.ColorIndex
 	c.opt = img.opt
@@ -759,6 +759,12 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 	}
 
 	charset := []charBytes{}
+	if len(prebuiltCharset) > 0 {
+		charset = prebuiltCharset
+		if img.opt.VeryVerbose {
+			log.Printf("using prebuiltCharset of %d chars", len(prebuiltCharset))
+		}
+	}
 	for char := 0; char < FullScreenChars; char++ {
 		rgb2bitpair := PaletteMap{
 			img.palette.RGB(c.BackgroundColor): 0,
@@ -871,8 +877,9 @@ func (img *sourceImage) MixedCharset() (c MixedCharset, err error) {
 // ECMCharset converts the img to ECMCharset and returns it.
 func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, error) {
 	if len(img.ecmColors) < 4 {
-		log.Printf("not enough img.ecmColors: %v", img.ecmColors)
-		//return ECMCharset{}, fmt.Errorf("not enough img.ecmColors: %v", img.ecmColors)
+		if img.opt.Verbose {
+			log.Printf("not using all 4 img.ecmColors: %v", img.ecmColors)
+		}
 	}
 
 	c := ECMCharset{

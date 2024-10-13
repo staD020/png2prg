@@ -218,7 +218,7 @@ NEXTJOB:
 					continue NEXTJOB
 				}
 			}
-			if wt, err = img.MixedCharset(); err != nil {
+			if wt, err = img.MixedCharset(nil); err != nil {
 				if img.opt.VeryVerbose {
 					log.Printf("img.MixedCharset %q failed: %v", img.sourceFilename, err)
 				}

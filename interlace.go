@@ -30,6 +30,9 @@ func (img *sourceImage) isHiresPixels() bool {
 	for y := 0; y < FullScreenHeight; y++ {
 		for x := 0; x < FullScreenWidth; x += 2 {
 			if img.colorAtXY(x, y) != img.colorAtXY(x+1, y) {
+				if img.opt.Verbose {
+					log.Printf("isHiresPixels found at x, y = %d, %d", x, y)
+				}
 				return true
 			}
 		}
