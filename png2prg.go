@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Version              = "1.9.2-dev"
+	Version              = "1.9.3-dev"
 	displayerJumpTo      = "$0828"
 	MaxColors            = 16
 	MaxChars             = 256
@@ -79,6 +79,8 @@ type Options struct {
 	ForceXOffset        int
 	ForceYOffset        int
 	CurrentGraphicsType GraphicsType
+
+	Trd bool // has side effect of enforcing screenram colors in level area
 }
 
 func (o Options) NoFadeByte() byte {
@@ -685,6 +687,9 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 		log.Printf("-force-border-color %d is not correct, only values 0-15 are allowed, now using default.", opt.ForceBorderColor)
 		opt.ForceBorderColor = -1
 	}
+	if opt.GraphicsMode != "" && opt.CurrentGraphicsType == unknownGraphicsType {
+		opt.CurrentGraphicsType = StringToGraphicsType(opt.GraphicsMode)
+	}
 	c := &Converter{opt: opt}
 	for index, ir := range pngs {
 		ii, err := NewSourceImages(opt, index, ir)
@@ -791,7 +796,9 @@ func NewFromPath(opt Options, filenames ...string) (*Converter, error) {
 
 func (c *Converter) SortedColors() []byte {
 	bpc := c.images[0].preferredBitpairColors
-	log.Printf("-bpc %s", bpc)
+	if c.opt.Verbose {
+		log.Printf("-bpc %s", bpc)
+	}
 	_, _, sumColors := c.images[0].countColors()
 	type sumcol struct {
 		col   byte
@@ -806,7 +813,9 @@ func (c *Converter) SortedColors() []byte {
 	for i, scol := range sc {
 		result[i] = scol.col
 	}
-	log.Printf("result: %v", result)
+	if c.opt.Verbose {
+		log.Printf("result: %v", result)
+	}
 	return result
 }
 

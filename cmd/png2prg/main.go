@@ -301,6 +301,8 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.BoolVar(&altOffset, "ao", false, "alt-offset")
 	flag.BoolVar(&altOffset, "alt-offset", false, "use alternate screenshot offset with x,y = 32,36")
 
+	flag.BoolVar(&opt.Trd, "trd", false, "has side effect of enforcing screenram bitpair colors in level area")
+
 	flag.Parse()
 	if opt.VeryVerbose {
 		opt.Verbose = true

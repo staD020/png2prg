@@ -52,6 +52,39 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 		bitpairs = []byte{1}
 	}
 
+	if img.opt.Trd {
+		x, y := xyFromChar(char)
+		col := x / 8
+		row := y / 8
+		if (col > 1 && col < 38) && (row > 1 && row < 22) {
+			rgb2bitpair[img.palette.RGB(img.preferredBitpairColors[1])] = byte(1)
+			bitpair2c64color[byte(1)] = img.preferredBitpairColors[1]
+			rgb2bitpair[img.palette.RGB(img.preferredBitpairColors[2])] = byte(2)
+			bitpair2c64color[byte(2)] = img.preferredBitpairColors[2]
+			bitpairs = []byte{3}
+
+			for _, ci := range cc {
+				if _, ok := rgb2bitpair[img.palette.RGB(ci.ColorIndex)]; ok {
+					continue
+				}
+				if len(bitpairs) == 0 {
+					return nil, nil, fmt.Errorf("too many colors, no bitpairs left")
+				}
+				rgb2bitpair[ci.RGB] = byte(3)
+				bitpair2c64color[byte(3)] = ci.ColorIndex
+				bitpairs = []byte{}
+			}
+			return rgb2bitpair, bitpair2c64color, nil
+		}
+		if len(img.preferredBitpairColors) >= 3 {
+			// pretty ugly implementation to make sure the borders of the map have different screenram colors
+			img.preferredBitpairColors[1], img.preferredBitpairColors[2] = img.preferredBitpairColors[2], img.preferredBitpairColors[1]
+			defer func() {
+				img.preferredBitpairColors[1], img.preferredBitpairColors[2] = img.preferredBitpairColors[2], img.preferredBitpairColors[1]
+			}()
+		}
+	}
+
 	if forcePreferred {
 		// used for interlace
 		if len(img.preferredBitpairColors) == 0 {
@@ -340,12 +373,16 @@ func (img *sourceImage) Koala() (Koala, error) {
 		if _, ok := bitpair2c64color[1]; ok {
 			k.ScreenColor[char] = bitpair2c64color[1] << 4
 		} else {
-			k.ScreenColor[char] = prevbitpair2c64color[1] << 4
+			if !k.opt.Trd {
+				k.ScreenColor[char] = prevbitpair2c64color[1] << 4
+			}
 		}
 		if _, ok := bitpair2c64color[2]; ok {
 			k.ScreenColor[char] |= bitpair2c64color[2]
 		} else {
-			k.ScreenColor[char] |= prevbitpair2c64color[2]
+			if !k.opt.Trd {
+				k.ScreenColor[char] |= prevbitpair2c64color[2]
+			}
 		}
 		if _, ok := bitpair2c64color[3]; ok {
 			k.D800Color[char] = bitpair2c64color[3]
