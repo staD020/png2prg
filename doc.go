@@ -221,6 +221,7 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println("Each frame consists of 1 or more chunks. A chunk looks like this:")
 	fmt.Println()
+	fmt.Println("    .byte $xy    // $y = bgcol, $x = bordercol (only for PETSCII)")
 	fmt.Println("    .byte $03    // number of chars in this chunk")
 	fmt.Println("                 // $00 marks end of frame")
 	fmt.Println("                 // $ff marks end of all frames")

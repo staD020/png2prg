@@ -1,4 +1,4 @@
-# PNG2PRG 1.9.2-dev by burg
+# PNG2PRG 1.9.3-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -209,6 +209,7 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
 Each frame consists of 1 or more chunks. A chunk looks like this:
 
+    .byte $xy    // $y = bgcol, $x = bordercol (only for PETSCII)
     .byte $03    // number of chars in this chunk
                  // $00 marks end of frame
                  // $ff marks end of all frames
@@ -381,7 +382,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.9.2-dev
+## Changes for version 1.9.3-dev
 
  - Add gfxmode to .sym files and display in terminal output (thanks Spider-J).
  - Add petscii animation support.
@@ -574,6 +575,8 @@ tables used in the koala and hires displayers.
     	specify targetdir
   -td string
     	targetdir
+  -trd
+    	has side effect of enforcing screenram bitpair colors in level area
   -v	verbose
   -verbose
     	verbose output
