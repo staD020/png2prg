@@ -67,7 +67,9 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			fmt.Printf("processing %q frame %d\n", img.sourceFilename, i)
 		}
 		if i > 0 {
-			img.preferredBitpairColors = currentBitpairColors
+			if imgs[0].graphicsType != petsciiCharset && imgs[0].graphicsType != singleColorCharset {
+				img.preferredBitpairColors = currentBitpairColors
+			}
 			if err := img.analyze(); err != nil {
 				//return n, fmt.Errorf("warning: skipping frame %d, analyze failed: %w", i, err)
 				log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)
@@ -80,7 +82,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		if len(currentBitpairColors) == 0 {
 			currentBitpairColors = img.preferredBitpairColors
 		}
-		if currentBitpairColors.String() != img.preferredBitpairColors.String() {
+		if currentBitpairColors.String() != img.preferredBitpairColors.String() && imgs[0].graphicsType != petsciiCharset && imgs[0].graphicsType != singleColorCharset {
 			log.Printf("bitpairColors %q of the previous frame do not equal current frame %q", currentBitpairColors, img.preferredBitpairColors)
 			log.Println("this would cause huge animation frame sizes and probably crash the displayer")
 			return n, fmt.Errorf("bitpairColors differ between frames, maybe use -bitpair-colors %s to force them", currentBitpairColors)
@@ -1151,6 +1153,7 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		}
 	}
 	for i := 1; i < len(cc); i++ {
+		buf = append(buf, cc[i].BackgroundColor|cc[i].BorderColor<<4) // bgBorder
 		for char := 0; char < FullScreenChars; char++ {
 			if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
 				if cc[0].opt.VeryVerbose {

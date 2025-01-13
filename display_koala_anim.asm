@@ -451,7 +451,7 @@ smc_totpercol:
 anim_play:
 next_chunk:
 		ldy #0
-		lax (zp_anim_lo),y
+		lax (zp_anim_lo),y      //  a = x = number of chars in chunk
 		bne plot_chunk          // #$00 = end of frame
 		inc zp_anim_lo
 		bne !+

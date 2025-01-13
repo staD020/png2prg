@@ -78,6 +78,7 @@ func (img *sourceImage) multiColorIndexes(char int, cc []ColorInfo, forcePreferr
 		}
 		if len(img.preferredBitpairColors) >= 3 {
 			// pretty ugly implementation to make sure the borders of the map have different screenram colors
+			// this is not concurrency safe
 			img.preferredBitpairColors[1], img.preferredBitpairColors[2] = img.preferredBitpairColors[2], img.preferredBitpairColors[1]
 			defer func() {
 				img.preferredBitpairColors[1], img.preferredBitpairColors[2] = img.preferredBitpairColors[2], img.preferredBitpairColors[1]

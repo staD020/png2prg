@@ -369,7 +369,19 @@ smc_totpercol:
 // ------------------------------
 .pc = * "anim_play"
 anim_play:
-next_chunk:
+		ldy #0
+		lda (zp_anim_lo),y      //  bgborder
+		sta $d021
+		lsr
+		lsr
+		lsr
+		lsr
+		sta $d020
+		inc zp_anim_lo
+		bne !+
+		inc zp_anim_hi
+	!:
+	next_chunk:
 		ldy #0
 		lax (zp_anim_lo),y
 		bne plot_chunk          // #$00 = end of frame
