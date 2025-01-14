@@ -1,4 +1,4 @@
-# PNG2PRG 1.9.3-dev by burg
+# PNG2PRG 1.9.4-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -205,11 +205,13 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
     ...          // next frame(s)
     .byte $ff    // end of all frames
 
-## Charset Animation
+## PETSCII and Charset Animation
 
+Only petscii and sccharset modes support different background and
+bordercolors per frame.
 Each frame consists of 1 or more chunks. A chunk looks like this:
 
-    .byte $xy    // $y = bgcol, $x = bordercol (only for PETSCII)
+    .byte $xy    // $y = bgcol, $x = bordercol (only for petscii/sccharset)
     .byte $03    // number of chars in this chunk
                  // $00 marks end of frame
                  // $ff marks end of all frames
@@ -382,10 +384,11 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.9.3-dev
+## Changes for version 1.9.4-dev
 
  - Add gfxmode to .sym files and display in terminal output (thanks Spider-J).
  - Add petscii animation support.
+ - Add background and bordercolor to each petscii or sccharset animation frame.
  - Add -no-anim flag disable mccharset animations and store frames as separate
    screens.
  - Add sccharset animation support and move separate screens to -no-anim.
