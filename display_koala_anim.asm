@@ -289,6 +289,7 @@ loop_anim:
 		lda #0
 		sta $d011
 		sta $d418
+		jsr $e544
 		jmp $fce2
 	}
 .pc = * "vblank"

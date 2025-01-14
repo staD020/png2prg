@@ -141,6 +141,7 @@ init_sprites:
 		jsr vblank
 		lda #0
 		sta $d011
+		jsr $e544
 		jmp $fce2
 vblank:
 		:vblank()

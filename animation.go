@@ -1019,6 +1019,7 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 		}
 		for i := 0; i < len(cc); i++ {
 			_, err = link.WriteMap(LinkMap{
+				0x47e8 + Word(i)*0x800: []byte{cc[i].BackgroundColor | cc[i].BorderColor<<4},
 				0x4800 + Word(i)*0x800: cc[i].Screen[:],
 				0x4c00 + Word(i)*0x800: cc[i].D800Color[:],
 			})
@@ -1057,6 +1058,7 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 			}
 		}
 		for i := 1; i < len(cc); i++ {
+			buf = append(buf, cc[i].BackgroundColor|cc[i].BorderColor<<4) // bgBorder
 			for char := 0; char < FullScreenChars; char++ {
 				if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
 					if cc[0].opt.VeryVerbose {
