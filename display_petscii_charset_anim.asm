@@ -55,6 +55,9 @@ frame_delay:
 .pc = * "wait_seconds"
 wait_seconds:
 		.byte 0
+.pc = * "no_fade"
+no_fade:
+		.byte 0
 
 .pc = basicsys() "start"
 start:
@@ -110,8 +113,10 @@ start:
 		sta $dc0e
 		cli
 
+		lda no_fade
+		bne !+
 		jsr generate_fade_pass
-
+	!:
 		lax #0
 	!:
 	.for (var i=0; i<4; i++) {
@@ -123,6 +128,17 @@ start:
 		inx
 		bne !-
 
+		lda no_fade
+		beq prep_fade
+		lax #0
+	!:
+	.for (var i=0; i<4; i++) {
+		lda src_colorram+(i*$100),x
+		sta colorram+(i*$100),x
+	}
+		inx
+		bne !-
+prep_fade:
 		jsr vblank
 		:setBank(screenram)
 		lda charset_case
@@ -134,6 +150,9 @@ start:
 		sta $d016
 		lda #$1b
 		sta $d011
+
+		lda no_fade
+		bne !skip_fade+
 
 .pc = * "fade_loop"
 fade_loop:
@@ -177,7 +196,7 @@ smc_yval:	ldy #steps-1
 		beq !done+
 		cmp #(steps/2)-1
 		bne fade_loop
-
+!skip_fade:
 		jsr anim_init
 
 		// optional wait before anim start
@@ -209,6 +228,8 @@ loop_anim:
 		lda $dc01
 		cmp #$ef
 		bne loop_anim
+		lda no_fade
+		bne !done+
 		jmp fade_loop
 !done:
 	.if (LOOP) {

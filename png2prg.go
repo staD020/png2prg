@@ -1098,7 +1098,7 @@ func defaultHeader() []byte {
 
 // injectSIDLinker injects the sid's start song and init/play addresses in predefined locations in the linker.
 // Must be called *after* displayer code is linked.
-func injectSIDLinker(l *Linker, s *sid.SID) {
+func injectSIDLinker(l *Linker, s sid.SID) {
 	startSong := s.StartSong().LowByte()
 	if startSong > 0 {
 		startSong--

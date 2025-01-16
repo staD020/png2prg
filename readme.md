@@ -393,9 +393,10 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
    screens.
  - Add sccharset animation support and move separate screens to -no-anim.
  - Add mixedcharset animation support and move separate screens to -no-anim.
+ - Add -no-fade flag for koala, hires and petscii animation displayers, this
+   frees up a lot of RAM for animation data and sid.
  - Bugfix: handle blank ECM images as well as ECM images using few bg colors
    (thanks Brush).
- - Add -no-fade flag for koala animations.
 
 ## Changes for version 1.8
 

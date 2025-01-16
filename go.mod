@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/staD020/TSCrunch v0.0.0-20230328221504-7d8d1ddd3819
 	// github.com/staD020/TSCrunch v0.0.0-20220507192226-62c8ebba0165
-	github.com/staD020/sid v0.0.0-20220807170638-85586a960458
+	github.com/staD020/sid v0.0.0-20250115002619-9fb2bf2806bd
 )
 
 require github.com/stretchr/testify v1.8.4

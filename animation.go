@@ -192,10 +192,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		c.Symbols = append(c.Symbols, kk[0].Symbols()...)
 		c.Symbols = append(c.Symbols, c64Symbol{"animation", koalaAnimationStart})
 
-		frames := make([]Charer, len(kk))
-		for i := range kk {
-			frames[i] = kk[i]
-		}
+		frames := makeCharer(kk)
 		prgs, err := processAnimation(c.opt, frames)
 		if err != nil {
 			return n, fmt.Errorf("processAnimation failed: %w", err)
@@ -221,10 +218,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		c.Symbols = append(c.Symbols, hh[0].Symbols()...)
 		c.Symbols = append(c.Symbols, c64Symbol{"animation", hiresAnimationStart})
 
-		frames := make([]Charer, len(hh))
-		for i := range hh {
-			frames[i] = hh[i]
-		}
+		frames := makeCharer(hh)
 		prgs, err := processAnimation(c.opt, frames)
 		if err != nil {
 			return n, fmt.Errorf("processHiresAnimation failed: %w", err)
@@ -659,10 +653,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	bgBorder := kk[0].BackgroundColor | kk[0].BorderColor<<4
 	opt := kk[0].opt
 
-	frames := make([]Charer, len(kk))
-	for i := range kk {
-		frames[i] = kk[i]
-	}
+	frames := makeCharer(kk)
 	framePrgs, err := processAnimation(opt, frames)
 	if err != nil {
 		return n, err
@@ -738,10 +729,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 // WriteHiresDisplayAnimTo processes hh and writes the converted animation and displayer to w.
 func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	opt := hh[0].opt
-	frames := make([]Charer, len(hh))
-	for i := range hh {
-		frames[i] = hh[i]
-	}
+	frames := makeCharer(hh)
 	framePrgs, err := processAnimation(opt, frames)
 	if err != nil {
 		return n, fmt.Errorf("processAnimation error: %w", err)
@@ -881,9 +869,7 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
 		for i := 0; i < len(cc); i++ {
-			_, err = link.WriteMap(LinkMap{
-				0x4800 + Word(i)*0x400: cc[i].Screen[:],
-			})
+			_, err = link.WriteMap(LinkMap{0x4800 + Word(i)*0x400: cc[i].Screen[:]})
 			if err != nil {
 				return n, fmt.Errorf("link.WriteMap failed: %w", err)
 			}
@@ -946,9 +932,7 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 			buf = append(buf, 0x00) // end of chunks and frame
 		}
 		buf = append(buf, 0xff) // end of frames
-		_, err = link.WriteMap(LinkMap{
-			0x3000: buf,
-		})
+		_, err = link.WriteMap(LinkMap{0x3000: buf})
 		if err != nil {
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
@@ -1087,9 +1071,7 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 			buf = append(buf, 0x00) // end of chunks and frame
 		}
 		buf = append(buf, 0xff) // end of frames
-		_, err = link.WriteMap(LinkMap{
-			0x3000: buf,
-		})
+		_, err = link.WriteMap(LinkMap{0x3000: buf})
 		if err != nil {
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
@@ -1184,9 +1166,7 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		buf = append(buf, 0x00) // end of chunks and frame
 	}
 	buf = append(buf, 0xff) // end of frames
-	_, err = link.WriteMap(LinkMap{
-		pos: buf,
-	})
+	_, err = link.WriteMap(LinkMap{pos: buf})
 	if err != nil {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
@@ -1198,8 +1178,10 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		if _, err = link.WritePrg(petsciiCharsetDisplayAnim); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(0x820, byte(cc[0].Lowercase), byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
-		link.Block(hiresFadePassStart, 0xcfff)
+		link.SetByte(0x820, byte(cc[0].Lowercase), byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), cc[0].opt.NoFadeByte())
+		if !cc[0].opt.NoFade {
+			link.Block(hiresFadePassStart, 0xcfff)
+		}
 		if cc[0].opt.IncludeSID != "" {
 			s, err := sid.LoadSID(cc[0].opt.IncludeSID)
 			if err != nil {
@@ -1302,9 +1284,7 @@ func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err 
 			buf = append(buf, 0x00) // end of chunks and frame
 		}
 		buf = append(buf, 0xff) // end of frames
-		_, err = link.WriteMap(LinkMap{
-			0x3000: buf,
-		})
+		_, err = link.WriteMap(LinkMap{0x3000: buf})
 		if err != nil {
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
@@ -1334,4 +1314,12 @@ func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err 
 		}
 	}
 	return link.WriteTo(w)
+}
+
+func makeCharer[S []E, E Koala | Hires](s S) []Charer {
+	frames := make([]Charer, len(s))
+	for i := range s {
+		frames[i] = Charer(s[i])
+	}
+	return frames
 }
