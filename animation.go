@@ -742,7 +742,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	if !opt.NoFade {
 		link.Block(hiresFadePassStart, 0xd000)
 	}
-	link.SetByte(0x820, byte(opt.FrameDelay), byte(opt.WaitSeconds))
+	link.SetByte(0x820, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte())
 	if !opt.Quiet {
 		fmt.Printf("memory usage for displayer code: %s - %s\n", link.StartAddress(), link.EndAddress())
 	}

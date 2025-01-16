@@ -132,8 +132,8 @@ start:
 		sta smc_src_screen+2
 		lda #>(colorram+$300)
 		sta smc_src_col+2
-
 !prep_fade:
+
 		ldy #4
 		ldx #$e8
 	!:
