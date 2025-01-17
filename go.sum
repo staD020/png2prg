@@ -10,6 +10,8 @@ github.com/staD020/sid v0.0.0-20220807170638-85586a960458 h1:80YkEMZEmNVMXPXZg9I
 github.com/staD020/sid v0.0.0-20220807170638-85586a960458/go.mod h1:1Z333YXPSPSD4TLk7C2+lNbFXIkRFyKhyYIQdB6zSaw=
 github.com/staD020/sid v0.0.0-20250115002619-9fb2bf2806bd h1:BPvAqoirQ1o+8wPHLfPTGkLrQVgwqmu4vFN9sNSxQ/M=
 github.com/staD020/sid v0.0.0-20250115002619-9fb2bf2806bd/go.mod h1:1Z333YXPSPSD4TLk7C2+lNbFXIkRFyKhyYIQdB6zSaw=
+github.com/staD020/sid v0.0.0-20250117001042-b34d29a31304 h1:/09cZxB5ejndvPhDg0wXwR6drZDdiFZsupNtMDU6p8Q=
+github.com/staD020/sid v0.0.0-20250117001042-b34d29a31304/go.mod h1:1Z333YXPSPSD4TLk7C2+lNbFXIkRFyKhyYIQdB6zSaw=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
