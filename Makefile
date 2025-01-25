@@ -589,6 +589,21 @@ joe:$(JOE) $(TARGET)
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
 
+ALIEN=testdata/alien_syndrom.png
+alien:$(ALIEN) $(TARGET)
+	spot13 $< -o $@_spot.kla
+	dali -o $@_spot.kla.dali $@_spot.kla
+	$(EXO) level -o $@_spot.prg.exo $@_spot.kla
+	./$(TARGET) $(P2PBENCHOPTS) -o $@_p2p.prg $<
+	dali -o $@_p2p.prg.dali $@_p2p.prg
+	$(EXO) level -o $@_p2p.prg.exo $@_p2p.prg
+	./$(TARGET) -bpc 0,12,6,10 -o $@_p2pbest.prg $<
+	dali -o $@_p2pbest.prg.dali $@_p2pbest.prg
+	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
+	Png2prg-1.6 -o $@_p2p16.prg $<
+	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	ls -l $@_*
+
 clean:
 	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla *_p2p16.prg
 	rm -rf dist
