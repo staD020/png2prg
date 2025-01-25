@@ -1,4 +1,4 @@
-# PNG2PRG 1.9.4-dev by burg
+# PNG2PRG 1.9.5-dev by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -384,7 +384,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.9.4-dev
+## Changes for version 1.9.5-dev
 
  - Add gfxmode to .sym files and display in terminal output (thanks Spider-J).
  - Add petscii animation support.
@@ -393,8 +393,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
    screens.
  - Add sccharset animation support and move separate screens to -no-anim.
  - Add mixedcharset animation support and move separate screens to -no-anim.
- - Add -no-fade flag for koala, hires and petscii animation displayers, this
-   frees up a lot of RAM for animation data and sid.
+ - Add -no-fade flag for koala, hires, petscii and sccharset animation
+   displayers, this frees up a lot of RAM for animation data and sid.
  - Bugfix: handle blank ECM images as well as ECM images using few bg colors
    (thanks Brush).
 

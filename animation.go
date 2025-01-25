@@ -1086,8 +1086,10 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 		if _, err = link.WritePrg(displayer); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
-		link.Block(hiresFadePassStart, 0xcfff)
+		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), byte(cc[0].opt.NoFadeByte()))
+		if !opt.NoFade {
+			link.Block(hiresFadePassStart, 0xcfff)
+		}
 		if cc[0].opt.IncludeSID != "" {
 			s, err := sid.LoadSID(cc[0].opt.IncludeSID)
 			if err != nil {
