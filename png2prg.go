@@ -8,6 +8,7 @@ import (
 	_ "embed"
 	"fmt"
 	"image"
+	"image/color"
 	"image/gif"
 	_ "image/jpeg"
 	_ "image/png"
@@ -254,6 +255,23 @@ type sourceImage struct {
 	graphicsType           GraphicsType
 	c64color2bitpairCache  [1000]map[byte]byte
 	c64colorBitpairCount   [MaxColors]map[byte]int
+
+	p           Palette
+	border      Color
+	charPalette []Palette
+}
+
+func (img *sourceImage) At(x, y int) color.Color {
+	r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
+	return color.RGBA{byte(r), byte(g), byte(b), 0x01}
+}
+
+func (img *sourceImage) ColorModel() color.Model {
+	return img.p
+}
+
+func (img *sourceImage) Bounds() image.Rectangle {
+	return img.image.Bounds()
 }
 
 type MultiColorChar struct {

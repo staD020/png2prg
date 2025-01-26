@@ -1,4 +1,4 @@
-SRC=*.go cmd/png2prg/*.go tools/rom_charset_lowercase.prg tools/rom_charset_uppercase.prg
+SRC=*.go cmd/png2prg/*.go tools/rom_charset_lowercase.prg tools/rom_charset_uppercase.prg palettes.yaml
 DISPLAYERS=display_koala.prg display_koala_anim.prg display_hires.prg display_hires_anim.prg display_mc_charset.prg display_sc_charset.prg display_mc_sprites.prg display_sc_sprites.prg display_koala_anim_alternative.prg display_mci_bitmap.prg display_mixed_charset.prg display_petscii_charset.prg display_ecm_charset.prg display_mc_charset_anim.prg display_sc_charset_anim.prg display_petscii_charset_anim.prg display_mc_charset_multi.prg display_sc_charset_multi.prg
 ASMLIB=lib.asm
 ASM=java -jar ./tools/KickAss-5.25.jar

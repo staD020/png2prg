@@ -112,8 +112,11 @@ func (img *sourceImage) analyze() (err error) {
 	if err = img.makeCharColors(); err != nil {
 		return fmt.Errorf("img.makeCharColors failed: %w", err)
 	}
+	if err = img.makeCharPalettes(); err != nil {
+		return fmt.Errorf("img.makeCharPalettes failed: %w", err)
+	}
 
-	maxcolsperchar, _ := img.maxColorsPerChar()
+	maxcolsperchar := img.maxPalettePerChar().NumColors()
 	if img.opt.Verbose {
 		log.Printf("max colors per char: %d", maxcolsperchar)
 	}
@@ -214,12 +217,12 @@ func (img *sourceImage) analyzeSprites() error {
 	}
 
 	switch {
-	case len(img.palette) <= 2:
+	case img.p.NumColors() <= 2:
 		img.graphicsType = singleColorSprites
-	case len(img.palette) == 3 || len(img.palette) == 4:
+	case img.p.NumColors() == 3 || img.p.NumColors() == 4:
 		img.graphicsType = multiColorSprites
 	default:
-		return fmt.Errorf("too many colors %d > 4", len(img.palette))
+		return fmt.Errorf("too many colors %d > 4", img.p.NumColors())
 	}
 
 	if !img.opt.Quiet {
@@ -329,42 +332,41 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 
 // countSpriteColors returns color statistics.
 func (img *sourceImage) countSpriteColors() (numColors int, usedColors []byte, sumColors [MaxColors]int) {
-	m := img.palette
 	for y := 0; y < img.height; y++ {
 		for x := 0; x < img.width; x++ {
-			rgb := img.colorAtXY(x, y)
-			if ci, ok := img.palette[rgb]; ok {
-				sumColors[ci]++
+			col, err := img.p.FromColor(img.At(x, y))
+			if err == nil {
+				sumColors[col.C64Color]++
 				continue
 			}
-			panic("countSpriteColors: this should never happen")
+			panic(fmt.Errorf("countSpriteColors: color not found: %w", err))
 		}
 	}
-	for _, v := range img.palette {
-		usedColors = append(usedColors, v)
+	for _, col := range img.p.Colors() {
+		usedColors = append(usedColors, byte(col.C64Color))
 	}
 	sort.Slice(usedColors, func(i, j int) bool {
 		return usedColors[i] < usedColors[j]
 	})
-	return len(m), usedColors, sumColors
+	return img.p.NumColors(), usedColors, sumColors
 }
 
 // countColors returns color statistics.
 func (img *sourceImage) countColors() (numColors int, usedColors []byte, sumColors [MaxColors]int) {
-	m := make(PaletteMap, MaxColors)
-	for i := range img.charColors {
-		for rgb, colorIndex := range img.charColors[i] {
-			m[rgb] = colorIndex
-			sumColors[colorIndex]++
+	for i := range img.charPalette {
+		for _, col := range img.charPalette[i].Colors() {
+			sumColors[col.C64Color]++
 		}
 	}
-	for _, v := range m {
-		usedColors = append(usedColors, v)
+	for i, v := range sumColors {
+		if v > 0 {
+			usedColors = append(usedColors, byte(i))
+		}
 	}
 	sort.Slice(usedColors, func(i, j int) bool {
 		return usedColors[i] < usedColors[j]
 	})
-	return len(m), usedColors, sumColors
+	return img.p.NumColors(), usedColors, sumColors
 }
 
 // maxColorsPerChar finds the char with the most colors and returns the color count and PalletMap.
@@ -382,6 +384,25 @@ func (img *sourceImage) maxColorsPerChar() (max int, m PaletteMap) {
 		log.Printf("char %d (x %d y %d) maxColorsPerChar: %d m: %s", char, x, y, max, m)
 	}
 	return max, m
+}
+
+// maxPalettePerChar finds the char with the most colors and returns its Pallete.
+func (img *sourceImage) maxPalettePerChar() Palette {
+	char := 0
+	max := 0
+	p := BlankPalette(img.p.Name, false)
+	for i := range img.charPalette {
+		if img.charPalette[i].NumColors() > max {
+			max = img.charPalette[i].NumColors()
+			p = img.charPalette[i]
+			char = i
+		}
+	}
+	x, y := xyFromChar(char)
+	if img.opt.VeryVerbose {
+		log.Printf("char %d (x %d y %d) maxColorsPerChar: %d p: %v", char, x, y, max, p)
+	}
+	return p
 }
 
 // findBackgroundColorCandidates iterates over all chars with 4 colors (or 2 for hires) and sets the common color(s) in img.backgroundCandidates.
@@ -620,6 +641,21 @@ func Permutation[S ~[]E, E any](orig S, p []int) (r S) {
 // returns error if the border color is not found.
 func (img *sourceImage) findBorderColor() error {
 	if img.opt.ForceBorderColor >= 0 && img.opt.ForceBorderColor < MaxColors {
+		for _, col := range img.p.Colors() {
+			if col.C64Color == C64Color(img.opt.ForceBorderColor) {
+				img.border = col
+				if img.opt.Verbose {
+					log.Printf("force img.border: %s", img.border)
+				}
+			}
+			//return nil // can be removed when img.borderColor is no longer used
+		}
+		//		img.border = paletteSources[0].Colors[img.opt.ForceBorderColor]
+		//		if img.opt.Verbose {
+		//			log.Printf("-force-border-color %d not found in palette: %s", img.opt.ForceBorderColor, img.p)
+		//			log.Printf("forcing BorderColor %d anyway: %v", img.opt.ForceBorderColor, img.border)
+		//		}
+
 		for rgb, ci := range img.palette {
 			if ci == byte(img.opt.ForceBorderColor) {
 				img.borderColor = ColorInfo{RGB: rgb, ColorIndex: ci}
@@ -712,6 +748,64 @@ func (img *sourceImage) colorMapFromChar(char int) PaletteMap {
 	return charColors
 }
 
+func (img *sourceImage) makeCharPalettes() error {
+	forceBgCol := -1
+	if len(img.preferredBitpairColors) > 0 {
+		forceBgCol = int(img.preferredBitpairColors[0])
+	}
+	fatalError := false
+	img.charPalette = make([]Palette, FullScreenChars)
+	for char := 0; char < FullScreenChars; char++ {
+		p := img.paletteFromChar(char)
+		if forceBgCol >= 0 && p.NumColors() == 4 {
+			found := false
+			for _, col := range p.Colors() {
+				if col.C64Color == C64Color(forceBgCol) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				fatalError = true
+				x, y := xyFromChar(char)
+				if img.opt.Verbose {
+					log.Printf("forced BackgroundColor %d not possible in char %v (x=%d, y=%d)", forceBgCol, char, x, y)
+				}
+			}
+		}
+		if p.NumColors() > 4 {
+			fatalError = true
+			x, y := xyFromChar(char)
+			if img.opt.Verbose {
+				log.Printf("amount of colors in char %v (x=%d, y=%d) %d > 4 : %v", char, x, y, p.NumColors(), p)
+			}
+		}
+		img.charPalette[char] = p
+	}
+	if fatalError {
+		return fmt.Errorf("fatal errors were logged, see above")
+	}
+	return nil
+}
+
+// paletteFromChar returns the Palette of the specific char.
+func (img *sourceImage) paletteFromChar(char int) Palette {
+	p := BlankPalette(img.p.Name, false)
+	x, y := xyFromChar(char)
+	for pixely := y; pixely < y+8; pixely++ {
+		for pixelx := x; pixelx < x+8; pixelx++ {
+			col, err := img.p.FromColor(img.At(pixelx, pixely))
+			if err != nil {
+				panic("color must always be found")
+			}
+			if _, err = p.FromC64(col.C64Color); err != nil {
+				p.Add(col)
+			}
+		}
+	}
+	return p
+}
+
 // colorAtXY returns the RGB color at x,y coordinates.
 func (img *sourceImage) colorAtXY(x, y int) RGB {
 	r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
@@ -735,6 +829,13 @@ func yFromChar(i int) int {
 
 // analyzePalette finds the closest paletteMap and sets img.palette
 func (img *sourceImage) analyzePalette() error {
+	np, err := NewPalette(img.image, false)
+	if err != nil {
+		return fmt.Errorf("NewPalette failed: %w", err)
+	}
+	fmt.Println("pallete found:", np)
+	img.p = np
+
 	minDistance := int(9e6)
 	paletteName := ""
 	paletteMap := make(PaletteMap)
