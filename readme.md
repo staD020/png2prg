@@ -342,7 +342,7 @@ But first [install Go 1.20 or higher](https://go.dev/dl/).
 
 ### Simple install
 
-    go install -v github.com/staD020/png2prg.git@master
+    go install -v github.com/staD020/png2prg@master
 
 ### Compiling with Make (recommended)
 
