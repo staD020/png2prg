@@ -113,10 +113,6 @@ func (img *sourceImage) analyze() (err error) {
 	if img.hasSpriteDimensions() {
 		return img.analyzeSprites()
 	}
-
-	//	if err = img.makeCharColors(); err != nil {
-	//		return fmt.Errorf("img.makeCharColors failed: %w", err)
-	//	}
 	if err = img.makeCharPalettes(); err != nil {
 		return fmt.Errorf("img.makeCharPalettes failed: %w", err)
 	}
@@ -625,7 +621,7 @@ func Permutation[S ~[]E, E any](orig S, p []int) (r S) {
 	return r
 }
 
-// findBorderColor sets img.borderColor to opt.ForceBorderColor or detects it if a vice default screenshot is used.
+// findBorderColor sets img.border to opt.ForceBorderColor or detects it if a vice default screenshot is used.
 // returns error if the border color is not found.
 func (img *sourceImage) findBorderColor() error {
 	if img.opt.ForceBorderColor >= 0 && img.opt.ForceBorderColor < MaxColors {
@@ -635,8 +631,8 @@ func (img *sourceImage) findBorderColor() error {
 				if img.opt.Verbose {
 					log.Printf("force img.border: %s", img.border)
 				}
+				return nil
 			}
-			return nil
 		}
 		img.border = paletteSources[0].Colors[img.opt.ForceBorderColor]
 		if img.opt.Verbose {
@@ -668,7 +664,6 @@ func (img *sourceImage) makeCharPalettes() error {
 	}
 	sumColors := [MaxColors]int{}
 	fatalError := false
-	img.charPalette = make([]Palette, FullScreenChars)
 	for char := 0; char < FullScreenChars; char++ {
 		p := img.paletteFromChar(char)
 		if forceBgCol >= 0 && p.NumColors() == 4 {
@@ -708,7 +703,10 @@ func (img *sourceImage) makeCharPalettes() error {
 
 // paletteFromChar returns the Palette of the specific char.
 func (img *sourceImage) paletteFromChar(char int) Palette {
-	p := BlankPalette(img.p.Name, false)
+	p := img.charPalette[char]
+	p.Name = img.p.Name
+	p.c642col = make(map[C64Color]Color)
+	p.rgb2col = make(map[colorKey]Color)
 	x, y := xyFromChar(char)
 	for pixely := y; pixely < y+8; pixely++ {
 		for pixelx := x; pixelx < x+8; pixelx++ {

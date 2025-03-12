@@ -88,10 +88,17 @@ func rgbString(col color.Color) string {
 }
 
 // Distance returns the absolute rgb distance between c and col.
-// todo: https://stackoverflow.com/questions/9018016/how-to-compare-two-colors-for-similarity-difference
 func (c Color) Distance(col color.Color) int {
 	r1, g1, b1, _ := col.RGBA()
 	r2, g2, b2, _ := c.RGBA()
+	/*
+		// todo: https://stackoverflow.com/questions/9018016/how-to-compare-two-colors-for-similarity-difference
+		rmean := float64(r1&0xff) + float64(r2&0xff)/float64(2)
+		r, g, b := float64(r1&0xff-r2&0xff), float64(g1&0xff-g2&0xff), float64(b1&0xff-b2&0xff)
+		result := math.Sqrt((((512 + rmean) * r * r) * 256) + 4*g*g + (((767 - rmean) * b * b) * 256))
+		//fmt.Printf("Distance %q %q : %.1f\n", rgbaString(c), rgbaString(col), result)
+		return int(math.Floor(result))
+	*/
 	d := int(math.Abs(float64(r2&0xff)-float64(r1&0xff))) +
 		int(math.Abs(float64(g2&0xff)-float64(g1&0xff))) +
 		int(math.Abs(float64(b2&0xff)-float64(b1&0xff)))
@@ -175,7 +182,7 @@ func (p Palette) FromColor(col color.Color) (Color, error) {
 	if v, ok := p.rgb2col[k]; ok {
 		return v, nil
 	}
-	return Color{Color: col}, fmt.Errorf("rgb %s not found", k)
+	return Color{Color: col}, fmt.Errorf("color %v not found", col)
 }
 
 func (p Palette) FromC64NoErr(col C64Color) Color {

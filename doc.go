@@ -411,6 +411,7 @@ func PrintHelp() {
 	fmt.Println("   (thanks Brush).")
 	fmt.Println(" - Code refactor, standardizing color and bitpair code, separated palettes in")
 	fmt.Println("   palettes.yaml and more.")
+	fmt.Println(" - Bugfix: repair -force-border-color.")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.8")
 	fmt.Println()
