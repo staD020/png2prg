@@ -70,6 +70,13 @@ func (c Color) RGBString() string {
 	return rgbString(c)
 }
 
+type colorKey [3]byte
+
+func ColorKey(c color.Color) colorKey {
+	r, g, b, _ := c.RGBA()
+	return colorKey{byte(r & 0xff), byte(g & 0xff), byte(b & 0xff)}
+}
+
 // NewColor returns a new C64Color/color.Color pair.
 func NewColor(c64color C64Color, col color.Color) Color {
 	return Color{C64Color: c64color, Color: col}
@@ -97,7 +104,7 @@ type Palette struct {
 	Name    string
 	loose   bool
 	c642col map[C64Color]Color
-	rgb2col map[string]Color
+	rgb2col map[colorKey]Color
 	mtx     *sync.RWMutex
 }
 
@@ -116,7 +123,7 @@ func BlankPalette(name string, looseMatching bool) Palette {
 		Name:    name,
 		loose:   looseMatching,
 		c642col: make(map[C64Color]Color),
-		rgb2col: make(map[string]Color),
+		rgb2col: make(map[colorKey]Color),
 		mtx:     &sync.RWMutex{},
 	}
 }
@@ -149,7 +156,7 @@ func (p *Palette) Add(colors ...Color) {
 	p.mtx.Lock()
 	for _, col := range colors {
 		p.c642col[col.C64Color] = col
-		p.rgb2col[col.RGBString()] = col
+		p.rgb2col[ColorKey(col)] = col
 	}
 	p.mtx.Unlock()
 }
@@ -159,7 +166,7 @@ func (p *Palette) Delete(colors ...Color) {
 	p.mtx.Lock()
 	for _, col := range colors {
 		delete(p.c642col, col.C64Color)
-		delete(p.rgb2col, col.RGBString())
+		delete(p.rgb2col, ColorKey(col))
 	}
 	p.mtx.Unlock()
 }
@@ -177,7 +184,7 @@ func (p Palette) FromC64(col C64Color) (Color, error) {
 }
 
 func (p Palette) FromColor(col color.Color) (Color, error) {
-	k := rgbString(col)
+	k := ColorKey(col)
 	p.mtx.RLock()
 	defer p.mtx.RUnlock()
 	if v, ok := p.rgb2col[k]; ok {
