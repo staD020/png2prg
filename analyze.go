@@ -640,7 +640,7 @@ func (img *sourceImage) findBorderColor() error {
 		}
 		img.border = paletteSources[0].Colors[img.opt.ForceBorderColor]
 		if img.opt.Verbose {
-			log.Printf("-force-border-color %d not found in palette: %s", img.opt.ForceBorderColor, img.p)
+			log.Printf("-force-border-color %d not found in palette: %v", img.opt.ForceBorderColor, img.p)
 			log.Printf("forcing BorderColor %d anyway: %v", img.opt.ForceBorderColor, img.border)
 		}
 		return nil

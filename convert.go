@@ -25,13 +25,13 @@ func In[S ~[]E, E comparable](s S, v E) bool {
 }
 
 type bitpairs struct {
-	rgb2bitpair   map[string]byte
+	rgb2bitpair   map[colorKey]byte
 	bitpair2color map[byte]Color
 	bitpairs      []byte
 }
 
 func (bp bitpairs) bitpair(col color.Color) (byte, bool) {
-	v, ok := bp.rgb2bitpair[rgbString(col)]
+	v, ok := bp.rgb2bitpair[ColorKey(col)]
 	return v, ok
 }
 
@@ -45,10 +45,10 @@ func (bp *bitpairs) add(bitpair byte, col Color) {
 		bp.bitpair2color = make(map[byte]Color)
 	}
 	if bp.rgb2bitpair == nil {
-		bp.rgb2bitpair = make(map[string]byte)
+		bp.rgb2bitpair = make(map[colorKey]byte)
 	}
 	bp.bitpair2color[bitpair] = col
-	bp.rgb2bitpair[col.RGBString()] = bitpair
+	bp.rgb2bitpair[ColorKey(col)] = bitpair
 	for i, bitp := range bp.bitpairs {
 		if bitp == bitpair {
 			bp.bitpairs = slices.Delete(bp.bitpairs, i, i+1)
@@ -86,7 +86,7 @@ func (bp bitpairs) colors() (cc []Color) {
 // forcePreferred is used with interlaced pictures.
 func (img *sourceImage) newBitpairs(char int, cc []Color, forcePreferred bool) (*bitpairs, error) {
 	bp := &bitpairs{
-		rgb2bitpair:   make(map[string]byte, MaxColors),
+		rgb2bitpair:   make(map[colorKey]byte, MaxColors),
 		bitpair2color: make(map[byte]Color, MaxColors),
 	}
 	// init caches
@@ -883,7 +883,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 		}
 
 		if hirespixels && !hires {
-			return c, fmt.Errorf("found hirespixels in char %d (x=%d y=%d), but colors are bad: %s please swap some -bitpair-colors %s", char, x, y, img.charPalette[char], img.BPCString())
+			return c, fmt.Errorf("found hirespixels in char %d (x=%d y=%d), but colors are bad: %v please swap some -bitpair-colors %s", char, x, y, img.charPalette[char], img.BPCString())
 		}
 
 		var cbuf charBytes

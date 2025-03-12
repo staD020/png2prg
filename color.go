@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 
 	"gopkg.in/yaml.v3"
 )
@@ -105,7 +104,6 @@ type Palette struct {
 	loose   bool
 	c642col map[C64Color]Color
 	rgb2col map[colorKey]Color
-	mtx     *sync.RWMutex
 }
 
 func NewPalette(img image.Image, looseMatching bool) (Palette, error) {
@@ -124,23 +122,18 @@ func BlankPalette(name string, looseMatching bool) Palette {
 		loose:   looseMatching,
 		c642col: make(map[C64Color]Color),
 		rgb2col: make(map[colorKey]Color),
-		mtx:     &sync.RWMutex{},
 	}
 }
 
 func (p Palette) NumColors() int {
-	p.mtx.RLock()
-	defer p.mtx.RUnlock()
 	return len(p.rgb2col)
 }
 
 // Colors returns the Palette's colors, the order is undefined.
 func (p Palette) Colors() (cc []Color) {
-	p.mtx.RLock()
 	for _, c := range p.c642col {
 		cc = append(cc, c)
 	}
-	p.mtx.RUnlock()
 	return cc
 }
 
@@ -153,27 +146,21 @@ func (p Palette) SortColors() []Color {
 
 // Add adds the Color to the Palette. If the Color was already present, it will be updated.
 func (p *Palette) Add(colors ...Color) {
-	p.mtx.Lock()
 	for _, col := range colors {
 		p.c642col[col.C64Color] = col
 		p.rgb2col[ColorKey(col)] = col
 	}
-	p.mtx.Unlock()
 }
 
 // Delete deletes the Color from the Palette. If the Color was not present, nothing happens.
 func (p *Palette) Delete(colors ...Color) {
-	p.mtx.Lock()
 	for _, col := range colors {
 		delete(p.c642col, col.C64Color)
 		delete(p.rgb2col, ColorKey(col))
 	}
-	p.mtx.Unlock()
 }
 
 func (p Palette) FromC64(col C64Color) (Color, error) {
-	p.mtx.RLock()
-	defer p.mtx.RUnlock()
 	if v, ok := p.c642col[col]; ok {
 		return v, nil
 	}
@@ -185,8 +172,6 @@ func (p Palette) FromC64(col C64Color) (Color, error) {
 
 func (p Palette) FromColor(col color.Color) (Color, error) {
 	k := ColorKey(col)
-	p.mtx.RLock()
-	defer p.mtx.RUnlock()
 	if v, ok := p.rgb2col[k]; ok {
 		return v, nil
 	}
@@ -206,8 +191,6 @@ func (p Palette) FromColorNoErr(col color.Color) Color {
 // Convert converts a color to a png2prg.Color and returns it, implementing the color.Model interface.
 // Finds closest match if p.loose is true.
 func (p Palette) Convert(c color.Color) color.Color {
-	p.mtx.RLock()
-	defer p.mtx.RUnlock()
 	if !p.loose {
 		col, err := p.FromColor(c)
 		if err != nil {
