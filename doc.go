@@ -409,6 +409,8 @@ func PrintHelp() {
 	fmt.Println("   displayers, this frees up a lot of RAM for animation data and sid.")
 	fmt.Println(" - Bugfix: handle blank ECM images as well as ECM images using few bg colors")
 	fmt.Println("   (thanks Brush).")
+	fmt.Println(" - Code refactor, standardizing color and bitpair code, separated palettes in")
+	fmt.Println("   palettes.yaml and more.")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.8")
 	fmt.Println()

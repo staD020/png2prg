@@ -60,7 +60,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 
 	wantedGraphicsType := imgs[0].graphicsType
 	c.FinalGraphicsType = imgs[0].graphicsType
-	currentBitpairColors := bitpairColors{}
+	currentBitpairColors := []*Color{}
 	charset := []charBytes{}
 	for i, img := range imgs {
 		if !c.opt.Quiet {
@@ -68,7 +68,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		}
 		if i > 0 {
 			if imgs[0].graphicsType != petsciiCharset && imgs[0].graphicsType != singleColorCharset {
-				img.preferredBitpairColors = currentBitpairColors
+				img.bpc = currentBitpairColors
 			}
 			if err := img.analyze(); err != nil {
 				//return n, fmt.Errorf("warning: skipping frame %d, analyze failed: %w", i, err)
@@ -80,12 +80,12 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			return n, fmt.Errorf("mixed graphicsmodes detected %q != %q", img.graphicsType, wantedGraphicsType)
 		}
 		if len(currentBitpairColors) == 0 {
-			currentBitpairColors = img.preferredBitpairColors
+			currentBitpairColors = img.bpc
 		}
-		if currentBitpairColors.String() != img.preferredBitpairColors.String() && imgs[0].graphicsType != petsciiCharset && imgs[0].graphicsType != singleColorCharset {
-			log.Printf("bitpairColors %q of the previous frame do not equal current frame %q", currentBitpairColors, img.preferredBitpairColors)
+		if BPCString(currentBitpairColors) != BPCString(img.bpc) && imgs[0].graphicsType != petsciiCharset && imgs[0].graphicsType != singleColorCharset {
+			log.Printf("bitpairColors %q of the previous frame do not equal current frame %q", BPCString(currentBitpairColors), BPCString(img.bpc))
 			log.Println("this would cause huge animation frame sizes and probably crash the displayer")
-			return n, fmt.Errorf("bitpairColors differ between frames, maybe use -bitpair-colors %s to force them", currentBitpairColors)
+			return n, fmt.Errorf("bitpairColors differ between frames, maybe use -bitpair-colors %s to force them", BPCString(currentBitpairColors))
 		}
 
 		switch img.graphicsType {

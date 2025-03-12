@@ -16,7 +16,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -26,7 +25,7 @@ import (
 )
 
 const (
-	Version              = "1.9.5-dev"
+	Version              = "1.9.6-dev"
 	displayerJumpTo      = "$0828"
 	MaxColors            = 16
 	MaxChars             = 256
@@ -237,28 +236,30 @@ func (m PaletteMap) String() string {
 }
 
 type sourceImage struct {
-	sourceFilename         string
-	opt                    Options
-	image                  image.Image
-	xOffset                int
-	yOffset                int
-	width                  int
-	height                 int
-	palette                PaletteMap
-	colors                 []RGB
-	charColors             [1000]PaletteMap
-	backgroundCandidates   PaletteMap
+	sourceFilename  string
+	opt             Options
+	image           image.Image
+	xOffset         int
+	yOffset         int
+	width           int
+	height          int
+	graphicsType    GraphicsType
+	p               Palette
+	bpc             []*Color
+	bpcCache        [FullScreenChars]map[C64Color]byte
+	bpcBitpairCount [MaxColors]map[byte]int
+	border          Color
+	bg              Color
+	bgCandidates    []Color
+	charPalette     []Palette
+	sumColors       [MaxColors]int
+
 	backgroundColor        ColorInfo
 	borderColor            ColorInfo
 	preferredBitpairColors bitpairColors
-	ecmColors              bitpairColors
-	graphicsType           GraphicsType
-	c64color2bitpairCache  [1000]map[byte]byte
+	ecmColors              []Color
+	c64color2bitpairCache  [FullScreenChars]map[byte]byte
 	c64colorBitpairCount   [MaxColors]map[byte]int
-
-	p           Palette
-	border      Color
-	charPalette []Palette
 }
 
 func (img *sourceImage) At(x, y int) color.Color {
@@ -272,6 +273,24 @@ func (img *sourceImage) ColorModel() color.Model {
 
 func (img *sourceImage) Bounds() image.Rectangle {
 	return img.image.Bounds()
+}
+
+func (img *sourceImage) BPCString() (s string) {
+	return BPCString(img.bpc)
+}
+
+func BPCString(bpc []*Color) (s string) {
+	for i, col := range bpc {
+		if col == nil {
+			s += "-1"
+		} else {
+			s += strconv.Itoa(int(col.C64Color))
+		}
+		if i < len(bpc)-1 {
+			s += ","
+		}
+	}
+	return s
 }
 
 type MultiColorChar struct {
@@ -746,6 +765,10 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 				opt:            opt,
 				image:          rawImage,
 			}
+			img.p, err = NewPalette(img.image, false)
+			if err != nil {
+				return nil, fmt.Errorf("NewPalette failed: %w", err)
+			}
 			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 			}
@@ -768,14 +791,23 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 		sourceFilename: path,
 		opt:            opt,
 	}
-	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
-		return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
+	for c64col := 0; c64col < MaxColors; c64col++ {
+		if img.bpcBitpairCount[c64col] == nil {
+			img.bpcBitpairCount[c64col] = make(map[byte]int, 4)
+		}
 	}
 	if img.image, _, err = image.Decode(bytes.NewReader(bin)); err != nil {
 		return nil, fmt.Errorf("image.Decode failed: %w", err)
 	}
 	if err = img.checkBounds(); err != nil {
 		return nil, fmt.Errorf("img.checkBounds failed: %w", err)
+	}
+	img.p, err = NewPalette(img.image, false)
+	if err != nil {
+		return nil, fmt.Errorf("NewPalette failed: %w", err)
+	}
+	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
+		return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 	}
 	imgs = append(imgs, img)
 	return imgs, nil
@@ -787,6 +819,14 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 		sourceFilename: fmt.Sprintf("png2prg_%02d", index),
 		opt:            opt,
 		image:          in,
+	}
+	for c64col := 0; c64col < MaxColors; c64col++ {
+		if img.bpcBitpairCount[c64col] == nil {
+			img.bpcBitpairCount[c64col] = make(map[byte]int, 4)
+		}
+	}
+	if img.p, err = NewPalette(img.image, false); err != nil {
+		return img, fmt.Errorf("NewPalette failed: %w", err)
 	}
 	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 		return img, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
@@ -810,31 +850,6 @@ func NewFromPath(opt Options, filenames ...string) (*Converter, error) {
 		in = append(in, f)
 	}
 	return New(opt, in...)
-}
-
-func (c *Converter) SortedColors() []byte {
-	bpc := c.images[0].preferredBitpairColors
-	if c.opt.Verbose {
-		log.Printf("-bpc %s", bpc)
-	}
-	_, _, sumColors := c.images[0].countColors()
-	type sumcol struct {
-		col   byte
-		count int
-	}
-	sc := []sumcol{}
-	for col, count := range sumColors {
-		sc = append(sc, sumcol{col: byte(col), count: count})
-	}
-	sort.Slice(sc, func(i, j int) bool { return sc[i].count > sc[j].count })
-	result := make([]byte, len(sc))
-	for i, scol := range sc {
-		result[i] = scol.col
-	}
-	if c.opt.Verbose {
-		log.Printf("result: %v", result)
-	}
-	return result
 }
 
 // WriteTo processes the image(s) and writes the resulting .prg to w.
@@ -1013,7 +1028,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			}
 			fmt.Printf("falling back to %s because bruteforce %s for %q failed: %v\n", multiColorBitmap, mixedCharset, img.sourceFilename, err)
 			img.graphicsType = multiColorBitmap
-			img.findBackgroundColorCandidates(false)
+			img.findBgCandidates(false)
 			if err = img.findBackgroundColor(); err != nil {
 				return 0, fmt.Errorf("img.findBackgroundColor %q failed: %w", img.sourceFilename, err)
 			}
@@ -1030,7 +1045,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			}
 			fmt.Printf("falling back to %s because %s for %q failed: %v\n", multiColorBitmap, mixedCharset, img.sourceFilename, err)
 			img.graphicsType = multiColorBitmap
-			img.findBackgroundColorCandidates(false)
+			img.findBgCandidates(false)
 			if err = img.findBackgroundColor(); err != nil {
 				return 0, fmt.Errorf("img.findBackgroundColor %q failed: %w", img.sourceFilename, err)
 			}

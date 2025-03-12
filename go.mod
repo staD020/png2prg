@@ -1,6 +1,6 @@
 module github.com/staD020/png2prg
 
-go 1.18
+go 1.20
 
 require (
 	github.com/staD020/TSCrunch v0.0.0-20230328221504-7d8d1ddd3819

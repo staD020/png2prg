@@ -18,8 +18,8 @@ func testImage(t *testing.T) image.Image {
 	defer f.Close()
 	require.NotNil(t, f)
 	img, _, err := image.Decode(f)
-	assert.Nil(t, err)
-	assert.NotNil(t, img)
+	require.Nil(t, err)
+	require.NotNil(t, img)
 	return img
 }
 
@@ -27,8 +27,8 @@ func TestNewPalette(t *testing.T) {
 	t.Parallel()
 	img := testImage(t)
 	p, err := NewPalette(img, false)
-	assert.Nil(t, err)
-	assert.NotNil(t, p)
+	require.Nil(t, err)
+	require.NotNil(t, p)
 
 	type tc struct {
 		col  C64Color
@@ -69,4 +69,29 @@ func TestNewPalette(t *testing.T) {
 
 	p.Add(Color{Color: color.RGBA{0x7a, 0x7a, 0x10, 0x01}, C64Color: 9})
 	assert.Equal(t, 16, p.NumColors())
+}
+
+func TestParseBPC(t *testing.T) {
+	t.Parallel()
+	img := testImage(t)
+	p, err := NewPalette(img, false)
+	require.Nil(t, err)
+	require.NotNil(t, p)
+
+	cc, err := p.ParseBPC("0,6,4,14")
+	assert.Nil(t, err)
+	assert.Len(t, cc, 4)
+
+	cc, err = p.ParseBPC("0,-1,-1,14")
+	assert.Nil(t, err)
+	assert.Len(t, cc, 4)
+	assert.Equal(t, C64Color(0), cc[0].C64Color)
+	assert.Nil(t, cc[1])
+	assert.Nil(t, cc[2])
+	assert.Equal(t, C64Color(14), cc[3].C64Color)
+
+	cc, err = p.ParseBPC("16,0,0,0")
+	assert.NotNil(t, err)
+	cc, err = p.ParseBPC("0,0,-2,0")
+	assert.NotNil(t, err)
 }

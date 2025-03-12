@@ -60,11 +60,14 @@ func (c C64Color) String() string {
 type Color struct {
 	color.Color
 	C64Color C64Color
-	BitPair  byte
 }
 
 func (c Color) String() string {
-	return fmt.Sprintf("%d,%s", c.C64Color, rgbaString(c))
+	return fmt.Sprintf("%d,%s", c.C64Color, c.RGBString())
+}
+
+func (c Color) RGBString() string {
+	return rgbString(c)
 }
 
 // NewColor returns a new C64Color/color.Color pair.
@@ -72,13 +75,14 @@ func NewColor(c64color C64Color, col color.Color) Color {
 	return Color{C64Color: c64color, Color: col}
 }
 
-// rgbaString returns a human readable #rrggbb string of col.
-func rgbaString(col color.Color) string {
+// rgbString returns a human readable #rrggbb string of col.
+func rgbString(col color.Color) string {
 	r, g, b, _ := col.RGBA()
-	return fmt.Sprintf("#%02x%02x%02x", byte(r), byte(g), byte(b))
+	return fmt.Sprintf("#%02x%02x%02x", byte(r&0xff), byte(g&0xff), byte(b&0xff))
 }
 
 // Distance returns the absolute rgb distance between c and col.
+// todo: https://stackoverflow.com/questions/9018016/how-to-compare-two-colors-for-similarity-difference
 func (c Color) Distance(col color.Color) int {
 	r1, g1, b1, _ := col.RGBA()
 	r2, g2, b2, _ := c.RGBA()
@@ -92,7 +96,7 @@ func (c Color) Distance(col color.Color) int {
 type Palette struct {
 	Name    string
 	loose   bool
-	c642col [MaxColors]*Color
+	c642col map[C64Color]Color
 	rgb2col map[string]Color
 	mtx     *sync.RWMutex
 }
@@ -111,6 +115,7 @@ func BlankPalette(name string, looseMatching bool) Palette {
 	return Palette{
 		Name:    name,
 		loose:   looseMatching,
+		c642col: make(map[C64Color]Color),
 		rgb2col: make(map[string]Color),
 		mtx:     &sync.RWMutex{},
 	}
@@ -122,18 +127,17 @@ func (p Palette) NumColors() int {
 	return len(p.rgb2col)
 }
 
+// Colors returns the Palette's colors, the order is undefined.
 func (p Palette) Colors() (cc []Color) {
 	p.mtx.RLock()
 	for _, c := range p.c642col {
-		if c != nil {
-			cc = append(cc, *c)
-		}
+		cc = append(cc, c)
 	}
 	p.mtx.RUnlock()
 	return cc
 }
 
-// SortColors returns the palette's colors sorted by C64Color.
+// SortColors returns the Palette's colors sorted by C64Color.
 func (p Palette) SortColors() []Color {
 	cc := p.Colors()
 	sort.Slice(cc, func(i, j int) bool { return cc[i].C64Color < cc[j].C64Color })
@@ -141,19 +145,30 @@ func (p Palette) SortColors() []Color {
 }
 
 // Add adds the Color to the Palette. If the Color was already present, it will be updated.
-func (p *Palette) Add(col Color) {
+func (p *Palette) Add(colors ...Color) {
 	p.mtx.Lock()
-	p.c642col[col.C64Color] = &col
-	p.rgb2col[rgbaString(col)] = col
+	for _, col := range colors {
+		p.c642col[col.C64Color] = col
+		p.rgb2col[col.RGBString()] = col
+	}
 	p.mtx.Unlock()
 }
 
-// FromC64
+// Delete deletes the Color from the Palette. If the Color was not present, nothing happens.
+func (p *Palette) Delete(colors ...Color) {
+	p.mtx.Lock()
+	for _, col := range colors {
+		delete(p.c642col, col.C64Color)
+		delete(p.rgb2col, col.RGBString())
+	}
+	p.mtx.Unlock()
+}
+
 func (p Palette) FromC64(col C64Color) (Color, error) {
 	p.mtx.RLock()
 	defer p.mtx.RUnlock()
-	if v := p.c642col[col]; v != nil {
-		return *p.c642col[col], nil
+	if v, ok := p.c642col[col]; ok {
+		return v, nil
 	}
 	return Color{
 		Color:    color.RGBA{},
@@ -162,12 +177,23 @@ func (p Palette) FromC64(col C64Color) (Color, error) {
 }
 
 func (p Palette) FromColor(col color.Color) (Color, error) {
+	k := rgbString(col)
 	p.mtx.RLock()
 	defer p.mtx.RUnlock()
-	if v, ok := p.rgb2col[rgbaString(col)]; ok {
+	if v, ok := p.rgb2col[k]; ok {
 		return v, nil
 	}
-	return Color{Color: col}, fmt.Errorf("rgb %s not found", rgbaString(col))
+	return Color{Color: col}, fmt.Errorf("rgb %s not found", k)
+}
+
+func (p Palette) FromC64NoErr(col C64Color) Color {
+	c, _ := p.FromC64(col)
+	return c
+}
+
+func (p Palette) FromColorNoErr(col color.Color) Color {
+	c, _ := p.FromColor(col)
+	return c
 }
 
 // Convert converts a color to a png2prg.Color and returns it, implementing the color.Model interface.
@@ -216,7 +242,7 @@ func imageColors(img image.Image) (cc []color.Color) {
 func analyzeColors(cc []color.Color) (found Palette) {
 	minDistance := int(6e9)
 	for _, src := range paletteSources {
-		p := Palette{Name: src.Name, rgb2col: map[string]Color{}, mtx: &sync.RWMutex{}}
+		p := BlankPalette(src.Name, false)
 		totalDistance := 0
 		for _, c := range cc {
 			distance := int(6e9)
@@ -231,12 +257,10 @@ func analyzeColors(cc []color.Color) (found Palette) {
 					break
 				}
 			}
-			p.c642col[foundCol.C64Color] = &foundCol
-			p.rgb2col[rgbaString(c)] = foundCol
-
+			p.Add(foundCol)
 			totalDistance += distance
 		}
-		fmt.Printf("palette %q distance = %d\n", p.Name, totalDistance)
+		//fmt.Printf("palette %q distance = %d\n", p.Name, totalDistance)
 		if totalDistance < minDistance {
 			found = p
 			minDistance = totalDistance
@@ -246,6 +270,27 @@ func analyzeColors(cc []color.Color) (found Palette) {
 		}
 	}
 	return found
+}
+
+// ParseBPC parses the commandline -bitpair-colors string and returns an ordered Color byte-slice.
+// A nil *Color (-1 in the cli) means the bitpair has no preference.
+func (p Palette) ParseBPC(in string) (cc []*Color, err error) {
+	for _, v := range strings.Split(in, ",") {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return cc, fmt.Errorf("strconv.Atoi conversion of %q to integers failed: %w", in, err)
+		}
+		if i < -1 || i >= MaxColors {
+			return cc, fmt.Errorf("incorrect c64 color %d", i)
+		}
+		if i < 0 {
+			cc = append(cc, nil)
+			continue
+		}
+		col := p.FromC64NoErr(C64Color(i))
+		cc = append(cc, &col)
+	}
+	return cc, nil
 }
 
 //go:embed "palettes.yaml"
@@ -262,7 +307,7 @@ func init() {
 	var err error
 	paletteSources, err = convertPaletteSources(palettesYaml)
 	if err != nil {
-		panic(fmt.Errorf("sourcePalettes failed: %w", err))
+		panic(fmt.Errorf("convertPaletteSources failed: %w", err))
 	}
 	if len(paletteSources) == 0 {
 		panic(fmt.Errorf("no palettes found in %q", palettesYaml))
@@ -281,6 +326,7 @@ func convertPaletteSources(inputYaml []byte) (out []paletteSource, err error) {
 	}
 	for _, p := range ps {
 		ps := paletteSource{Name: p.Name, Colors: make([]Color, 16, 16)}
+		count := 0
 		for _, l := range p.Colors {
 			a := strings.Split(l, ",")
 			c64col, err := strconv.Atoi(strings.TrimSpace(a[0]))
@@ -292,6 +338,10 @@ func convertPaletteSources(inputYaml []byte) (out []paletteSource, err error) {
 				return out, err
 			}
 			ps.Colors[c64col] = NewColor(C64Color(c64col), color.RGBA{byte((rgb >> 16) & 0xff), byte((rgb >> 8) & 0xff), byte(rgb & 0xff), 0x01})
+			count++
+		}
+		if count != MaxColors {
+			return out, fmt.Errorf("each palette in palettes.yaml must have %d colors, not %d", MaxColors, count)
 		}
 		out = append(out, ps)
 	}

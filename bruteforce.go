@@ -14,7 +14,6 @@ import (
 
 type bruteResult struct {
 	bpc               string
-	bgcol             ColorInfo
 	noprevcharcols    bool
 	nobitpaircounters bool
 	length            int
@@ -52,10 +51,11 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	if len(colors) > permuteDepth {
 		colors = colors[0:permuteDepth]
 	}
+	fmt.Println("bf colors:", colors)
 
 	count := 0
 	total := 0
-	done := map[[4]byte]bool{}
+	done := map[[4]C64Color]bool{}
 	for p := make([]int, len(colors)); p[0] < len(p); PermuteNext(p) {
 		count++
 		s := Permutation(colors, p)
@@ -68,18 +68,22 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 			}
 			continue
 		}
-		tmp := [4]byte{}
-		copy(tmp[:], s)
+		tmp := [4]C64Color{}
+		for i := range tmp {
+			tmp[i] = s[i].C64Color
+		}
 		if _, ok := done[tmp]; ok {
 			continue
 		}
 		done[tmp] = true
 
+		// fmt.Printf("tmp: %v c.images[0].bgCandidates: %v\n", tmp, c.images[0].bgCandidates)
+
 		if gfxtype == multiColorBitmap || gfxtype == singleColorCharset || gfxtype == multiColorCharset || gfxtype == mixedCharset {
 			// skip impossible bgcolors
 			bgok := false
-			for _, col := range c.images[0].backgroundCandidates {
-				if col == s[0] {
+			for _, col := range c.images[0].bgCandidates {
+				if col.C64Color == s[0].C64Color {
 					bgok = true
 				}
 			}
@@ -89,14 +93,14 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		}
 		if gfxtype == multiColorCharset || gfxtype == mixedCharset {
 			// skip impossible d800 colors
-			if s[3] > 7 {
+			if s[3].C64Color > 7 {
 				continue
 			}
 		}
 
 		bitpaircols := ""
 		for i, col := range s {
-			bitpaircols += strconv.Itoa(int(col))
+			bitpaircols += strconv.Itoa(int(col.C64Color))
 			if i < len(s)-1 {
 				bitpaircols += ","
 			}
@@ -174,7 +178,6 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	c.opt.NoPrevCharColors = out[0].noprevcharcols
 	c.opt.NoBitpairCounters = out[0].nobitpaircounters
 	c.images[0].opt.BitpairColorsString = out[0].bpc
-	c.images[0].backgroundColor = out[0].bgcol
 	return nil
 }
 
@@ -213,8 +216,8 @@ NEXTJOB:
 				continue NEXTJOB
 			}
 		case mixedCharset:
-			if len(img.preferredBitpairColors) > 3 {
-				if img.preferredBitpairColors[3] > 7 {
+			if len(img.bpc) > 3 {
+				if img.bpc[3].C64Color > 7 {
 					continue NEXTJOB
 				}
 			}
@@ -245,7 +248,6 @@ NEXTJOB:
 		}
 		result <- bruteResult{
 			bpc:               img.opt.BitpairColorsString,
-			bgcol:             ColorInfo{ColorIndex: img.preferredBitpairColors[0], RGB: img.palette.RGB(img.preferredBitpairColors[0])},
 			noprevcharcols:    img.opt.NoPrevCharColors,
 			nobitpaircounters: img.opt.NoBitpairCounters,
 			length:            compressed.Len(),
@@ -253,22 +255,21 @@ NEXTJOB:
 	}
 }
 
-func (img *sourceImage) SortedColors() []byte {
-	_, _, sumColors := img.countColors()
+func (img *sourceImage) SortedColors() []Color {
 	type sumcol struct {
-		col   byte
+		col   C64Color
 		count int
 	}
 	sc := []sumcol{}
-	for col, count := range sumColors {
+	for col, count := range img.sumColors {
 		if count > 0 {
-			sc = append(sc, sumcol{col: byte(col), count: count})
+			sc = append(sc, sumcol{col: C64Color(col), count: count})
 		}
 	}
 	sort.Slice(sc, func(i, j int) bool { return sc[i].count > sc[j].count })
-	result := make([]byte, len(sc))
+	result := make([]Color, len(sc))
 	for i, scol := range sc {
-		result[i] = scol.col
+		result[i] = img.p.FromC64NoErr(scol.col)
 	}
 	return result
 }

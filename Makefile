@@ -396,6 +396,12 @@ veto: $(VETO) $(TARGET)
 	$(EXO) level -o $@_p2pbest.prg.exo $@_p2pbest.prg
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
+	Png2prg-1.8 -o $@_p2p18.prg $<
+	dali -o $@_p2p18.prg.dali $@_p2p18.prg
+	Png2prg-1.8 -bf -o $@_p2p18bf.prg $<
+	dali -o $@_p2p18bf.prg.dali $@_p2p18bf.prg
+	./$(TARGET) -bf -o $@_p2pbf.prg $<
+	dali -o $@_p2pbf.prg.dali $@_p2pbf.prg
 	ls -l $@_*
 
 # best -bf: -bpc 8,0,6,5
