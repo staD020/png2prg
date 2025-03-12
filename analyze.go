@@ -102,17 +102,8 @@ func (img *sourceImage) hasSpriteDimensions() bool {
 
 // analyze validates the image and guesses img.graphicsType, etc.
 func (img *sourceImage) analyze() (err error) {
-	//if err = img.analyzePalette(); err != nil {
-	//	return fmt.Errorf("analyzePalette failed: %w", err)
-	//}
-	/*
-		img.p, err = NewPalette(img.image, false)
-		if err != nil {
-			return fmt.Errorf("NewPalette failed: %w", err)
-		}
-	*/
 	if img.opt.Verbose {
-		log.Println("NewPalette found:", img.p)
+		log.Println("Palette found:", img.p)
 	}
 	if img.opt.BitpairColorsString != "" {
 		if img.bpc, err = img.p.ParseBPC(img.opt.BitpairColorsString); err != nil {
