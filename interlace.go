@@ -128,8 +128,8 @@ func (c *Converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 					{"d016offsetaddr", 0x7f42},
 					{"bitmap2", 0x8000},
 					{"d016offset", c.opt.D016Offset},
-					{"d020color", int(img0.borderColor.ColorIndex)},
-					{"d021color", int(img0.backgroundColor.ColorIndex)},
+					{"d020color", int(img0.border.C64Color)},
+					{"d021color", int(img0.bg.C64Color)},
 				}
 			}
 			_, err = link.WriteMap(LinkMap{

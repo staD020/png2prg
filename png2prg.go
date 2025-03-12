@@ -253,13 +253,7 @@ type sourceImage struct {
 	bgCandidates    []Color
 	charPalette     []Palette
 	sumColors       [MaxColors]int
-
-	backgroundColor        ColorInfo
-	borderColor            ColorInfo
-	preferredBitpairColors bitpairColors
-	ecmColors              []Color
-	c64color2bitpairCache  [FullScreenChars]map[byte]byte
-	c64colorBitpairCount   [MaxColors]map[byte]int
+	ecmColors       []Color
 }
 
 func (img *sourceImage) At(x, y int) color.Color {
@@ -878,7 +872,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		var rgba0, rgba1 *image.RGBA
 		if img.graphicsType == multiColorInterlaceBitmap {
 			rgba0, rgba1 = img.SplitInterlace()
-			c.opt.ForceBorderColor = int(img.borderColor.ColorIndex)
+			c.opt.ForceBorderColor = int(img.border.C64Color)
 			if !c.opt.Quiet {
 				fmt.Println("interlaced pic was split")
 			}

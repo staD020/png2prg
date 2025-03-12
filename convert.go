@@ -599,7 +599,7 @@ func romCharsetToCharBytes(romPrg []byte) (cb []charBytes) {
 func (img *sourceImage) PETSCIICharset() (PETSCIICharset, error) {
 	c := PETSCIICharset{
 		SourceFilename: img.sourceFilename,
-		BorderColor:    img.borderColor.ColorIndex,
+		BorderColor:    byte(img.border.C64Color),
 		opt:            img.opt,
 	}
 	charset := romCharsetToCharBytes(romCharsetUppercasePrg)

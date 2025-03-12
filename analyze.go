@@ -485,21 +485,17 @@ func (img *sourceImage) findBackgroundColor() error {
 
 	img.findBgCandidates(false)
 	for _, col := range img.bgCandidates {
-		r, g, b, _ := col.RGBA()
-		rgb := RGB{byte(r), byte(g), byte(b)}
 		switch {
 		case noForce:
 			if img.opt.Verbose {
 				log.Printf("findBackgroundColor: found background color %d\n", col)
 			}
-			img.backgroundColor = ColorInfo{RGB: rgb, ColorIndex: byte(col.C64Color)}
 			img.bg = col
 			return nil
 		case col.C64Color == forceBgCol.C64Color:
 			if img.opt.Verbose {
 				log.Printf("findBackgroundColor: found preferred background color %d\n", forceBgCol)
 			}
-			img.backgroundColor = ColorInfo{RGB: rgb, ColorIndex: byte(col.C64Color)}
 			img.bg = col
 			return nil
 		}
@@ -509,9 +505,6 @@ func (img *sourceImage) findBackgroundColor() error {
 		if img.opt.Verbose {
 			log.Printf("findBackgroundColor: we tried looking for color %d, but we have to settle for color %d\n", forceBgCol, col)
 		}
-		r, g, b, _ := col.RGBA()
-		rgb := RGB{byte(r), byte(g), byte(b)}
-		img.backgroundColor = ColorInfo{RGB: rgb, ColorIndex: byte(col.C64Color)}
 		img.bg = col
 		return nil
 	}
