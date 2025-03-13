@@ -195,6 +195,7 @@ type sourceImage struct {
 	bg              Color
 	bgCandidates    []Color
 	charPalette     [FullScreenChars]Palette
+	charColors      [FullScreenChars][]Color
 	sumColors       [MaxColors]int
 	ecmColors       []Color
 }

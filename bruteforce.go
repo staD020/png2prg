@@ -28,7 +28,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	}
 	origOpt := c.opt
 	num := c.opt.NumWorkers
-	jobs := make(chan sourceImage, num)
+	jobs := make(chan *sourceImage, num)
 	result := make(chan bruteResult, num)
 	wg := &sync.WaitGroup{}
 	wg.Add(num)
@@ -122,7 +122,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 			}
 			continue
 		}
-		jobs <- img
+		jobs <- &img
 		total++
 		if !origOpt.Quiet && total%10 == 0 {
 			fmt.Print(".")
@@ -181,7 +181,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	return nil
 }
 
-func (c *Converter) bruteWorker(i int, wg *sync.WaitGroup, jobs <-chan sourceImage, result chan bruteResult) {
+func (c *Converter) bruteWorker(i int, wg *sync.WaitGroup, jobs <-chan *sourceImage, result chan bruteResult) {
 	defer wg.Done()
 NEXTJOB:
 	for img := range jobs {
