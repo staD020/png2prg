@@ -120,10 +120,7 @@ func (img *sourceImage) analyze() (err error) {
 	maxcolsperchar := img.maxPalettePerChar().NumColors()
 	if img.opt.Verbose {
 		log.Printf("max colors per char: %d", maxcolsperchar)
-	}
-	sumColors := img.sumColors
-	if img.opt.Verbose {
-		log.Printf("sum colors: %v", sumColors)
+		log.Printf("sum colors: %v", img.sumColors)
 	}
 
 	img.findBgCandidates(true)
@@ -212,7 +209,7 @@ func (img *sourceImage) analyze() (err error) {
 	if img.graphicsType == multiColorBitmap {
 		maxcolsperchar = 4
 	}
-	img.guessPreferredBitpairColors(maxcolsperchar, sumColors)
+	img.guessPreferredBitpairColors(maxcolsperchar, img.sumColors)
 	return nil
 }
 
@@ -357,26 +354,6 @@ func (img *sourceImage) countSpriteColors() (numColors int, usedColors []byte, s
 	return img.p.NumColors(), usedColors, sumColors
 }
 
-// countColors returns color statistics.
-func (img *sourceImage) countColors() (numColors int, usedColors []byte, sumColors [MaxColors]int) {
-	//	for i := range img.charPalette {
-	//		for _, col := range img.charPalette[i].Colors() {
-	//			sumColors[col.C64Color]++
-	//		}
-	//	}
-	sumColors = img.sumColors
-	for i, v := range sumColors {
-		if v > 0 {
-			usedColors = append(usedColors, byte(i))
-			numColors++
-		}
-	}
-	sort.Slice(usedColors, func(i, j int) bool {
-		return usedColors[i] < usedColors[j]
-	})
-	return numColors, usedColors, sumColors
-}
-
 // maxPalettePerChar finds the char with the most colors and returns its Palette.
 func (img *sourceImage) maxPalettePerChar() Palette {
 	char := 0
@@ -389,8 +366,8 @@ func (img *sourceImage) maxPalettePerChar() Palette {
 			char = i
 		}
 	}
-	x, y := xyFromChar(char)
 	if img.opt.VeryVerbose {
+		x, y := xyFromChar(char)
 		log.Printf("char %d (x %d y %d) maxPalettePerChar: %d p: %v", char, x, y, max, p)
 	}
 	return p

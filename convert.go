@@ -8,17 +8,6 @@ import (
 	"sort"
 )
 
-// sortColors sorts the colors by c64 colorindex.
-func sortColors(charColors PaletteMap) (cc []ColorInfo) {
-	for rgb, colorIndex := range charColors {
-		cc = append(cc, ColorInfo{RGB: rgb, ColorIndex: colorIndex})
-	}
-	sort.Slice(cc, func(i, j int) bool {
-		return cc[i].ColorIndex < cc[j].ColorIndex
-	})
-	return cc
-}
-
 // In returns true if element v is equal to an element of slice s.
 func In[S ~[]E, E comparable](s S, v E) bool {
 	return slices.Index(s, v) >= 0

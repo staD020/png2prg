@@ -178,63 +178,6 @@ func (t GraphicsType) String() string {
 	}
 }
 
-type bitpairColors []byte
-
-func (b bitpairColors) String() (s string) {
-	for i, v := range b {
-		s = s + strconv.Itoa(int(v))
-		if i < len(b)-1 {
-			s += ","
-		}
-	}
-	return s
-}
-
-// A PalletMap contains mapping from RGB colors to their c64 colorindexes.
-type PaletteMap map[RGB]byte
-
-func (m PaletteMap) RGB(c64Color byte) RGB {
-	for rgb, col := range m {
-		if col == c64Color {
-			return rgb
-		}
-	}
-	log.Printf("c64Color %v not found in palette %v", c64Color, m)
-	return RGB{}
-}
-
-func (m PaletteMap) devString() string {
-	reverse := [MaxColors]*RGB{}
-	for r, c := range m {
-		r := r
-		reverse[c] = &r
-	}
-	s := ""
-	for c, r := range reverse {
-		if r == nil {
-			continue
-		}
-		s += fmt.Sprintf("{%d, %s}, ", c, *r)
-	}
-	return strings.TrimSuffix(s, ", ")
-}
-
-func (m PaletteMap) String() string {
-	reverse := [MaxColors]*RGB{}
-	for r, c := range m {
-		r := r
-		reverse[c] = &r
-	}
-	s := ""
-	for c, r := range reverse {
-		if r == nil {
-			continue
-		}
-		s += fmt.Sprintf("{%d, #%02x%02x%02x}, ", c, int(r.R), int(r.G), int(r.B))
-	}
-	return strings.TrimSuffix(s, ", ")
-}
-
 type sourceImage struct {
 	sourceFilename  string
 	opt             Options
