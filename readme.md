@@ -401,6 +401,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
    palettes.yaml and more.
  - Bugfix: repair -force-border-color.
  - Typofix: fix simple install docs (thanks IcePic).
+ - Added another weird palette (thanks Fungus).
 
 ## Changes for version 1.8
 

@@ -413,6 +413,7 @@ func PrintHelp() {
 	fmt.Println("   palettes.yaml and more.")
 	fmt.Println(" - Bugfix: repair -force-border-color.")
 	fmt.Println(" - Typofix: fix simple install docs (thanks IcePic).")
+	fmt.Println(" - Added another weird palette (thanks Fungus).")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.8")
 	fmt.Println()
