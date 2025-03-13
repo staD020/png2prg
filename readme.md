@@ -399,6 +399,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
    (thanks Brush).
  - Code refactor, standardizing color and bitpair code, separated palettes in
    palettes.yaml and more.
+ - Bugfix: repair -force-border-color.
+ - Typofix: fix simple install docs (thanks IcePic).
 
 ## Changes for version 1.8
 
