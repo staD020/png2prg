@@ -2,6 +2,7 @@ package png2prg
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 	"math"
 	"sort"
@@ -113,11 +114,11 @@ func (img *sourceImage) analyze() (err error) {
 	if img.hasSpriteDimensions() {
 		return img.analyzeSprites()
 	}
-	if err = img.makeCharPalettes(); err != nil {
-		return fmt.Errorf("img.makeCharPalettes failed: %w", err)
+	if err = img.makeCharColors(); err != nil {
+		return fmt.Errorf("img.makeCharColors failed: %w", err)
 	}
 
-	maxcolsperchar := img.maxPalettePerChar().NumColors()
+	maxcolsperchar := len(img.maxColorsPerChar())
 	if img.opt.Verbose {
 		log.Printf("max colors per char: %d", maxcolsperchar)
 		log.Printf("sum colors: %v", img.sumColors)
@@ -128,7 +129,6 @@ func (img *sourceImage) analyze() (err error) {
 	if img.opt.Verbose {
 		log.Printf("bgcandidates hires: %v", img.bgCandidates)
 	}
-
 	img.findBgCandidates(false)
 	numbgcolcandidates := len(img.bgCandidates)
 	if img.opt.Verbose {
@@ -354,45 +354,44 @@ func (img *sourceImage) countSpriteColors() (numColors int, usedColors []byte, s
 	return img.p.NumColors(), usedColors, sumColors
 }
 
-// maxPalettePerChar finds the char with the most colors and returns its Palette.
-func (img *sourceImage) maxPalettePerChar() Palette {
+// maxColorsPerChar finds the char with the most colors and returns the Color slice.
+func (img *sourceImage) maxColorsPerChar() (cc []Color) {
 	char := 0
 	max := 0
-	p := BlankPalette(img.p.Name, false)
-	for i := range img.charPalette {
-		if img.charPalette[i].NumColors() > max {
-			max = img.charPalette[i].NumColors()
-			p = img.charPalette[i]
+	for i := range img.charColors {
+		if len(img.charColors[i]) > max {
+			cc = img.charColors[i]
+			max = len(cc)
 			char = i
 		}
 	}
 	if img.opt.VeryVerbose {
 		x, y := xyFromChar(char)
-		log.Printf("char %d (x %d y %d) maxPalettePerChar: %d p: %v", char, x, y, max, p)
+		log.Printf("char %d (x %d y %d) maxColorsPerChar: %d cc: %v", char, x, y, max, cc)
 	}
-	return p
+	return cc
 }
 
 // findBgColorCandidates iterates over all chars with 4 colors (or 2 for hires) and sets the common color(s) in img.bgCandidates.
 func (img *sourceImage) findBgCandidates(hires bool) {
-	charpp := []Palette{}
-	for _, charp := range img.charPalette {
-		if (hires && charp.NumColors() == 2) || (!hires && charp.NumColors() == 4) {
-			charpp = append(charpp, charp)
+	charcc := [][]Color{}
+	for _, cc := range img.charColors {
+		if (hires && len(cc) == 2) || (!hires && len(cc) == 4) {
+			charcc = append(charcc, cc)
 		}
 	}
-	if len(charpp) == 0 {
+	if len(charcc) == 0 {
 		img.bgCandidates = img.p.Colors()
 		return
 	}
 	candidates := BlankPalette("bgcol", false)
-	candidates.Add(charpp[0].Colors()...)
+	candidates.Add(charcc[0]...)
 	if img.opt.VeryVerbose {
 		log.Printf("all BackgroundColor candidates: %v", candidates)
 	}
-	for _, charp := range charpp {
+	for _, cc := range charcc {
 		for _, col := range candidates.Colors() {
-			if _, err := charp.FromC64(col.C64Color); err != nil {
+			if !In(cc, col) {
 				candidates.Delete(col)
 			}
 		}
@@ -494,11 +493,11 @@ func (img *sourceImage) findECMColors() error {
 
 	// find the 4 colors present in all chars
 	colm := map[C64Color]*sortColor{}
-	for _, p := range img.charPalette {
-		if p.NumColors() != 2 {
+	for _, cc := range img.charColors {
+		if len(cc) != 2 {
 			continue
 		}
-		for _, col := range p.SortColors() {
+		for _, col := range cc {
 			if c, ok := colm[col.C64Color]; ok {
 				c.count++
 			} else {
@@ -507,11 +506,11 @@ func (img *sourceImage) findECMColors() error {
 		}
 	}
 	if len(colm) == 0 {
-		for _, p := range img.charPalette {
-			if p.NumColors() > 1 {
+		for _, cc := range img.charColors {
+			if len(cc) > 1 {
 				continue
 			}
-			for _, col := range p.SortColors() {
+			for _, col := range cc {
 				if c, ok := colm[col.C64Color]; ok {
 					c.count++
 				} else {
@@ -550,12 +549,12 @@ PERMUTE:
 		if len(s) > 4 {
 			s = s[:4]
 		}
-		for _, v := range img.charPalette {
-			if v.NumColors() != 2 {
+		for _, cc := range img.charColors {
+			if len(cc) != 2 {
 				continue
 			}
 			nfound := 0
-			for _, charcol := range v.SortColors() {
+			for _, charcol := range cc {
 				for _, ecmcol := range s {
 					if charcol.C64Color == ecmcol.C64Color {
 						nfound++
@@ -631,8 +630,8 @@ func (img *sourceImage) findBorderColor() error {
 	return fmt.Errorf("border color not found")
 }
 
-// makeCharPalettes parses the entire image and populates img.charPalette.
-func (img *sourceImage) makeCharPalettes() error {
+// makeCharColors parses the entire image and populates img.charColors.
+func (img *sourceImage) makeCharColors() error {
 	forceBgCol := -1
 	if len(img.bpc) > 0 {
 		if img.bpc[0] != nil {
@@ -642,10 +641,10 @@ func (img *sourceImage) makeCharPalettes() error {
 	sumColors := [MaxColors]int{}
 	fatalError := false
 	for char := 0; char < FullScreenChars; char++ {
-		p := img.paletteFromChar(char)
-		if forceBgCol >= 0 && p.NumColors() == 4 {
+		cc := img.colorsFromChar(char)
+		if forceBgCol >= 0 && len(cc) == 4 {
 			found := false
-			for _, col := range p.Colors() {
+			for _, col := range cc {
 				if col.C64Color == C64Color(forceBgCol) {
 					found = true
 					break
@@ -659,15 +658,15 @@ func (img *sourceImage) makeCharPalettes() error {
 				}
 			}
 		}
-		if p.NumColors() > 4 {
+		if len(cc) > 4 {
 			fatalError = true
 			x, y := xyFromChar(char)
 			if img.opt.Verbose {
-				log.Printf("amount of colors in char %v (x=%d, y=%d) %d > 4 : %v", char, x, y, p.NumColors(), p)
+				log.Printf("amount of colors in char %v (x=%d, y=%d) %d > 4 : %v", char, x, y, len(cc), cc)
 			}
 		}
-		img.charPalette[char] = p
-		for _, col := range p.Colors() {
+		img.charColors[char] = cc
+		for _, col := range cc {
 			sumColors[col.C64Color]++
 		}
 	}
@@ -678,25 +677,26 @@ func (img *sourceImage) makeCharPalettes() error {
 	return nil
 }
 
-// paletteFromChar returns the Palette of the specific char.
-func (img *sourceImage) paletteFromChar(char int) Palette {
-	p := img.charPalette[char]
-	p.Name = img.p.Name
-	p.c642col = make(map[C64Color]Color)
-	p.rgb2col = make(map[colorKey]Color)
+// colorsFromChar returns the Colors of the specific char.
+func (img *sourceImage) colorsFromChar(char int) (cc []Color) {
 	x, y := xyFromChar(char)
+	m := make(map[color.Color]struct{})
 	for pixely := y; pixely < y+8; pixely++ {
 		for pixelx := x; pixelx < x+8; pixelx++ {
-			col, err := img.p.FromColor(img.At(pixelx, pixely))
+			rgbcol := img.At(pixelx, pixely)
+			if _, ok := m[rgbcol]; ok {
+				continue
+			}
+			m[rgbcol] = struct{}{}
+			col, err := img.p.FromColor(rgbcol)
 			if err != nil {
 				panic("color must always be found")
 			}
-			if _, err = p.FromC64(col.C64Color); err != nil {
-				p.Add(col)
-			}
+			cc = append(cc, col)
 		}
 	}
-	return p
+	sort.Slice(cc, func(i, j int) bool { return cc[i].C64Color < cc[j].C64Color })
+	return cc
 }
 
 // xyFromChar returns the x and y coordinates for the given char.

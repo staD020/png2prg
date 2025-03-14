@@ -240,7 +240,7 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 	chars := []int{}
 	foundsharedcol := 0
 	for char := 0; char < FullScreenChars; char++ {
-		bp0, err := img0.newBitpairs(char, img0.charPalette[char].SortColors(), false)
+		bp0, err := img0.newBitpairs(char, img0.charColors[char], false)
 		if err != nil {
 			return k0, k1, sharedcolors, fmt.Errorf("img0.newBitpairs failed: error in char %d: %w", char, err)
 		}
@@ -250,7 +250,7 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 			tempbpc[bitpair] = &col
 		}
 		img1.bpc = tempbpc
-		bp1, err := img1.newBitpairs(char, img1.charPalette[char].SortColors(), true)
+		bp1, err := img1.newBitpairs(char, img1.charColors[char], true)
 		if err != nil {
 			sharedcolors = false
 			chars = append(chars, char)
@@ -259,11 +259,11 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 			foundsharedcolinchar := false
 			forcepreferred := []*Color{nil, nil, nil, nil}
 		OUTER:
-			for _, col0 := range img0.charPalette[char].SortColors() {
+			for _, col0 := range img0.charColors[char] {
 				if col0.C64Color == img1.bg.C64Color {
 					continue
 				}
-				for _, col1 := range img1.charPalette[char].SortColors() {
+				for _, col1 := range img1.charColors[char] {
 					if col0.C64Color == col1.C64Color {
 						foundsharedcol++
 						foundsharedcolinchar = true
@@ -275,18 +275,18 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 				}
 			}
 			if !foundsharedcolinchar {
-				if img0.charPalette[char].NumColors() == 4 && img1.charPalette[char].NumColors() == 4 {
+				if len(img0.charColors[char]) == 4 && len(img1.charColors[char]) == 4 {
 					return k0, k1, sharedcolors, fmt.Errorf("failed: no shared color found in char %d", char)
 				}
 			}
 
 			img0.bpc = forcepreferred
-			bp0, err = img0.newBitpairs(char, img0.charPalette[char].SortColors(), true)
+			bp0, err = img0.newBitpairs(char, img0.charColors[char], true)
 			if err != nil {
 				return k0, k1, sharedcolors, fmt.Errorf("img0.newBitpairs failed: error in char %d: %w", char, err)
 			}
 			img1.bpc = forcepreferred
-			bp1, err = img1.newBitpairs(char, img1.charPalette[char].SortColors(), true)
+			bp1, err = img1.newBitpairs(char, img1.charColors[char], true)
 			if err != nil {
 				return k0, k1, sharedcolors, fmt.Errorf("img1.newBitpairs failed: error in char %d: %w", char, err)
 			}

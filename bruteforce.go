@@ -51,7 +51,9 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	if len(colors) > permuteDepth {
 		colors = colors[0:permuteDepth]
 	}
-	fmt.Println("bf colors:", colors)
+	if c.opt.Verbose {
+		log.Printf("bruteforce colors: %v", colors)
+	}
 
 	count := 0
 	total := 0
@@ -178,6 +180,16 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	c.opt.NoPrevCharColors = out[0].noprevcharcols
 	c.opt.NoBitpairCounters = out[0].nobitpaircounters
 	c.images[0].opt.BitpairColorsString = out[0].bpc
+	var bpc []*Color
+	var err error
+	if bpc, err = c.images[0].p.ParseBPC(c.opt.BitpairColorsString); err != nil {
+		return fmt.Errorf("p.ParseBPC failed: %w", err)
+	}
+	if len(bpc) > 0 {
+		if bpc[0] != nil {
+			c.images[0].bg = *bpc[0]
+		}
+	}
 	return nil
 }
 

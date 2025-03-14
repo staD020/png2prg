@@ -323,7 +323,7 @@ func (img *sourceImage) bpcBitpairs() *bitpairs {
 func (img *sourceImage) guessFirstBitpair2C64Color() *bitpairs {
 	for char := 0; char < FullScreenChars; char++ {
 		x, y := xyFromChar(char)
-		bp, err := img.newBitpairs(char, img.charPalette[char].SortColors(), false)
+		bp, err := img.newBitpairs(char, img.charColors[char], false)
 		if err != nil {
 			log.Printf("guessFirstBitpair2C64Color newBitpairs failed: error in char %d (x=%d y=%d): %v", char, x, y, err)
 			continue
@@ -349,7 +349,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 	prevbp := img.guessFirstBitpair2C64Color()
 	for char := 0; char < FullScreenChars; char++ {
 		x, y := xyFromChar(char)
-		bp, err := img.newBitpairs(char, img.charPalette[char].SortColors(), false)
+		bp, err := img.newBitpairs(char, img.charColors[char], false)
 		if err != nil {
 			return k, fmt.Errorf("newBitpairs failed: error in char %d (x=%d y=%d): %w", char, x, y, err)
 		}
@@ -413,7 +413,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 	prevbp := img.bpcBitpairs()
 	for char := 0; char < FullScreenChars; char++ {
 		x, y := xyFromChar(char)
-		cc := img.charPalette[char].SortColors()
+		cc := img.charColors[char]
 		if len(cc) > 2 {
 			return h, fmt.Errorf("Too many hires colors in char %d (x=%d y=%d)", char, x, y)
 		}
@@ -461,8 +461,7 @@ func (img *sourceImage) SingleColorCharset(prebuiltCharset []charBytes) (SingleC
 		return c, fmt.Errorf("no bgcol? this should not happen.")
 	}
 
-	p := img.maxPalettePerChar()
-	cc := p.SortColors()
+	cc := img.maxColorsPerChar()
 	forceBgCol := *img.bpc[0]
 
 LOOP:
@@ -525,7 +524,7 @@ LOOP:
 	truecount := make(map[charBytes]int, MaxChars)
 	for char := 0; char < FullScreenChars; char++ {
 		bp := &bitpairs{bitpairs: []byte{0, 1}}
-		for _, col := range img.charPalette[char].Colors() {
+		for _, col := range img.charColors[char] {
 			if col.C64Color == cc[0].C64Color {
 				bp.add(0, col)
 			} else {
@@ -830,7 +829,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 				bp.add(2, *col)
 			}
 		}
-		for _, col := range img.charPalette[char].SortColors() {
+		for _, col := range img.charColors[char] {
 			if _, ok := bp.bitpair(col); !ok {
 				bp.add(3, col)
 				c.D800Color[char] = byte(col.C64Color)
@@ -845,7 +844,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 		hirespixels := false
 		charcol := C64Color(0)
 		x, y := xyFromChar(char)
-		if img.charPalette[char].NumColors() <= 2 {
+		if len(img.charColors[char]) <= 2 {
 			// could be hires
 		LOOP:
 			for y2 := 0; y2 < 8; y2++ {
@@ -856,30 +855,33 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 					}
 				}
 			}
-			if bgcol, err := img.charPalette[char].FromC64(C64Color(c.BackgroundColor)); err == nil {
-				for _, col := range img.charPalette[char].SortColors() {
-					if col.C64Color != bgcol.C64Color && col.C64Color < 8 {
-						hires = true
-						charcol = col.C64Color
-						c.D800Color[char] = byte(col.C64Color)
-						bp = &bitpairs{bitpairs: []byte{0, 1}}
-						bp.add(0, bgcol)
-						bp.add(1, col)
-						break
+			for _, bgcol := range img.charColors[char] {
+				if bgcol.C64Color == C64Color(c.BackgroundColor) {
+					for _, col := range img.charColors[char] {
+						if col.C64Color != bgcol.C64Color && col.C64Color < 8 {
+							hires = true
+							charcol = col.C64Color
+							c.D800Color[char] = byte(col.C64Color)
+							bp = &bitpairs{bitpairs: []byte{0, 1}}
+							bp.add(0, bgcol)
+							bp.add(1, col)
+							break
+						}
 					}
+					break
 				}
 			}
 		}
 
 		if hirespixels && !hires {
-			return c, fmt.Errorf("found hirespixels in char %d (x=%d y=%d), but colors are bad: %v please swap some -bitpair-colors %s", char, x, y, img.charPalette[char], img.BPCString())
+			return c, fmt.Errorf("found hirespixels in char %d (x=%d y=%d), but colors are bad: %v please swap some -bitpair-colors %s", char, x, y, img.charColors[char], img.BPCString())
 		}
 
 		var cbuf charBytes
 		emptyChar := charBytes{}
 		if hires {
 			if img.opt.VeryVerbose {
-				log.Printf("char %d (x=%d y=%d) seems to be hires, charcol %d img.Palette: %v, -bpc %s", char, x, y, charcol, img.charPalette[char], img.BPCString())
+				log.Printf("char %d (x=%d y=%d) seems to be hires, charcol %d img.Palette: %v, -bpc %s", char, x, y, charcol, img.charColors[char], img.BPCString())
 			}
 			cbuf, err = img.singleColorCharBytes(char, bp)
 			if err != nil {
@@ -967,9 +969,8 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 		// when 2 ecm colors are used in the same char, which color to choose for bitpair 00?
 		// good example: testdata/ecm/orion.png testdata/ecm/xpardey.png
 		// so now we sort to at least make it deterministic.
-		pal := img.charPalette[char]
 		bp := &bitpairs{bitpairs: []byte{0, 1}}
-		for _, col := range pal.SortColors() {
+		for _, col := range img.charColors[char] {
 			match := false
 			i := 0
 			col2 := Color{}
@@ -989,7 +990,7 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 				c.D800Color[char] = byte(col.C64Color)
 			}
 		}
-		if img.charPalette[char].NumColors() == 2 && !foundbg {
+		if len(img.charColors[char]) == 2 && !foundbg {
 			return c, fmt.Errorf("background ecm color not found in char %d (x=%d y=%d)", char, x, y)
 		}
 

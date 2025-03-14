@@ -194,7 +194,6 @@ type sourceImage struct {
 	border          Color
 	bg              Color
 	bgCandidates    []Color
-	charPalette     [FullScreenChars]Palette
 	charColors      [FullScreenChars][]Color
 	sumColors       [MaxColors]int
 	ecmColors       []Color

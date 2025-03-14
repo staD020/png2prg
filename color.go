@@ -132,6 +132,16 @@ func BlankPalette(name string, looseMatching bool) Palette {
 	}
 }
 
+func (p Palette) String() string {
+	s := ""
+	for i := C64Color(0); i < MaxColors; i++ {
+		if col, ok := p.c642col[i]; ok {
+			s += col.String() + " "
+		}
+	}
+	return p.Name + ": " + s
+}
+
 func (p Palette) NumColors() int {
 	return len(p.rgb2col)
 }
@@ -237,12 +247,12 @@ func imageColors(img image.Image) (cc []color.Color) {
 // analyzeColors calculates the color distances of all colors and each of the palletSources.
 // It returns the closest matching Palette.
 func analyzeColors(cc []color.Color) (found Palette) {
-	minDistance := int(6e9)
+	minDistance := int(9e8)
 	for _, src := range paletteSources {
 		p := BlankPalette(src.Name, false)
 		totalDistance := 0
 		for _, c := range cc {
-			distance := int(6e9)
+			distance := int(9e8)
 			var foundCol Color
 			for _, srcCol := range src.Colors {
 				d := srcCol.Distance(c)
@@ -334,7 +344,7 @@ func convertPaletteSources(inputYaml []byte) (out []paletteSource, err error) {
 			if err != nil {
 				return out, err
 			}
-			ps.Colors[c64col] = NewColor(C64Color(c64col), color.RGBA{byte((rgb >> 16) & 0xff), byte((rgb >> 8) & 0xff), byte(rgb & 0xff), 0x01})
+			ps.Colors[c64col] = NewColor(C64Color(c64col), color.RGBA{byte((rgb >> 16) & 0xff), byte((rgb >> 8) & 0xff), byte(rgb & 0xff), 0xff})
 			count++
 		}
 		if count != MaxColors {
