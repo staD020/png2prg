@@ -113,14 +113,14 @@ type Palette struct {
 	rgb2col map[colorKey]Color
 }
 
-func NewPalette(img image.Image, looseMatching bool) (Palette, error) {
-	cols := imageColors(img)
+func NewPalette(img image.Image, looseMatching bool) (p Palette, hires bool, err error) {
+	cols, hires := imageColors(img)
 	if len(cols) > MaxColors {
-		return Palette{}, fmt.Errorf("too many colors: %d while the max is %d", len(cols), MaxColors)
+		return Palette{}, hires, fmt.Errorf("too many colors: %d while the max is %d", len(cols), MaxColors)
 	}
-	p := analyzeColors(cols)
+	p = analyzeColors(cols)
 	p.loose = looseMatching
-	return p, nil
+	return p, hires, nil
 }
 
 func BlankPalette(name string, looseMatching bool) Palette {
@@ -230,7 +230,8 @@ func (p Palette) Convert(c color.Color) color.Color {
 }
 
 // imageColors returns a slice of unique colors present in the image.
-func imageColors(img image.Image) (cc []color.Color) {
+// returns the hires bool as true if hires pixels have been detected.
+func imageColors(img image.Image) (cc []color.Color, hires bool) {
 	m := map[color.Color]struct{}{}
 	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
 		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
@@ -239,9 +240,14 @@ func imageColors(img image.Image) (cc []color.Color) {
 				m[col] = struct{}{}
 				cc = append(cc, col)
 			}
+			if x%2 == 0 {
+				if col != img.At(x+1, y) {
+					hires = true
+				}
+			}
 		}
 	}
-	return cc
+	return cc, hires
 }
 
 // analyzeColors calculates the color distances of all colors and each of the palletSources.

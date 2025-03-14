@@ -165,7 +165,7 @@ func (img *sourceImage) analyze() (err error) {
 		}
 	case maxcolsperchar > 2 && maxcolsperchar <= 4:
 		img.graphicsType = multiColorBitmap
-		if img.isMultiColorInterlace() {
+		if img.hiresPixels {
 			img.graphicsType = multiColorInterlaceBitmap
 		}
 		if numbgcolcandidates > 2 {

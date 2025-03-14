@@ -19,26 +19,6 @@ import (
 // http://unusedino.de/ec64/technical/aay/c64/gfxdrl0.htm
 // https://codebase64.org/doku.php?id=base:c64_grafix_files_specs_list_v0.03
 
-// isMultiColorInterlace does a real simple check for hires pixels.
-// returns true if a mismatch of colors is detected on even/odd pixels.
-func (img *sourceImage) isMultiColorInterlace() bool {
-	return img.isHiresPixels()
-}
-
-func (img *sourceImage) isHiresPixels() bool {
-	for y := 0; y < FullScreenHeight; y++ {
-		for x := 0; x < FullScreenWidth; x += 2 {
-			if img.p.FromColorNoErr(img.At(x, y)).C64Color != img.p.FromColorNoErr(img.At(x+1, y)).C64Color {
-				if img.opt.Verbose {
-					log.Printf("isHiresPixels found at x, y = %d, %d", x, y)
-				}
-				return true
-			}
-		}
-	}
-	return false
-}
-
 // SplitInterlace splits the img by even and odd pixels into 2 multicolor images.
 func (img *sourceImage) SplitInterlace() (*image.RGBA, *image.RGBA) {
 	new0 := image.NewRGBA(image.Rect(0, 0, FullScreenWidth, FullScreenHeight))
