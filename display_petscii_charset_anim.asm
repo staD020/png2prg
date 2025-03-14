@@ -391,14 +391,29 @@ smc_totpercol:
 // ------------------------------
 .pc = * "anim_play"
 anim_play:
+		lda $d020
+		and #$0f
+		sta smc_d020_compare+1
+		lda $d021
+		and #$0f
+		sta smc_d021_compare+1
 		ldy #0
 		lda (zp_anim_lo),y      //  bgborder
+		pha
+		and #$0f
+smc_d021_compare:	cmp #$00
+		beq skip_grey_dot
 		sta $d021
+skip_grey_dot:
+		pla
 		lsr
 		lsr
 		lsr
 		lsr
+smc_d020_compare:	cmp #$00
+		beq skip_grey_dot2
 		sta $d020
+skip_grey_dot2:
 		inc zp_anim_lo
 		bne !+
 		inc zp_anim_hi
