@@ -53,7 +53,7 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	cp -r testdata/madonna dist/testdata/
 	mkdir -p dist/testdata/mixedcharset
 	mkdir -p dist/testdata/hirescharset
-	mkdir -p dist/testdata/petscii
+	mkdir -p dist/testdata/petscii/anim
 	mkdir -p dist/testdata/charanim
 	cp -r testdata/mixedcharset/*.png dist/testdata/mixedcharset/
 	cp -r testdata/mixedcharset/*.gif dist/testdata/mixedcharset/
@@ -99,12 +99,10 @@ dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TEST
 	./$(TARGET) -d -q -bf -o dist/17.dragonslair.prg testdata/dragonslair320x200.png
 	./$(TARGET) -d -q -bf -nbc -o dist/18.scorpion.prg testdata/sir_scorpion320x200.png
 	./$(TARGET) -d -q -bf -o dist/19.joe.prg testdata/joe_hatching320x200.png
-	./$(TARGET) -d -q -na -o dist/phatchar.prg testdata/charanim/phatchar*.png
-	./$(TARGET) -d -q -bf -o "dist/1337 1.prg" testdata/the_sarge_1337_1.gif
-	./$(TARGET) -d -q -bf -o "dist/1337 2.prg" testdata/the_sarge_1337_2.gif
-	./$(TARGET) -d -q -bf -o "dist/1337 3.prg" testdata/the_sarge_1337_3.gif
+	./$(TARGET) -d -q -bf -o dist/superscope.prg testdata/petscii/anim/rebel1_superscope.gif
+	./$(TARGET) -d -q -bf -o dist/oceanborn.prg -sid testdata/Ocean_Reloaded_90.sid testdata/petscii/anim/oceanborn?.png
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg dist/phatchar.prg dist/1337*.prg
+	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg dist/superscope.prg dist/oceanborn.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
