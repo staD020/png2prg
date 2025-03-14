@@ -382,6 +382,18 @@ func (img *sourceImage) findBgCandidates(hires bool) {
 	}
 	if len(charcc) == 0 {
 		img.bgCandidates = img.p.Colors()
+		if len(img.bgCandidates) < MaxColors {
+			// add missing colors as all colors should be possible in this case where there is a free bitpair color.
+		LOOP:
+			for _, col := range paletteSources[0].Colors {
+				for _, colcan := range img.bgCandidates {
+					if col.C64Color == colcan.C64Color {
+						continue LOOP
+					}
+				}
+				img.bgCandidates = append(img.bgCandidates, col)
+			}
+		}
 		return
 	}
 	candidates := BlankPalette("bgcol", false)

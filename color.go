@@ -113,12 +113,12 @@ type Palette struct {
 	rgb2col map[colorKey]Color
 }
 
-func NewPalette(img image.Image, looseMatching bool) (p Palette, hires bool, err error) {
+func NewPalette(img image.Image, looseMatching, verbose bool) (p Palette, hires bool, err error) {
 	cols, hires := imageColors(img)
 	if len(cols) > MaxColors {
 		return Palette{}, hires, fmt.Errorf("too many colors: %d while the max is %d", len(cols), MaxColors)
 	}
-	p = analyzeColors(cols)
+	p = analyzeColors(cols, verbose)
 	p.loose = looseMatching
 	return p, hires, nil
 }
@@ -188,8 +188,7 @@ func (p Palette) FromC64(col C64Color) (Color, error) {
 }
 
 func (p Palette) FromColor(col color.Color) (Color, error) {
-	k := ColorKey(col)
-	if v, ok := p.rgb2col[k]; ok {
+	if v, ok := p.rgb2col[ColorKey(col)]; ok {
 		return v, nil
 	}
 	return Color{Color: col}, fmt.Errorf("color %v not found", col)
@@ -252,7 +251,7 @@ func imageColors(img image.Image) (cc []color.Color, hires bool) {
 
 // analyzeColors calculates the color distances of all colors and each of the palletSources.
 // It returns the closest matching Palette.
-func analyzeColors(cc []color.Color) (found Palette) {
+func analyzeColors(cc []color.Color, verbose bool) (found Palette) {
 	minDistance := int(9e8)
 	for _, src := range paletteSources {
 		p := BlankPalette(src.Name, false)
@@ -273,7 +272,9 @@ func analyzeColors(cc []color.Color) (found Palette) {
 			p.Add(foundCol)
 			totalDistance += distance
 		}
-		//fmt.Printf("palette %q distance = %d\n", p.Name, totalDistance)
+		if verbose {
+			fmt.Printf("palette %q distance = %d\n", p.Name, totalDistance)
+		}
 		if totalDistance < minDistance {
 			found = p
 			minDistance = totalDistance
@@ -323,7 +324,7 @@ func init() {
 		panic(fmt.Errorf("convertPaletteSources failed: %w", err))
 	}
 	if len(paletteSources) == 0 {
-		panic(fmt.Errorf("no palettes found in %q", palettesYaml))
+		panic(fmt.Errorf("no palettes found in %q", "palettes.yaml"))
 	}
 }
 

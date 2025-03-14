@@ -703,7 +703,7 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 				opt:            opt,
 				image:          rawImage,
 			}
-			img.p, img.hiresPixels, err = NewPalette(img.image, false)
+			img.p, img.hiresPixels, err = NewPalette(img.image, false, opt.Verbose)
 			if err != nil {
 				return nil, fmt.Errorf("NewPalette failed: %w", err)
 			}
@@ -740,7 +740,7 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 	if err = img.checkBounds(); err != nil {
 		return nil, fmt.Errorf("img.checkBounds failed: %w", err)
 	}
-	img.p, img.hiresPixels, err = NewPalette(img.image, false)
+	img.p, img.hiresPixels, err = NewPalette(img.image, false, opt.Verbose)
 	if err != nil {
 		return nil, fmt.Errorf("NewPalette failed: %w", err)
 	}
@@ -763,7 +763,7 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 			img.bpcBitpairCount[c64col] = make(map[byte]int, 4)
 		}
 	}
-	if img.p, img.hiresPixels, err = NewPalette(img.image, false); err != nil {
+	if img.p, img.hiresPixels, err = NewPalette(img.image, false, opt.Verbose); err != nil {
 		return img, fmt.Errorf("NewPalette failed: %w", err)
 	}
 	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
