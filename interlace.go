@@ -280,22 +280,22 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 			k1.Bitmap[bitmapIndex+byteIndex] = bmpbyte1
 		}
 
-		if col, ok := bp0.c64color(1); ok {
+		if col, ok := bp0.color(1); ok {
 			k0.ScreenColor[char] = byte(col.C64Color) << 4
 		}
-		if col, ok := bp0.c64color(2); ok {
+		if col, ok := bp0.color(2); ok {
 			k0.ScreenColor[char] |= byte(col.C64Color)
 		}
-		if col, ok := bp0.c64color(3); ok {
+		if col, ok := bp0.color(3); ok {
 			k0.D800Color[char] = byte(col.C64Color)
 		}
-		if col, ok := bp1.c64color(1); ok {
+		if col, ok := bp1.color(1); ok {
 			k1.ScreenColor[char] = byte(col.C64Color) << 4
 		}
-		if col, ok := bp1.c64color(2); ok {
+		if col, ok := bp1.color(2); ok {
 			k1.ScreenColor[char] |= byte(col.C64Color)
 		}
-		if col, ok := bp1.c64color(3); ok {
+		if col, ok := bp1.color(3); ok {
 			k1.D800Color[char] = byte(col.C64Color)
 		}
 

@@ -25,13 +25,13 @@ func (bp bitpairs) bitpair(col color.Color) (byte, bool) {
 	return v, ok
 }
 
-// c64color returns the color used by bitpair.
-func (bp bitpairs) c64color(bitpair byte) (Color, bool) {
+// color returns the Color used by bitpair.
+func (bp bitpairs) color(bitpair byte) (Color, bool) {
 	v, ok := bp.bitpair2color[bitpair]
 	return v, ok
 }
 
-// add adds bitpair/color to bitpairs.
+// add adds bitpair/Color to bitpairs.
 func (bp *bitpairs) add(bitpair byte, col Color) {
 	if bp.bitpair2color == nil {
 		bp.bitpair2color = make(map[byte]Color)
@@ -69,14 +69,14 @@ func (bp bitpairs) numColors() int {
 // colors returns all Colors, sorted by bitpair.
 func (bp bitpairs) colors() (cc []Color) {
 	for i := byte(0); i < 4; i++ {
-		if col, ok := bp.c64color(i); ok {
+		if col, ok := bp.color(i); ok {
 			cc = append(cc, col)
 		}
 	}
 	return cc
 }
 
-// newBitpairs return *bitpairs.
+// newBitpairs return bitpairs.
 // It is the main function taking care of bitpair/color sorting, according to img.bpc.
 // forcePreferred is used with interlaced pictures.
 func (img *sourceImage) newBitpairs(char int, cc []Color, forcePreferred bool) (*bitpairs, error) {
@@ -240,13 +240,13 @@ func (img *sourceImage) newBitpairs(char int, cc []Color, forcePreferred bool) (
 				return nil, fmt.Errorf("too many colors in char, no bitpairs left")
 			}
 			if prevbp, ok := img.bpcCache[char-1][col.C64Color]; ok {
-				if _, ok := bp.c64color(prevbp); !ok {
+				if _, ok := bp.color(prevbp); !ok {
 					bp.add(prevbp, col)
 					continue NEXTCOL
 				}
 				if char >= 40 {
 					if prevbp2, ok := img.bpcCache[char-40][col.C64Color]; ok {
-						if _, ok := bp.c64color(prevbp2); !ok {
+						if _, ok := bp.color(prevbp2); !ok {
 							bp.add(prevbp2, col)
 							continue NEXTCOL
 						}
@@ -372,26 +372,26 @@ func (img *sourceImage) Koala() (Koala, error) {
 			k.Bitmap[char*8+i] = cbuf[i]
 		}
 
-		if col, ok := bp.c64color(1); ok {
+		if col, ok := bp.color(1); ok {
 			k.ScreenColor[char] = byte(col.C64Color) << 4
 		} else {
 			if !k.opt.Trd {
-				pcol, _ := prevbp.c64color(1)
+				pcol, _ := prevbp.color(1)
 				k.ScreenColor[char] = byte(pcol.C64Color) << 4
 			}
 		}
-		if col, ok := bp.c64color(2); ok {
+		if col, ok := bp.color(2); ok {
 			k.ScreenColor[char] |= byte(col.C64Color)
 		} else {
 			if !k.opt.Trd {
-				pcol, _ := prevbp.c64color(2)
+				pcol, _ := prevbp.color(2)
 				k.ScreenColor[char] |= byte(pcol.C64Color)
 			}
 		}
-		if col, ok := bp.c64color(3); ok {
+		if col, ok := bp.color(3); ok {
 			k.D800Color[char] = byte(col.C64Color)
 		} else {
-			pcol, _ := prevbp.c64color(3)
+			pcol, _ := prevbp.color(3)
 			k.D800Color[char] = byte(pcol.C64Color)
 		}
 
@@ -440,12 +440,12 @@ func (img *sourceImage) Hires() (Hires, error) {
 			h.Bitmap[char*8+i] = cbuf[i]
 		}
 
-		if col, ok := bp.c64color(1); ok {
+		if col, ok := bp.color(1); ok {
 			h.ScreenColor[char] = byte(col.C64Color) << 4
 		} else {
 			h.ScreenColor[char] = byte(prevbp.bitpair2color[1].C64Color) << 4
 		}
-		if col, ok := bp.c64color(0); ok {
+		if col, ok := bp.color(0); ok {
 			h.ScreenColor[char] |= byte(col.C64Color)
 		} else {
 			h.ScreenColor[char] |= byte(prevbp.bitpair2color[0].C64Color)
@@ -650,7 +650,7 @@ func (img *sourceImage) MultiColorCharset(prebuiltCharset []charBytes) (c MultiC
 		log.Printf("charset colors: %s\n", cc)
 		log.Printf("bitpairs: %v\n", bp)
 	}
-	if col, ok := bp.c64color(3); ok {
+	if col, ok := bp.color(3); ok {
 		if col.C64Color > 7 {
 			if !img.opt.Quiet {
 				return c, fmt.Errorf("the bitpair 11 can only contain colors 0-7, you will want to swap -bitpair-colors %s", img.BPCString())
@@ -662,13 +662,13 @@ func (img *sourceImage) MultiColorCharset(prebuiltCharset []charBytes) (c MultiC
 		}
 	}
 
-	if col, ok := bp.c64color(0); ok {
+	if col, ok := bp.color(0); ok {
 		c.BackgroundColor = byte(col.C64Color)
 	}
-	if col, ok := bp.c64color(1); ok {
+	if col, ok := bp.color(1); ok {
 		c.D022Color = byte(col.C64Color)
 	}
-	if col, ok := bp.c64color(2); ok {
+	if col, ok := bp.color(2); ok {
 		c.D023Color = byte(col.C64Color)
 	}
 	c.BorderColor = byte(img.border.C64Color)
@@ -848,7 +848,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 				break
 			}
 		}
-		if col, ok := bp.c64color(3); ok {
+		if col, ok := bp.color(3); ok {
 			c.D800Color[char] = byte(col.C64Color)
 		}
 
