@@ -5,7 +5,11 @@
 }
 
 .function year() {
-	.return 2024
+	.return 2025
+}
+
+.function settings_start() {
+	.return $0819
 }
 
 .function basicsys() {

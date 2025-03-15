@@ -34,7 +34,7 @@
 		.text " PNG2PRG " + versionString()
 basicend:
 		.byte 0, 0, 0
-.pc = $0819 "music_startsong"
+.pc = settings_start() "music_startsong"
 music_startsong:
 		.byte 0
 .pc = * "music_init"
