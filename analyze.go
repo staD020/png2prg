@@ -104,7 +104,8 @@ func (img *sourceImage) hasSpriteDimensions() bool {
 // analyze validates the image and guesses img.graphicsType, etc.
 func (img *sourceImage) analyze() (err error) {
 	if img.opt.Verbose {
-		log.Println("Palette found:", img.p)
+		log.Println("palette found:", img.p)
+		log.Println("total colors:", img.p.NumColors())
 	}
 	if img.opt.BitpairColorsString != "" {
 		if img.bpc, err = img.p.ParseBPC(img.opt.BitpairColorsString); err != nil {

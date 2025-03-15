@@ -386,7 +386,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 		}
 
 		if prevbp.numColors() != 4 {
-			log.Panicf("char %d: prevbp numColors is not 4: %v\n", char, prevbp)
+			log.Printf("warning: char %d: prevbp numColors is not 4: %v", char, prevbp)
 		}
 
 		for bitp, col := range bp.bitpair2color {
