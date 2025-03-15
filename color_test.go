@@ -26,7 +26,7 @@ func testImage(t *testing.T) image.Image {
 func TestNewPalette(t *testing.T) {
 	t.Parallel()
 	img := testImage(t)
-	p, err := NewPalette(img, false)
+	p, _, err := NewPalette(img, false, false)
 	require.Nil(t, err)
 	require.NotNil(t, p)
 
@@ -74,7 +74,7 @@ func TestNewPalette(t *testing.T) {
 func TestParseBPC(t *testing.T) {
 	t.Parallel()
 	img := testImage(t)
-	p, err := NewPalette(img, false)
+	p, _, err := NewPalette(img, false, false)
 	require.Nil(t, err)
 	require.NotNil(t, p)
 
