@@ -577,14 +577,17 @@ PERMUTE:
 				continue PERMUTE
 			}
 		}
-		if img.opt.Verbose {
-			log.Println("ecm color solution found:")
-		}
-		for i, v := range s {
-			img.ecmColors = append(img.ecmColors, v.Color)
-			if img.opt.Verbose {
-				log.Printf("  permutation %d -> %d: %v", count, i, *v)
+		bpc := []*Color{}
+		for _, v := range s {
+			if v == nil {
+				bpc = append(bpc, nil)
+				continue
 			}
+			img.ecmColors = append(img.ecmColors, v.Color)
+			bpc = append(bpc, &v.Color)
+		}
+		if !img.opt.Quiet {
+			fmt.Printf("ecm color solution found: %v\n", BPCString(bpc))
 		}
 		return nil
 	}
