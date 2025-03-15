@@ -26,7 +26,6 @@ import (
 
 const (
 	Version              = "1.9.7-dev"
-	displayerJumpTo      = "$0828"
 	MaxColors            = 16
 	MaxChars             = 256
 	MaxECMChars          = 64
@@ -43,6 +42,9 @@ const (
 	BitmapColorRAMAddress   = 0x4328
 	CharsetScreenRAMAddress = 0x2800
 	CharsetColorRAMAddress  = 0x2c00
+
+	DisplayerSettingsStart = 0x0819
+	displayerJumpTo        = "$0828"
 )
 
 // An Options struct contains all settings to be used for an instance of png2prg.
@@ -1085,11 +1087,11 @@ func injectSID(l *Linker, sidFilename string, quiet bool) error {
 	if startSong > 0 {
 		startSong--
 	}
-	l.SetByte(0x819, startSong)
+	l.SetByte(DisplayerSettingsStart, startSong)
 	init := s.InitAddress()
-	l.SetByte(0x81b, init.LowByte(), init.HighByte())
+	l.SetByte(DisplayerSettingsStart+2, init.LowByte(), init.HighByte())
 	play := s.PlayAddress()
-	l.SetByte(0x81e, play.LowByte(), play.HighByte())
+	l.SetByte(DisplayerSettingsStart+5, play.LowByte(), play.HighByte())
 	if !quiet {
 		fmt.Printf("injected %q: %s\n", sidFilename, s)
 	}

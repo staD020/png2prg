@@ -666,7 +666,7 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	if _, err = link.WritePrg(displayer); err != nil {
 		return n, err
 	}
-	link.SetByte(0x820, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte())
+	link.SetByte(DisplayerSettingsStart+7, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte())
 	if !opt.NoFade {
 		link.Block(koalaFadePassStart, 0xd000)
 	}
@@ -731,7 +731,7 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	if !opt.NoFade {
 		link.Block(hiresFadePassStart, 0xd000)
 	}
-	link.SetByte(0x820, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte())
+	link.SetByte(DisplayerSettingsStart+7, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte())
 	if !opt.Quiet {
 		fmt.Printf("memory usage for displayer code: %s - %s\n", link.StartAddress(), link.EndAddress())
 	}
@@ -926,7 +926,7 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 		if _, err = link.WritePrg(displayer); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
+		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
 		if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
 			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
@@ -1055,7 +1055,7 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 		if _, err = link.WritePrg(displayer); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), byte(cc[0].opt.NoFadeByte()))
+		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), byte(cc[0].opt.NoFadeByte()))
 		if !opt.NoFade {
 			link.Block(hiresFadePassStart, 0xcfff)
 		}
@@ -1141,7 +1141,7 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		if _, err = link.WritePrg(petsciiCharsetDisplayAnim); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(0x820, byte(cc[0].Lowercase), byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), cc[0].opt.NoFadeByte())
+		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].Lowercase), byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), cc[0].opt.NoFadeByte())
 		if !cc[0].opt.NoFade {
 			link.Block(hiresFadePassStart, 0xcfff)
 		}
@@ -1250,7 +1250,7 @@ func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err 
 		if _, err = link.WritePrg(displayer); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
+		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
 		link.Block(hiresFadePassStart, 0xcfff)
 		if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
 			return n, fmt.Errorf("injectSID failed: %w", err)
