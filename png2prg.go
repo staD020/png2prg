@@ -1112,11 +1112,10 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(multiColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if k.opt.IncludeSID == "" {
-		return link.WriteTo(w)
-	}
-	if err = injectSID(link, k.opt.IncludeSID, k.opt.Quiet); err != nil {
-		return n, fmt.Errorf("injectSID failed: %w", err)
+	if k.opt.IncludeSID != "" {
+		if err = injectSID(link, k.opt.IncludeSID, k.opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
+		}
 	}
 	return link.WriteTo(w)
 }
@@ -1139,11 +1138,10 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(singleColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if h.opt.IncludeSID == "" {
-		return link.WriteTo(w)
-	}
-	if err = injectSID(link, h.opt.IncludeSID, h.opt.Quiet); err != nil {
-		return n, fmt.Errorf("injectSID failed: %w", err)
+	if h.opt.IncludeSID != "" {
+		if err = injectSID(link, h.opt.IncludeSID, h.opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
+		}
 	}
 	return link.WriteTo(w)
 }
@@ -1165,11 +1163,10 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.IncludeSID == "" {
-		return link.WriteTo(w)
-	}
-	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-		return n, fmt.Errorf("injectSID failed: %w", err)
+	if c.opt.IncludeSID != "" {
+		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
+		}
 	}
 	return link.WriteTo(w)
 }
@@ -1192,11 +1189,10 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(singleColorCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.IncludeSID == "" {
-		return link.WriteTo(w)
-	}
-	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-		return n, fmt.Errorf("injectSID failed: %w", err)
+	if c.opt.IncludeSID != "" {
+		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
+		}
 	}
 	return link.WriteTo(w)
 }
@@ -1218,11 +1214,10 @@ func (c MixedCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.IncludeSID == "" {
-		return link.WriteTo(w)
-	}
-	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-		return 0, fmt.Errorf("injectSID failed: %w", err)
+	if c.opt.IncludeSID != "" {
+		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+			return 0, fmt.Errorf("injectSID failed: %w", err)
+		}
 	}
 	return link.WriteTo(w)
 }
@@ -1252,11 +1247,10 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 			fmt.Println("uppercase rom charset found")
 		}
 	}
-	if c.opt.IncludeSID == "" {
-		return link.WriteTo(w)
-	}
-	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-		return n, fmt.Errorf("injectSID failed: %w", err)
+	if c.opt.IncludeSID != "" {
+		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
+		}
 	}
 	return link.WriteTo(w)
 }
@@ -1279,11 +1273,10 @@ func (c ECMCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(ecmCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.IncludeSID == "" {
-		return link.WriteTo(w)
-	}
-	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-		return 0, fmt.Errorf("injectSID failed: %w", err)
+	if c.opt.IncludeSID != "" {
+		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+			return 0, fmt.Errorf("injectSID failed: %w", err)
+		}
 	}
 	return link.WriteTo(w)
 }
