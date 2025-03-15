@@ -43,7 +43,7 @@ const (
 	CharsetScreenRAMAddress = 0x2800
 	CharsetColorRAMAddress  = 0x2c00
 
-	DisplayerSettingsStart = 0x0819
+	DisplayerSettingsStart = 0x081a
 	displayerJumpTo        = "$0828"
 )
 

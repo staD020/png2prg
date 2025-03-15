@@ -9,7 +9,7 @@
 }
 
 .function settings_start() {
-	.return $0819
+	.return $081a
 }
 
 .function basicsys() {
