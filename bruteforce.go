@@ -19,6 +19,8 @@ type bruteResult struct {
 	length            int
 }
 
+// BruteForceBitpairColors bruteforces all possible bitpair color combinations.
+// Sets img.bpc to the best result.
 func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int) error {
 	if maxColors > 4 {
 		return fmt.Errorf("maxColors has a max of 4, but it is %d", maxColors)
@@ -193,6 +195,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	return nil
 }
 
+// bruteWorker is launched to receive sourceImages, process and crunch them and deliver results to the result channel.
 func (c *Converter) bruteWorker(i int, wg *sync.WaitGroup, jobs <-chan *sourceImage, result chan bruteResult) {
 	defer wg.Done()
 NEXTJOB:
@@ -267,6 +270,7 @@ NEXTJOB:
 	}
 }
 
+// SortedColors returns Colors sorted by number of chars each Color is used in.
 func (img *sourceImage) SortedColors() []Color {
 	type sumcol struct {
 		col   C64Color

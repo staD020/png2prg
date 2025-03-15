@@ -19,16 +19,19 @@ type bitpairs struct {
 	bitpairs      []byte
 }
 
+// bitpair returns the bitpair of the Color.
 func (bp bitpairs) bitpair(col color.Color) (byte, bool) {
 	v, ok := bp.rgb2bitpair[ColorKey(col)]
 	return v, ok
 }
 
+// c64color returns the color used by bitpair.
 func (bp bitpairs) c64color(bitpair byte) (Color, bool) {
 	v, ok := bp.bitpair2color[bitpair]
 	return v, ok
 }
 
+// add adds bitpair/color to bitpairs.
 func (bp *bitpairs) add(bitpair byte, col Color) {
 	if bp.bitpair2color == nil {
 		bp.bitpair2color = make(map[byte]Color)
@@ -46,6 +49,7 @@ func (bp *bitpairs) add(bitpair byte, col Color) {
 	}
 }
 
+// delete deletes the bitpair/color from bitpairs.
 func (bp *bitpairs) delete(bitpair byte) {
 	delete(bp.bitpair2color, bitpair)
 	for rgb, bitp := range bp.rgb2bitpair {
@@ -57,10 +61,12 @@ func (bp *bitpairs) delete(bitpair byte) {
 	}
 }
 
+// numColors returns the number of colors.
 func (bp bitpairs) numColors() int {
 	return len(bp.bitpair2color)
 }
 
+// colors returns all Colors, sorted by bitpair.
 func (bp bitpairs) colors() (cc []Color) {
 	for i := byte(0); i < 4; i++ {
 		if col, ok := bp.c64color(i); ok {
@@ -274,6 +280,7 @@ func (img *sourceImage) newBitpairs(char int, cc []Color, forcePreferred bool) (
 	return bp, nil
 }
 
+// multiColorCharBytes converts the char to charBytes.
 func (img *sourceImage) multiColorCharBytes(char int, bp *bitpairs) (charBytes, error) {
 	b := charBytes{}
 	x, y := xyFromChar(char)
@@ -292,6 +299,7 @@ func (img *sourceImage) multiColorCharBytes(char int, bp *bitpairs) (charBytes, 
 	return b, nil
 }
 
+// singleColorCharBytes converts the char to charBytes.
 func (img *sourceImage) singleColorCharBytes(char int, bp *bitpairs) (charBytes, error) {
 	b := charBytes{}
 	x, y := xyFromChar(char)
@@ -310,6 +318,7 @@ func (img *sourceImage) singleColorCharBytes(char int, bp *bitpairs) (charBytes,
 	return b, nil
 }
 
+// bpcBitpairs converts img.bpc into bitpairs.
 func (img *sourceImage) bpcBitpairs() *bitpairs {
 	bp := &bitpairs{}
 	for bitp, col := range img.bpc {
@@ -320,6 +329,7 @@ func (img *sourceImage) bpcBitpairs() *bitpairs {
 	return bp
 }
 
+// guessFirstBitpair2C64Color guesses by iterating over the first chars until full 4 color bitpairs are found.
 func (img *sourceImage) guessFirstBitpair2C64Color() *bitpairs {
 	for char := 0; char < FullScreenChars; char++ {
 		x, y := xyFromChar(char)
@@ -584,6 +594,7 @@ func romCharsetToCharBytes(romPrg []byte) (cb []charBytes) {
 	return cb
 }
 
+// PETSCIICharset converts the img to PETSCIICharset and returns it.
 func (img *sourceImage) PETSCIICharset() (PETSCIICharset, error) {
 	c := PETSCIICharset{
 		SourceFilename: img.sourceFilename,
@@ -720,6 +731,7 @@ func (img *sourceImage) MultiColorCharset(prebuiltCharset []charBytes) (c MultiC
 	return c, nil
 }
 
+// MixedCharset converts the img to MixedCharset and returns it.
 func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharset, err error) {
 	c.SourceFilename = img.sourceFilename
 	c.BorderColor = byte(img.border.C64Color)
