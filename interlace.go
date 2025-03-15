@@ -166,10 +166,8 @@ func (c *Converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
 
-	if c.opt.IncludeSID != "" {
-		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-			return n, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	if c.opt.NoCrunch {
 		return link.WriteTo(w)

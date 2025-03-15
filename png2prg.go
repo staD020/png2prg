@@ -1068,8 +1068,12 @@ func defaultHeader() []byte {
 }
 
 // injectSID injects the sid, it's start song and init/play addresses in predefined locations in the linker.
+// If sidFilename is empty, nothing happens and a nil error is returned.
 // Must be called *after* displayer code is linked.
 func injectSID(l *Linker, sidFilename string, quiet bool) error {
+	if sidFilename == "" {
+		return nil
+	}
 	s, err := sid.LoadSID(sidFilename)
 	if err != nil {
 		return fmt.Errorf("sid.LoadSID failed: %w", err)
@@ -1112,10 +1116,8 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(multiColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if k.opt.IncludeSID != "" {
-		if err = injectSID(link, k.opt.IncludeSID, k.opt.Quiet); err != nil {
-			return n, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, k.opt.IncludeSID, k.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1138,10 +1140,8 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(singleColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if h.opt.IncludeSID != "" {
-		if err = injectSID(link, h.opt.IncludeSID, h.opt.Quiet); err != nil {
-			return n, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, h.opt.IncludeSID, h.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1163,10 +1163,8 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.IncludeSID != "" {
-		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-			return n, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1189,10 +1187,8 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(singleColorCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.IncludeSID != "" {
-		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-			return n, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1214,10 +1210,8 @@ func (c MixedCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.IncludeSID != "" {
-		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-			return 0, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return 0, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1247,10 +1241,8 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 			fmt.Println("uppercase rom charset found")
 		}
 	}
-	if c.opt.IncludeSID != "" {
-		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-			return n, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1273,10 +1265,8 @@ func (c ECMCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(ecmCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.IncludeSID != "" {
-		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
-			return 0, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return 0, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }

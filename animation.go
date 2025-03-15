@@ -698,10 +698,8 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 		fmt.Printf("memory usage for generated fadecode: %s - %s\n", Word(koalaFadePassStart), Word(0xcfff))
 	}
 
-	if opt.IncludeSID != "" {
-		if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
-			return n, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	m, err := link.WriteTo(w)
 	n += int64(m)
@@ -763,10 +761,8 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 		fmt.Printf("memory usage for generated fadecode: %#04x - %#04x\n", hiresFadePassStart, 0xcfff)
 	}
 
-	if opt.IncludeSID != "" {
-		if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
-			return n, fmt.Errorf("injectSID failed: %w", err)
-		}
+	if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 
 	m, err := link.WriteTo(w)
@@ -931,10 +927,8 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
 		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
-		if opt.IncludeSID != "" {
-			if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
-				return n, fmt.Errorf("injectSID failed: %w", err)
-			}
+		if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
 	}
 	return link.WriteTo(w)
@@ -1065,10 +1059,8 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 		if !opt.NoFade {
 			link.Block(hiresFadePassStart, 0xcfff)
 		}
-		if cc[0].opt.IncludeSID != "" {
-			if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
-				return n, fmt.Errorf("injectSID failed: %w", err)
-			}
+		if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
 	}
 	return link.WriteTo(w)
@@ -1153,10 +1145,8 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		if !cc[0].opt.NoFade {
 			link.Block(hiresFadePassStart, 0xcfff)
 		}
-		if cc[0].opt.IncludeSID != "" {
-			if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
-				return n, fmt.Errorf("injectSID failed: %w", err)
-			}
+		if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
 	}
 	return link.WriteTo(w)
@@ -1262,10 +1252,8 @@ func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err 
 		}
 		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
 		link.Block(hiresFadePassStart, 0xcfff)
-		if cc[0].opt.IncludeSID != "" {
-			if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
-				return n, fmt.Errorf("injectSID failed: %w", err)
-			}
+		if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
 	}
 	return link.WriteTo(w)
