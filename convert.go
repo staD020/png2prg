@@ -844,7 +844,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 		hirespixels := false
 		charcol := C64Color(0)
 		x, y := xyFromChar(char)
-		if len(img.charColors[char]) <= 2 {
+		if len(img.charColors[char]) <= 2 && img.hiresPixels {
 			// could be hires
 		LOOP:
 			for y2 := 0; y2 < 8; y2++ {

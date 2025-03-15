@@ -408,7 +408,7 @@ func (img *sourceImage) findBgCandidates(hires bool) {
 			}
 		}
 	}
-	img.bgCandidates = candidates.Colors()
+	img.bgCandidates = candidates.SortColors()
 	if img.opt.Verbose {
 		log.Printf("final BackgroundColor candidates: %v", img.bgCandidates)
 	}
@@ -693,10 +693,14 @@ func (img *sourceImage) makeCharColors() error {
 
 // colorsFromChar returns the Colors of the specific char.
 func (img *sourceImage) colorsFromChar(char int) (cc []Color) {
+	pixelWidth := 2
+	if img.hiresPixels {
+		pixelWidth = 1
+	}
 	x, y := xyFromChar(char)
 	m := make(map[color.Color]struct{})
 	for pixely := y; pixely < y+8; pixely++ {
-		for pixelx := x; pixelx < x+8; pixelx++ {
+		for pixelx := x; pixelx < x+8; pixelx += pixelWidth {
 			rgbcol := img.At(pixelx, pixely)
 			if _, ok := m[rgbcol]; ok {
 				continue
