@@ -849,7 +849,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 		LOOP:
 			for y2 := 0; y2 < 8; y2++ {
 				for x2 := 0; x2 < 8; x2 += 2 {
-					if img.p.FromColorNoErr(img.At(x+x2, y+y2)).C64Color != img.p.FromColorNoErr(img.At(x+x2+1, y+y2)).C64Color {
+					if img.At(x+x2, y+y2) != img.At(x+x2+1, y+y2) {
 						hirespixels = true
 						break LOOP
 					}

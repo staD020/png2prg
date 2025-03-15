@@ -580,7 +580,6 @@ PERMUTE:
 		bpc := []*Color{}
 		for _, v := range s {
 			if v == nil {
-				bpc = append(bpc, nil)
 				continue
 			}
 			img.ecmColors = append(img.ecmColors, v.Color)
