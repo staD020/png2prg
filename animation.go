@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/staD020/TSCrunch"
-	"github.com/staD020/sid"
 )
 
 const (
@@ -700,16 +699,8 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	}
 
 	if opt.IncludeSID != "" {
-		s, err := sid.LoadSID(opt.IncludeSID)
-		if err != nil {
-			return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-		}
-		if _, err = link.WritePrg(s.Bytes()); err != nil {
-			return n, fmt.Errorf("link.WritePrg failed: %w", err)
-		}
-		injectSIDLinker(link, s)
-		if !opt.Quiet {
-			fmt.Printf("injected %q: %s\n", opt.IncludeSID, s)
+		if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
 	}
 	m, err := link.WriteTo(w)
@@ -773,16 +764,8 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	}
 
 	if opt.IncludeSID != "" {
-		s, err := sid.LoadSID(opt.IncludeSID)
-		if err != nil {
-			return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-		}
-		if _, err = link.WritePrg(s.Bytes()); err != nil {
-			return n, fmt.Errorf("link.WritePrg failed: %w", err)
-		}
-		injectSIDLinker(link, s)
-		if !opt.Quiet {
-			fmt.Printf("injected %q: %s\n", opt.IncludeSID, s)
+		if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
 	}
 
@@ -949,16 +932,8 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 		}
 		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
 		if opt.IncludeSID != "" {
-			s, err := sid.LoadSID(opt.IncludeSID)
-			if err != nil {
-				return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-			}
-			if _, err = link.WritePrg(s.Bytes()); err != nil {
-				return n, fmt.Errorf("link.WritePrg failed: %w", err)
-			}
-			injectSIDLinker(link, s)
-			if !opt.Quiet {
-				fmt.Printf("injected %q: %s\n", opt.IncludeSID, s)
+			if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
+				return n, fmt.Errorf("injectSID failed: %w", err)
 			}
 		}
 	}
@@ -1091,16 +1066,8 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 			link.Block(hiresFadePassStart, 0xcfff)
 		}
 		if cc[0].opt.IncludeSID != "" {
-			s, err := sid.LoadSID(cc[0].opt.IncludeSID)
-			if err != nil {
-				return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-			}
-			if _, err = link.WritePrg(s.Bytes()); err != nil {
-				return n, fmt.Errorf("link.WritePrg failed: %w", err)
-			}
-			injectSIDLinker(link, s)
-			if !cc[0].opt.Quiet {
-				fmt.Printf("injected %q: %s\n", cc[0].opt.IncludeSID, s)
+			if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
+				return n, fmt.Errorf("injectSID failed: %w", err)
 			}
 		}
 	}
@@ -1187,16 +1154,8 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 			link.Block(hiresFadePassStart, 0xcfff)
 		}
 		if cc[0].opt.IncludeSID != "" {
-			s, err := sid.LoadSID(cc[0].opt.IncludeSID)
-			if err != nil {
-				return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-			}
-			if _, err = link.WritePrg(s.Bytes()); err != nil {
-				return n, fmt.Errorf("link.WritePrg failed: %w", err)
-			}
-			injectSIDLinker(link, s)
-			if !cc[0].opt.Quiet {
-				fmt.Printf("injected %q: %s\n", cc[0].opt.IncludeSID, s)
+			if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
+				return n, fmt.Errorf("injectSID failed: %w", err)
 			}
 		}
 	}
@@ -1304,16 +1263,8 @@ func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err 
 		link.SetByte(0x820, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
 		link.Block(hiresFadePassStart, 0xcfff)
 		if cc[0].opt.IncludeSID != "" {
-			s, err := sid.LoadSID(cc[0].opt.IncludeSID)
-			if err != nil {
-				return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-			}
-			if _, err = link.WritePrg(s.Bytes()); err != nil {
-				return n, fmt.Errorf("link.WritePrg failed: %w", err)
-			}
-			injectSIDLinker(link, s)
-			if !cc[0].opt.Quiet {
-				fmt.Printf("injected %q: %s\n", cc[0].opt.IncludeSID, s)
+			if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
+				return n, fmt.Errorf("injectSID failed: %w", err)
 			}
 		}
 	}

@@ -6,8 +6,6 @@ import (
 	"io"
 	"log"
 	"time"
-
-	"github.com/staD020/sid"
 )
 
 // drazlace examples:
@@ -169,16 +167,8 @@ func (c *Converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 	}
 
 	if c.opt.IncludeSID != "" {
-		s, err := sid.LoadSID(c.opt.IncludeSID)
-		if err != nil {
-			return n, fmt.Errorf("sid.LoadSID failed: %w", err)
-		}
-		if _, err = link.WritePrg(s.Bytes()); err != nil {
-			return n, fmt.Errorf("link.WritePrg failed: %w", err)
-		}
-		injectSIDLinker(link, s)
-		if !c.opt.Quiet {
-			fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+		if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
 	}
 	if c.opt.NoCrunch {

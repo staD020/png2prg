@@ -1067,9 +1067,16 @@ func defaultHeader() []byte {
 	return []byte{BitmapAddress & 0xff, BitmapAddress >> 8}
 }
 
-// injectSIDLinker injects the sid's start song and init/play addresses in predefined locations in the linker.
+// injectSID injects the sid, it's start song and init/play addresses in predefined locations in the linker.
 // Must be called *after* displayer code is linked.
-func injectSIDLinker(l *Linker, s sid.SID) {
+func injectSID(l *Linker, sidFilename string, quiet bool) error {
+	s, err := sid.LoadSID(sidFilename)
+	if err != nil {
+		return fmt.Errorf("sid.LoadSID failed: %w", err)
+	}
+	if _, err = l.WritePrg(s.Bytes()); err != nil {
+		return fmt.Errorf("link.WritePrg failed: %w", err)
+	}
 	startSong := s.StartSong().LowByte()
 	if startSong > 0 {
 		startSong--
@@ -1079,6 +1086,10 @@ func injectSIDLinker(l *Linker, s sid.SID) {
 	l.SetByte(0x81b, init.LowByte(), init.HighByte())
 	play := s.PlayAddress()
 	l.SetByte(0x81e, play.LowByte(), play.HighByte())
+	if !quiet {
+		fmt.Printf("injected %q: %s\n", sidFilename, s)
+	}
+	return nil
 }
 
 func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
@@ -1104,16 +1115,8 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	if k.opt.IncludeSID == "" {
 		return link.WriteTo(w)
 	}
-	s, err := sid.LoadSID(k.opt.IncludeSID)
-	if err != nil {
-		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
-	}
-	if _, err = link.WritePrg(s.Bytes()); err != nil {
-		return n, fmt.Errorf("link.WritePrg failed: %w", err)
-	}
-	injectSIDLinker(link, s)
-	if !k.opt.Quiet {
-		fmt.Printf("injected %q: %s\n", k.opt.IncludeSID, s)
+	if err = injectSID(link, k.opt.IncludeSID, k.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1139,16 +1142,8 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	if h.opt.IncludeSID == "" {
 		return link.WriteTo(w)
 	}
-	s, err := sid.LoadSID(h.opt.IncludeSID)
-	if err != nil {
-		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
-	}
-	if _, err = link.WritePrg(s.Bytes()); err != nil {
-		return n, fmt.Errorf("link.WritePrg failed: %w", err)
-	}
-	injectSIDLinker(link, s)
-	if !h.opt.Quiet {
-		fmt.Printf("injected %q: %s\n", h.opt.IncludeSID, s)
+	if err = injectSID(link, h.opt.IncludeSID, h.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1173,16 +1168,8 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.IncludeSID == "" {
 		return link.WriteTo(w)
 	}
-	s, err := sid.LoadSID(c.opt.IncludeSID)
-	if err != nil {
-		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
-	}
-	if _, err = link.WritePrg(s.Bytes()); err != nil {
-		return n, fmt.Errorf("link.WritePrg failed: %w", err)
-	}
-	injectSIDLinker(link, s)
-	if !c.opt.Quiet {
-		fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1208,16 +1195,8 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.IncludeSID == "" {
 		return link.WriteTo(w)
 	}
-	s, err := sid.LoadSID(c.opt.IncludeSID)
-	if err != nil {
-		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
-	}
-	if _, err = link.WritePrg(s.Bytes()); err != nil {
-		return n, fmt.Errorf("link.WritePrg failed: %w", err)
-	}
-	injectSIDLinker(link, s)
-	if !c.opt.Quiet {
-		fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1242,16 +1221,8 @@ func (c MixedCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.IncludeSID == "" {
 		return link.WriteTo(w)
 	}
-	s, err := sid.LoadSID(c.opt.IncludeSID)
-	if err != nil {
-		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
-	}
-	if _, err = link.WritePrg(s.Bytes()); err != nil {
-		return n, fmt.Errorf("link.WritePrg failed: %w", err)
-	}
-	injectSIDLinker(link, s)
-	if !c.opt.Quiet {
-		fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return 0, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1284,16 +1255,8 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.IncludeSID == "" {
 		return link.WriteTo(w)
 	}
-	s, err := sid.LoadSID(c.opt.IncludeSID)
-	if err != nil {
-		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
-	}
-	if _, err = link.WritePrg(s.Bytes()); err != nil {
-		return n, fmt.Errorf("link.WritePrg failed: %w", err)
-	}
-	injectSIDLinker(link, s)
-	if !c.opt.Quiet {
-		fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
@@ -1319,16 +1282,8 @@ func (c ECMCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if c.opt.IncludeSID == "" {
 		return link.WriteTo(w)
 	}
-	s, err := sid.LoadSID(c.opt.IncludeSID)
-	if err != nil {
-		return 0, fmt.Errorf("sid.LoadSID failed: %w", err)
-	}
-	if _, err = link.WritePrg(s.Bytes()); err != nil {
-		return n, fmt.Errorf("link.WritePrg failed: %w", err)
-	}
-	injectSIDLinker(link, s)
-	if !c.opt.Quiet {
-		fmt.Printf("injected %q: %s\n", c.opt.IncludeSID, s)
+	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
+		return 0, fmt.Errorf("injectSID failed: %w", err)
 	}
 	return link.WriteTo(w)
 }
