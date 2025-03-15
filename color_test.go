@@ -63,11 +63,11 @@ func TestNewPalette(t *testing.T) {
 	black, err := p.FromColor(color.RGBA{})
 	assert.Nil(t, err)
 	assert.Equal(t, C64Color(0), black.C64Color)
-	darkgrey, err := p.FromColor(color.RGBA{0x7a, 0x7a, 0x7a, 0x01})
+	darkgrey, err := p.FromColor(color.RGBA{0x7a, 0x7a, 0x7a, 0xff})
 	assert.Nil(t, err)
 	assert.Equal(t, C64Color(11), darkgrey.C64Color)
 
-	p.Add(Color{Color: color.RGBA{0x7a, 0x7a, 0x10, 0x01}, C64Color: 9})
+	p.Add(Color{Color: color.RGBA{0x7a, 0x7a, 0x10, 0xff}, C64Color: 9})
 	assert.Equal(t, 16, p.NumColors())
 }
 
