@@ -92,24 +92,6 @@ func (o Options) NoFadeByte() byte {
 	return 0
 }
 
-type RGB struct {
-	R, G, B byte
-}
-
-func (r RGB) String() string {
-	return fmt.Sprintf("RGB{%#02x, %#02x, %#02x}", r.R, r.G, r.B)
-}
-
-type ColorInfo struct {
-	ColorIndex byte
-	RGB        RGB
-}
-
-func (c ColorInfo) String() string {
-	//return fmt.Sprintf("{%d, #%02x%02x%02x}", c.ColorIndex, int(c.RGB.R), int(c.RGB.G), int(c.RGB.B))
-	return fmt.Sprintf("{%d, %s},", c.ColorIndex, c.RGB)
-}
-
 // A GraphicsType represents a supported c64 graphics type.
 type GraphicsType byte
 

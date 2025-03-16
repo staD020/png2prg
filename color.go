@@ -113,6 +113,7 @@ type Palette struct {
 	rgb2col map[colorKey]Color
 }
 
+// NewPalette parses the img and determins the img's c64 color Palette.
 func NewPalette(img image.Image, looseMatching, verbose bool) (p Palette, hires bool, err error) {
 	cols, hires := imageColors(img)
 	if len(cols) > MaxColors {
@@ -123,6 +124,7 @@ func NewPalette(img image.Image, looseMatching, verbose bool) (p Palette, hires 
 	return p, hires, nil
 }
 
+// BlankPalette returns an initialized but empty Palette.
 func BlankPalette(name string, looseMatching bool) Palette {
 	return Palette{
 		Name:    name,
@@ -177,6 +179,7 @@ func (p *Palette) Delete(colors ...Color) {
 	}
 }
 
+// FromC64 returns the Color matching C64Color col.
 func (p Palette) FromC64(col C64Color) (Color, error) {
 	if v, ok := p.c642col[col]; ok {
 		return v, nil
@@ -187,6 +190,7 @@ func (p Palette) FromC64(col C64Color) (Color, error) {
 	}, fmt.Errorf("c64color %d not found", col)
 }
 
+// FromColor returns the Color matching the color.Color.
 func (p Palette) FromColor(col color.Color) (Color, error) {
 	if v, ok := p.rgb2col[ColorKey(col)]; ok {
 		return v, nil
@@ -239,7 +243,7 @@ func imageColors(img image.Image) (cc []color.Color, hires bool) {
 				m[col] = struct{}{}
 				cc = append(cc, col)
 			}
-			if x%2 == 0 {
+			if x%2 == 0 && !hires {
 				if col != img.At(x+1, y) {
 					hires = true
 				}
