@@ -172,15 +172,22 @@ It's also possible to explicitly skip certain bitpair preferences with -1:
 
     ./png2prg -bitpair-colors 0,-1,-1,3 image.png
 
+## Animations
+
+When multiple files are added, they are treated as animation frames.
+You can also supply an animated .gif.
+
 ## Sprite Animation
 
 Each frame will be concatenated in the output .prg.
-You can supply an animated .gif or multiple image files.
 
 ## Bitmap Animation (only koala and hires)
 
-If multiple files are added, they are treated as animation frames.
-You can also supply an animated .gif.
+Note that png2prg uses a rather simple generic diff approach, where small
+changes frame by frame work well. Trying to change large areas at once
+is not advised.
+Use the -no-fade flag if you run out of memory.
+
 The first image will be exported with all framedata appended.
 Koala animation frames start at $4711, hires at $4329.
 
@@ -209,6 +216,8 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
 Only petscii and sccharset modes support different background and
 bordercolors per frame.
+All chars used in all frames must fit into a single 256 char charset.
+
 Each frame consists of 1 or more chunks. A chunk looks like this:
 
     .byte $xy    // $y = bgcol, $x = bordercol (only for petscii/sccharset)
