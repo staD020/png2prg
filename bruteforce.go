@@ -74,7 +74,9 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		}
 		tmp := [4]C64Color{}
 		for i := range tmp {
-			tmp[i] = s[i].C64Color
+			if i < maxColors {
+				tmp[i] = s[i].C64Color
+			}
 		}
 		if _, ok := done[tmp]; ok {
 			continue
