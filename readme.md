@@ -557,7 +557,7 @@ an image with a displayer.
   -no-crunch
     	do not TSCrunch displayer
   -no-fade
-    	do not use fade in/out for animation displayers
+    	do not use fade in/out for animation displayers and free up a lot of memory
   -no-guess
     	do not guess preferred bitpair-colors
   -no-pack
