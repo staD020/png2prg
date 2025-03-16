@@ -212,8 +212,10 @@ smc_yval:	ldy #steps-1
 
 loop_anim:
 		ldx frame_delay
-!loop:	//jsr vblank
-		lda #$e0
+!loop:
+	!:	bit $d011
+		bpl !-
+		lda #$00
 	!:	cmp $d012
 		bne !-
 	!:	cmp $d012

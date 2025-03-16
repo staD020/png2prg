@@ -1217,7 +1217,7 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(petsciiCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	link.SetByte(0x0820, c.Lowercase)
+	link.SetByte(DisplayerSettingsStart+7, c.Lowercase)
 	if !c.opt.Quiet {
 		if c.Lowercase == 1 {
 			fmt.Println("lowercase rom charset found")
