@@ -450,7 +450,6 @@ func (img *sourceImage) Hires() (Hires, error) {
 		} else {
 			h.ScreenColor[char] |= byte(prevbp.bitpair2color[0].C64Color)
 		}
-		prevbp = &bitpairs{bitpairs: []byte{0, 1}}
 		for bitp, col := range bp.bitpair2color {
 			prevbp.add(bitp, col)
 		}
