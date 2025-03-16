@@ -81,8 +81,6 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		}
 		done[tmp] = true
 
-		// fmt.Printf("tmp: %v c.images[0].bgCandidates: %v\n", tmp, c.images[0].bgCandidates)
-
 		if gfxtype == multiColorBitmap || gfxtype == singleColorCharset || gfxtype == multiColorCharset || gfxtype == mixedCharset {
 			// skip impossible bgcolors
 			bgok := false
@@ -119,14 +117,30 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		opt.Verbose = false
 		opt.VeryVerbose = false
 		opt.Quiet = true
-		img, err := NewSourceImage(opt, count, c.images[0].image)
-		if err != nil {
+		// prefilled NewSourceImage, no need to redo the same work
+		img := &sourceImage{
+			sourceFilename: fmt.Sprintf("png2prg_%02d", count),
+			opt:            opt,
+			image:          c.images[0].image,
+			p:              c.images[0].p,
+			hiresPixels:    c.images[0].hiresPixels,
+			graphicsType:   c.images[0].graphicsType,
+			charColors:     c.images[0].charColors,
+			sumColors:      c.images[0].sumColors,
+		}
+		if err := img.checkBounds(); err != nil {
 			if c.opt.Verbose {
-				log.Printf("skipping permutation %s because NewSourceImage failed: %v", bitpaircols, err)
+				log.Printf("skipping permutation %q because img.checkBounds failed: %v", bitpaircols, err)
 			}
 			continue
 		}
-		jobs <- &img
+		if err := img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
+			if c.opt.Verbose {
+				log.Printf("skipping permutation %q because setPreferredBitpairColors failed: %v", bitpaircols, err)
+			}
+			continue
+		}
+		jobs <- img
 		total++
 		if !origOpt.Quiet && total%10 == 0 {
 			fmt.Print(".")

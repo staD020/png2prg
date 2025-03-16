@@ -713,11 +713,6 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 		sourceFilename: path,
 		opt:            opt,
 	}
-	for c64col := 0; c64col < MaxColors; c64col++ {
-		if img.bpcBitpairCount[c64col] == nil {
-			img.bpcBitpairCount[c64col] = make(map[byte]int, 4)
-		}
-	}
 	if img.image, _, err = image.Decode(bytes.NewReader(bin)); err != nil {
 		return nil, fmt.Errorf("image.Decode failed: %w", err)
 	}
@@ -741,11 +736,6 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 		sourceFilename: fmt.Sprintf("png2prg_%02d", index),
 		opt:            opt,
 		image:          in,
-	}
-	for c64col := 0; c64col < MaxColors; c64col++ {
-		if img.bpcBitpairCount[c64col] == nil {
-			img.bpcBitpairCount[c64col] = make(map[byte]int, 4)
-		}
 	}
 	if img.p, img.hiresPixels, err = NewPalette(img.image, false, opt.Verbose); err != nil {
 		return img, fmt.Errorf("NewPalette failed: %w", err)

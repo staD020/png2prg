@@ -647,6 +647,10 @@ func (img *sourceImage) findBorderColor() error {
 
 // makeCharColors parses the entire image and populates img.charColors.
 func (img *sourceImage) makeCharColors() error {
+	if len(img.charColors[0]) > 0 {
+		// skip redoing already generated charColors
+		return nil
+	}
 	forceBgCol := -1
 	if len(img.bpc) > 0 {
 		if img.bpc[0] != nil {
