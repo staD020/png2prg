@@ -237,15 +237,19 @@ func (p Palette) Convert(c color.Color) color.Color {
 func imageColors(img image.Image) (cc []color.Color, hires bool) {
 	m := map[color.Color]struct{}{}
 	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
-		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
+		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x += 2 {
 			col := img.At(x, y)
 			if _, ok := m[col]; !ok {
 				m[col] = struct{}{}
 				cc = append(cc, col)
 			}
-			if x%2 == 0 && !hires {
-				if col != img.At(x+1, y) {
+			if !hires {
+				if col2 := img.At(x+1, y); col != col2 {
 					hires = true
+					if _, ok := m[col2]; !ok {
+						m[col2] = struct{}{}
+						cc = append(cc, col2)
+					}
 				}
 			}
 		}
