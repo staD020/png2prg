@@ -215,10 +215,9 @@ loop_anim:
 !loop:
 	!:	bit $d011
 		bpl !-
-		lda #$00
-	!:	cmp $d012
+	!:	lda $d012
 		bne !-
-	!:	cmp $d012
+	!:	lda $d012
 		beq !-
 		dex
 		bne !loop-
