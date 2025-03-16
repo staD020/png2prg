@@ -490,8 +490,7 @@ Png2prg was created by Burglar, using the following third-party libraries:
 [TSCrunch 1.3](https://github.com/tonysavon/TSCrunch/) by Antonio Savona for optional crunching when exporting
 an image with a displayer.
 
-[Colfade Doc](https://csdb.dk/release/?id=132276) by Veto for the colfade
-tables used in the koala and hires displayers.
+[Colfade Doc](https://csdb.dk/release/?id=132276) by Veto for the color fade tables used in the displayers.
 
 [Kick Assembler](http://www.theweb.dk/KickAssembler/) by Slammer to compile the displayers.
 

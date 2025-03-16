@@ -594,7 +594,7 @@ func romCharsetToCharBytes(romPrg []byte) (cb []charBytes) {
 	return cb
 }
 
-// PETSCIICharset converts the img to PETSCIICharset and returns it.
+// PETSCIICharset converts the img to PETSCIICharset and returns it..
 func (img *sourceImage) PETSCIICharset() (PETSCIICharset, error) {
 	c := PETSCIICharset{
 		SourceFilename: img.sourceFilename,

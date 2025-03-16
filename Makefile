@@ -29,6 +29,8 @@ TESTSIDMAD=testdata/madonna/holiday.sid
 TESTANIM=testdata/jamesband*.png
 TESTSIDANIM=testdata/Nightbreed_-_Dalezy_TRIAD.sid
 
+default: readme.md
+
 png2prg: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg
 
@@ -37,7 +39,7 @@ all: $(ALLTARGETS)
 bench: $(DISPLAYERS)
 	go test -bench Benchmark. -benchmem ./...
 
-dist: $(ALLTARGETS) $(TARGET) readme $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TESTSIDANIM)
+dist: $(ALLTARGETS) $(TARGET) readme.md $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(TESTSIDANIM)
 	mkdir -p dist/testdata
 	cp readme.md dist/
 	cp $(ALLTARGETS) dist/
@@ -143,7 +145,7 @@ png2prg_win_arm64.exe: $(SRC) $(DISPLAYERS)
 png2prg_win_x86.exe: $(SRC) $(DISPLAYERS)
 	CGO_ENABLED=$(CGO) GOOS=windows GOARCH=386 go build $(GOBUILDFLAGS) -ldflags="$(LDFLAGS)" -o $@ ./cmd/png2prg/
 
-readme: $(TARGET)
+readme.md: $(TARGET)
 	./$(TARGET) -q -h >readme.md 2>&1
 
 roms: rom_charset_lowercase.prg rom_charset_uppercase.prg
