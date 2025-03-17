@@ -32,7 +32,7 @@ func PrintHelp() {
 	fmt.Println("background color per frame.")
 	fmt.Println()
 	fmt.Println("The -no-fade flag was added to skip fullscreen fade and not waste a ton of RAM")
-	fmt.Println("in the displayers.")
+	fmt.Println("in koala/hires/petscii displayers.")
 	fmt.Println("The -no-anim flag was added to allow storing each frame's screenram of charset")
 	fmt.Println("animations in full. Especially useful when converting a multi-screen charset.")
 	fmt.Println()

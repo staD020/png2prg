@@ -20,7 +20,7 @@ Png2prg 1.10 introduces petscii animation support, including unique border and
 background color per frame.
 
 The -no-fade flag was added to skip fullscreen fade and not waste a ton of RAM
-in the displayers.
+in koala/hires/petscii displayers.
 The -no-anim flag was added to allow storing each frame's screenram of charset
 animations in full. Especially useful when converting a multi-screen charset.
 
