@@ -395,7 +395,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 			k.D800Color[char] = byte(pcol.C64Color)
 		}
 
-		if prevbp.numColors() != 4 {
+		if prevbp.numColors() != 4 && img.opt.Verbose {
 			log.Printf("warning: char %d: prevbp numColors is not 4: %v", char, prevbp)
 		}
 

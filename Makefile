@@ -612,5 +612,5 @@ alien:$(ALIEN) $(TARGET)
 	ls -l $@_*
 
 clean:
-	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla *_p2p16.prg
+	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla *_p2p16.prg veto_p2p*.prg
 	rm -rf dist

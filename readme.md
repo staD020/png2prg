@@ -398,17 +398,15 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Add gfxmode to .sym files and display in terminal output (thanks Spider-J).
  - Add petscii animation support.
  - Add background and bordercolor to each petscii or sccharset animation frame.
- - Add -no-anim flag disable mccharset animations and store frames as separate
+ - Add -no-anim flag disable sc/mccharset animations and store frames as separate
    screens.
- - Add sccharset animation support and move separate screens to -no-anim.
- - Add mixedcharset animation support and move separate screens to -no-anim.
  - Add -no-fade flag for koala, hires, petscii and sccharset animation
    displayers, this frees up a lot of RAM for animation data and sid.
- - Bugfix: handle blank ECM images as well as ECM images using few bg colors
-   (thanks Brush).
  - Code refactor, standardizing color and bitpair code, separated palettes in
    palettes.yaml and more.
  - Bugfix: repair -force-border-color.
+ - Bugfix: handle blank ECM images as well as ECM images using few bg colors
+   (thanks Brush).
  - Typofix: fix simple install docs (thanks IcePic).
  - Added another weird palette (thanks Fungus).
 
