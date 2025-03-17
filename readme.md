@@ -16,12 +16,15 @@ This tool can be used in all buildchains on all common platforms.
 
 ## What is new
 
-Png2prg 1.8 introduces multiple image optimization techniques to improve
-the pack ratio of output images.
-See 'Brute Force Mode and Pack Optimization' below.
+Png2prg 1.10 introduces petscii animation support, including unique border and
+background color per frame.
 
-Multicolor charsets of multiple frames is now supported.
-See testdata/charanim for an example.
+The -no-fade flag was added to skip fullscreen fade and not waste a ton of RAM
+in the displayers.
+The -no-anim flag was added to allow storing each frame's screenram of charset
+animations in full. Especially useful when converting a multi-screen charset.
+
+See 'Changes for version 1.10' below for more details.
 
 ## What it is *not*
 
