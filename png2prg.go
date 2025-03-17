@@ -186,7 +186,7 @@ type sourceImage struct {
 
 func (img *sourceImage) At(x, y int) color.Color {
 	r, g, b, _ := img.image.At(img.xOffset+x, img.yOffset+y).RGBA()
-	return color.RGBA{byte(r), byte(g), byte(b), 0x01}
+	return color.RGBA{byte(r), byte(g), byte(b), 0xff}
 }
 
 func (img *sourceImage) ColorModel() color.Model {
