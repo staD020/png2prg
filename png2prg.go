@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Version              = "1.9.7-dev"
+	Version              = "1.10"
 	MaxColors            = 16
 	MaxChars             = 256
 	MaxECMChars          = 64
