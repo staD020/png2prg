@@ -497,6 +497,11 @@ an image with a displayer.
 
 [Go](https://go.dev/) by The Go Authors is the programming language used to create png2prg.
 
+### Thanks to
+
+Apollyon, Spider-J, Brush, The Sarge, Fungus, Jab, Shine, Raistlin, Perplex,
+Map, Youth, IcePic, Sander, Guinea Pig, Krill, Christopher Jam and Sparta.
+
 ## Options
 
 ```
