@@ -1,7 +1,7 @@
 .importonce
 
 .function versionString() {
-	.return "1.10"
+	.return "1.11"
 }
 
 .function year() {
@@ -47,6 +47,26 @@
 }
 .function toSpritePtr(addr) {
 	.return ( addr & $3fff ) / $40
+}
+
+.macro music_init_cia(startsong, init) {
+		// pal cycles per frame -1: $4cc7
+		// ntsc cycles per frame -1: $42c6
+		// bit 7 of startsong: 0 = pal, 1 = ntsc
+		lda #$c7
+		ldy #$4c
+		bit startsong
+		bpl pal
+		lda #$c6
+		ldy #$42
+pal:
+		sta $dc04
+		sty $dc05
+		lda startsong
+		and #$7f
+		tax
+		tay
+		jsr init
 }
 
 .macro colorfade_table() {

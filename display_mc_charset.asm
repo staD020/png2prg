@@ -79,15 +79,8 @@ start:
 		iny
 		bne !loop-
 
-		// default pal 50 hz: $4cc7
-		lda #$c7
-		sta $dc04
-		lda #$4c
-		sta $dc05
+		music_init_cia(music_startsong, music_init)
 
-		lax music_startsong
-		tay
-		jsr music_init
 		lda #<irq
 		sta $fffe
 		lda #>irq

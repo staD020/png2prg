@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Version              = "1.10"
+	Version              = "1.11.0-dev"
 	MaxColors            = 16
 	MaxChars             = 256
 	MaxECMChars          = 64
@@ -1059,7 +1059,12 @@ func injectSID(l *Linker, sidFilename string, quiet bool) error {
 	if startSong > 0 {
 		startSong--
 	}
-	l.SetByte(DisplayerSettingsStart, startSong)
+	palntsc := byte(0)
+	if s.NTSC() {
+		// set bit 7 of startsong as ntsc flag
+		palntsc = 0x80
+	}
+	l.SetByte(DisplayerSettingsStart, (startSong&0x7f)|palntsc)
 	init := s.InitAddress()
 	l.SetByte(DisplayerSettingsStart+2, init.LowByte(), init.HighByte())
 	play := s.PlayAddress()

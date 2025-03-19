@@ -115,7 +115,7 @@ type Palette struct {
 
 // NewPalette parses the img and determins the img's c64 color Palette.
 func NewPalette(img image.Image, looseMatching, verbose bool) (p Palette, hires bool, err error) {
-	cols, hires := imageColors(img)
+	cols, hires := imageColors(img, verbose)
 	if len(cols) > MaxColors {
 		return Palette{}, hires, fmt.Errorf("too many colors: %d while the max is %d", len(cols), MaxColors)
 	}
@@ -234,7 +234,7 @@ func (p Palette) Convert(c color.Color) color.Color {
 
 // imageColors returns a slice of unique colors present in the image.
 // returns the hires bool as true if hires pixels have been detected.
-func imageColors(img image.Image) (cc []color.Color, hires bool) {
+func imageColors(img image.Image, verbose bool) (cc []color.Color, hires bool) {
 	m := map[color.Color]struct{}{}
 	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
 		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x += 2 {
@@ -246,6 +246,9 @@ func imageColors(img image.Image) (cc []color.Color, hires bool) {
 			if !hires {
 				if col2 := img.At(x+1, y); col != col2 {
 					hires = true
+					if verbose {
+						fmt.Printf("hires pixel found at x=%d y=%d\n", x, y)
+					}
 					if _, ok := m[col2]; !ok {
 						m[col2] = struct{}{}
 						cc = append(cc, col2)
