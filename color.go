@@ -69,6 +69,51 @@ func (c Color) RGBString() string {
 	return rgbString(c)
 }
 
+type Colors []Color
+
+func (cc Colors) String() (s string) {
+	for i, c := range cc {
+		s += strconv.Itoa(int(c.C64Color))
+		if i < len(cc)-1 {
+			s += ","
+		}
+	}
+	return s
+}
+
+type BPColors []*Color
+
+func (cc BPColors) String() (s string) {
+	for i, c := range cc {
+		if c == nil {
+			s += "-1"
+		} else {
+			s += strconv.Itoa(int(c.C64Color))
+		}
+		if i < len(cc)-1 {
+			s += ","
+		}
+	}
+	return s
+}
+
+func (cc Colors) BPColors() (bpc BPColors) {
+	for i := range cc {
+		c := cc[i]
+		bpc = append(bpc, &c)
+	}
+	return bpc
+}
+
+func (bpc BPColors) Colors() (cc Colors) {
+	for _, c := range bpc {
+		if c != nil {
+			cc = append(cc, *c)
+		}
+	}
+	return cc
+}
+
 type colorKey [3]byte
 
 func ColorKey(c color.Color) colorKey {
@@ -149,7 +194,7 @@ func (p Palette) NumColors() int {
 }
 
 // Colors returns the Palette's colors, the order is undefined.
-func (p Palette) Colors() (cc []Color) {
+func (p Palette) Colors() (cc Colors) {
 	for _, c := range p.c642col {
 		cc = append(cc, c)
 	}
@@ -157,7 +202,7 @@ func (p Palette) Colors() (cc []Color) {
 }
 
 // SortColors returns the Palette's colors sorted by C64Color.
-func (p Palette) SortColors() []Color {
+func (p Palette) SortColors() Colors {
 	cc := p.Colors()
 	sort.Slice(cc, func(i, j int) bool { return cc[i].C64Color < cc[j].C64Color })
 	return cc
@@ -243,16 +288,14 @@ func imageColors(img image.Image, verbose bool) (cc []color.Color, hires bool) {
 				m[col] = struct{}{}
 				cc = append(cc, col)
 			}
-			if !hires {
-				if col2 := img.At(x+1, y); col != col2 {
-					hires = true
-					if verbose {
-						fmt.Printf("hires pixel found at x=%d y=%d\n", x, y)
-					}
-					if _, ok := m[col2]; !ok {
-						m[col2] = struct{}{}
-						cc = append(cc, col2)
-					}
+			if col2 := img.At(x+1, y); col != col2 {
+				if verbose && !hires {
+					fmt.Printf("hires pixel found at x=%d y=%d\n", x, y)
+				}
+				hires = true
+				if _, ok := m[col2]; !ok {
+					m[col2] = struct{}{}
+					cc = append(cc, col2)
 				}
 			}
 		}
@@ -299,7 +342,7 @@ func analyzeColors(cc []color.Color, verbose bool) (found Palette) {
 
 // ParseBPC parses the commandline -bitpair-colors string and returns an ordered Color byte-slice.
 // A nil *Color (-1 in the cli) means the bitpair has no preference.
-func (p Palette) ParseBPC(in string) (cc []*Color, err error) {
+func (p Palette) ParseBPC(in string) (cc BPColors, err error) {
 	for _, v := range strings.Split(in, ",") {
 		i, err := strconv.Atoi(v)
 		if err != nil {
@@ -323,7 +366,7 @@ var palettesYaml []byte
 
 type paletteSource struct {
 	Name   string
-	Colors []Color
+	Colors Colors
 }
 
 var paletteSources []paletteSource
@@ -350,7 +393,7 @@ func convertPaletteSources(inputYaml []byte) (out []paletteSource, err error) {
 		return out, err
 	}
 	for _, p := range ps {
-		ps := paletteSource{Name: p.Name, Colors: make([]Color, 16, 16)}
+		ps := paletteSource{Name: p.Name, Colors: make(Colors, 16, 16)}
 		count := 0
 		for _, l := range p.Colors {
 			a := strings.Split(l, ",")

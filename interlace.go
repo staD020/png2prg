@@ -212,7 +212,7 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 		if err != nil {
 			return k0, k1, sharedcolors, fmt.Errorf("img0.newBitpairs failed: error in char %d: %w", char, err)
 		}
-		tempbpc := []*Color{nil, nil, nil, nil}
+		tempbpc := BPColors{nil, nil, nil, nil}
 		for bitpair := range bp0.bitpair2color {
 			col := bp0.bitpair2color[bitpair]
 			tempbpc[bitpair] = &col
@@ -225,7 +225,7 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 
 			// detected non-shared colors, let's find and force a common d800 color
 			foundsharedcolinchar := false
-			forcepreferred := []*Color{nil, nil, nil, nil}
+			forcepreferred := BPColors{nil, nil, nil, nil}
 		OUTER:
 			for _, col0 := range img0.charColors[char] {
 				if col0.C64Color == img1.bg.C64Color {
@@ -236,7 +236,7 @@ func (img1 *sourceImage) InterlaceKoala(img0 sourceImage) (k0, k1 Koala, sharedc
 						foundsharedcol++
 						foundsharedcolinchar = true
 						if img1.bpc[3] != nil {
-							forcepreferred = []*Color{&img1.bg, nil, nil, &col0}
+							forcepreferred = BPColors{&img1.bg, nil, nil, &col0}
 						}
 						break OUTER
 					}

@@ -59,7 +59,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 
 	wantedGraphicsType := imgs[0].graphicsType
 	c.FinalGraphicsType = imgs[0].graphicsType
-	currentBitpairColors := []*Color{}
+	currentBitpairColors := BPColors{}
 	charset := []charBytes{}
 	for i, img := range imgs {
 		if !c.opt.Quiet {
@@ -70,7 +70,6 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 				img.bpc = currentBitpairColors
 			}
 			if err := img.analyze(); err != nil {
-				//return n, fmt.Errorf("warning: skipping frame %d, analyze failed: %w", i, err)
 				log.Printf("warning: skipping frame %d, analyze failed: %v", i, err)
 				continue
 			}
@@ -81,10 +80,10 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		if len(currentBitpairColors) == 0 {
 			currentBitpairColors = img.bpc
 		}
-		if BPCString(currentBitpairColors) != BPCString(img.bpc) && imgs[0].graphicsType != petsciiCharset && imgs[0].graphicsType != singleColorCharset {
-			log.Printf("bitpairColors %q of the previous frame do not equal current frame %q", BPCString(currentBitpairColors), BPCString(img.bpc))
+		if currentBitpairColors.String() != img.bpc.String() && imgs[0].graphicsType != petsciiCharset && imgs[0].graphicsType != singleColorCharset {
+			log.Printf("bitpairColors %q of the previous frame do not equal current frame %q", currentBitpairColors, img.bpc)
 			log.Println("this would cause huge animation frame sizes and probably crash the displayer")
-			return n, fmt.Errorf("bitpairColors differ between frames, maybe use -bitpair-colors %s to force them", BPCString(currentBitpairColors))
+			return n, fmt.Errorf("bitpairColors differ between frames, maybe use -bitpair-colors %s to force them", currentBitpairColors)
 		}
 
 		switch img.graphicsType {
@@ -946,13 +945,6 @@ func (cc charChunk) ScreenLow() byte {
 
 func (cc charChunk) ScreenHigh() byte {
 	return Word(cc.charIndex).High()
-}
-
-func newCharChunk(charIndex int) charChunk {
-	return charChunk{
-		charIndex: charIndex,
-		bytes:     []byte{},
-	}
 }
 
 // WriteSingleColorCharsetAnimationTo writes the SingleColorCharset to w, optionally with displayer code.

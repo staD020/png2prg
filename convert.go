@@ -67,7 +67,7 @@ func (bp bitpairs) numColors() int {
 }
 
 // colors returns all Colors, sorted by bitpair.
-func (bp bitpairs) colors() (cc []Color) {
+func (bp bitpairs) colors() (cc Colors) {
 	for i := byte(0); i < 4; i++ {
 		if col, ok := bp.color(i); ok {
 			cc = append(cc, col)
@@ -79,7 +79,7 @@ func (bp bitpairs) colors() (cc []Color) {
 // newBitpairs return bitpairs.
 // It is the main function taking care of bitpair/color sorting, according to img.bpc.
 // forcePreferred is used with interlaced pictures.
-func (img *sourceImage) newBitpairs(char int, cc []Color, forcePreferred bool) (*bitpairs, error) {
+func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*bitpairs, error) {
 	bp := &bitpairs{
 		rgb2bitpair:   make(map[colorKey]byte, MaxColors),
 		bitpair2color: make(map[byte]Color, MaxColors),
@@ -280,6 +280,17 @@ func (img *sourceImage) newBitpairs(char int, cc []Color, forcePreferred bool) (
 	return bp, nil
 }
 
+// newBitpairsFromBPColors converts img.bpc into bitpairs.
+func newBitpairsFromBPColors(bpc BPColors) *bitpairs {
+	bp := &bitpairs{}
+	for bitp, col := range bpc {
+		if col != nil {
+			bp.add(byte(bitp), *col)
+		}
+	}
+	return bp
+}
+
 // multiColorCharBytes converts the char to charBytes.
 func (img *sourceImage) multiColorCharBytes(char int, bp *bitpairs) (charBytes, error) {
 	b := charBytes{}
@@ -318,17 +329,6 @@ func (img *sourceImage) singleColorCharBytes(char int, bp *bitpairs) (charBytes,
 	return b, nil
 }
 
-// bpcBitpairs converts img.bpc into bitpairs.
-func (img *sourceImage) bpcBitpairs() *bitpairs {
-	bp := &bitpairs{}
-	for bitp, col := range img.bpc {
-		if col != nil {
-			bp.add(byte(bitp), *col)
-		}
-	}
-	return bp
-}
-
 // guessFirstBitpair2C64Color guesses by iterating over the first chars until full 4 color bitpairs are found.
 func (img *sourceImage) guessFirstBitpair2C64Color() *bitpairs {
 	for char := 0; char < FullScreenChars; char++ {
@@ -345,7 +345,7 @@ func (img *sourceImage) guessFirstBitpair2C64Color() *bitpairs {
 			return bp
 		}
 	}
-	return img.bpcBitpairs()
+	return newBitpairsFromBPColors(img.bpc)
 }
 
 // Koala converts the img to Koala and returns it.
@@ -420,7 +420,7 @@ func (img *sourceImage) Hires() (Hires, error) {
 		opt:            img.opt,
 	}
 
-	prevbp := img.bpcBitpairs()
+	prevbp := newBitpairsFromBPColors(img.bpc)
 	for char := 0; char < FullScreenChars; char++ {
 		x, y := xyFromChar(char)
 		cc := img.charColors[char]
@@ -652,7 +652,7 @@ func (img *sourceImage) MultiColorCharset(prebuiltCharset []charBytes) (c MultiC
 	if col, ok := bp.color(3); ok {
 		if col.C64Color > 7 {
 			if !img.opt.Quiet {
-				return c, fmt.Errorf("the bitpair 11 can only contain colors 0-7, you will want to swap -bitpair-colors %s", img.BPCString())
+				return c, fmt.Errorf("the bitpair 11 can only contain colors 0-7, you will want to swap -bitpair-colors %s", img.bpc)
 			}
 		}
 		c.CharColor = byte(col.C64Color) | 8
@@ -765,7 +765,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 	}
 
 	if len(img.bgCandidates) >= 0 {
-		candidates := []Color{}
+		candidates := Colors{}
 		for _, col := range img.bgCandidates {
 			candidates = append(candidates, col)
 		}
@@ -774,7 +774,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 			log.Printf("img.MixedCharset: candidates: %v", candidates)
 		}
 
-		fixpref := []*Color{}
+		fixpref := BPColors{}
 		for _, p := range img.bpc {
 			if p == nil {
 				continue
@@ -885,14 +885,14 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 		}
 
 		if hirespixels && !hires {
-			return c, fmt.Errorf("found hirespixels in char %d (x=%d y=%d), but colors are bad: %v please swap some -bitpair-colors %s", char, x, y, img.charColors[char], img.BPCString())
+			return c, fmt.Errorf("found hirespixels in char %d (x=%d y=%d), but colors are bad: %v please swap some -bitpair-colors %s", char, x, y, img.charColors[char], img.bpc)
 		}
 
 		var cbuf charBytes
 		emptyChar := charBytes{}
 		if hires {
 			if img.opt.VeryVerbose {
-				log.Printf("char %d (x=%d y=%d) seems to be hires, charcol %d img.Palette: %v, -bpc %s", char, x, y, charcol, img.charColors[char], img.BPCString())
+				log.Printf("char %d (x=%d y=%d) seems to be hires, charcol %d img.Palette: %v, -bpc %s", char, x, y, charcol, img.charColors[char], img.bpc)
 			}
 			cbuf, err = img.singleColorCharBytes(char, bp)
 			if err != nil {
@@ -931,7 +931,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 		}
 	}
 	if !img.opt.Quiet {
-		fmt.Printf("settled for -bitpair-colors %s\n", img.BPCString())
+		fmt.Printf("settled for -bitpair-colors %s\n", img.bpc)
 		fmt.Printf("used %d unique chars in the charset\n", len(charset))
 	}
 

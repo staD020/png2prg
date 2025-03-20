@@ -6,8 +6,6 @@ import (
 	"log"
 	"math"
 	"sort"
-	"strconv"
-	"strings"
 )
 
 // setPreferredBitpairColors sets img.preferredBitpairColors according to v in format "0,1,6,7".
@@ -24,25 +22,9 @@ func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
 		}
 	}
 	if img.opt.Verbose {
-		log.Printf("will prefer bitpair colors: %s", img.BPCString())
+		log.Printf("will prefer bitpair colors: %s", img.bpc)
 	}
 	return nil
-}
-
-// parseBitPairColors parses the commandline -bitpair-colors string and returns a byte-slice of colors.
-func parseBitPairColors(bp string) ([]byte, error) {
-	var result []byte
-	for _, v := range strings.Split(bp, ",") {
-		i, err := strconv.Atoi(v)
-		if err != nil {
-			return result, fmt.Errorf("strconv.Atoi conversion of %q to integers failed: %w", bp, err)
-		}
-		if i < -1 || i >= MaxColors {
-			return result, fmt.Errorf("incorrect c64 color %d", i)
-		}
-		result = append(result, byte(i))
-	}
-	return result, nil
 }
 
 // checkBounds confirms img width and height.
@@ -301,7 +283,7 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 	}
 
 	if !img.opt.Quiet {
-		fmt.Printf("guessed some -bitpair-colors %s\n", img.BPCString())
+		fmt.Printf("guessed some -bitpair-colors %s\n", img.bpc)
 	}
 
 	if img.graphicsType == multiColorCharset && len(img.bpc) == 4 {
@@ -310,11 +292,11 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 				continue
 			}
 			if img.opt.Verbose {
-				log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %v", wantedMaxColors, img.BPCString())
+				log.Printf("but by default, prefer black as charcolor, to override use all %d -bitpair-colors %s", wantedMaxColors, img.bpc)
 			}
 			img.bpc[3], img.bpc[i] = img.bpc[i], img.bpc[3]
 			if !img.opt.Quiet {
-				fmt.Printf("now using -bitpair-colors %v\n", img.BPCString())
+				fmt.Printf("now using -bitpair-colors %s\n", img.bpc)
 			}
 			break
 		}
@@ -325,7 +307,7 @@ func (img *sourceImage) guessPreferredBitpairColors(wantedMaxColors int, sumColo
 					if col.C64Color < 8 {
 						img.bpc[3], img.bpc[i] = img.bpc[i], img.bpc[3]
 						if img.opt.Verbose {
-							log.Printf("had to avoid mixed singlecolor/multicolor mode, -bitpair-colors %v", img.BPCString())
+							log.Printf("had to avoid mixed singlecolor/multicolor mode, -bitpair-colors %s", img.bpc)
 						}
 						break OUTER
 					}
@@ -356,7 +338,7 @@ func (img *sourceImage) countSpriteColors() (numColors int, usedColors []byte, s
 }
 
 // maxColorsPerChar finds the char with the most colors and returns the Color slice.
-func (img *sourceImage) maxColorsPerChar() (cc []Color) {
+func (img *sourceImage) maxColorsPerChar() (cc Colors) {
 	char := 0
 	max := 0
 	for i := range img.charColors {
@@ -375,7 +357,7 @@ func (img *sourceImage) maxColorsPerChar() (cc []Color) {
 
 // findBgColorCandidates iterates over all chars with 4 colors (or 2 for hires) and sets the common color(s) in img.bgCandidates.
 func (img *sourceImage) findBgCandidates(hires bool) {
-	charcc := [][]Color{}
+	charcc := []Colors{}
 	for _, cc := range img.charColors {
 		if (hires && len(cc) == 2) || (!hires && len(cc) == 4) {
 			charcc = append(charcc, cc)
@@ -400,7 +382,7 @@ func (img *sourceImage) findBgCandidates(hires bool) {
 	candidates := BlankPalette("bgcol", false)
 	candidates.Add(charcc[0]...)
 	if img.opt.VeryVerbose {
-		log.Printf("all BackgroundColor candidates: %v", candidates)
+		log.Printf("all BackgroundColor candidates: %s", candidates)
 	}
 	for _, cc := range charcc {
 		for _, col := range candidates.Colors() {
@@ -411,7 +393,7 @@ func (img *sourceImage) findBgCandidates(hires bool) {
 	}
 	img.bgCandidates = candidates.SortColors()
 	if img.opt.Verbose {
-		log.Printf("final BackgroundColor candidates: %v", img.bgCandidates)
+		log.Printf("final BackgroundColor candidates: %s", img.bgCandidates)
 	}
 	return
 }
@@ -495,9 +477,9 @@ type sortColor struct {
 func (img *sourceImage) findECMColors() error {
 	if len(img.bpc) == 4 {
 		if img.opt.Verbose {
-			log.Printf("skipping findECMColors because we have 4 img.bpc %s", img.BPCString())
+			log.Printf("skipping findECMColors because we have 4 img.bpc %s", img.bpc)
 		}
-		img.ecmColors = img.bpcBitpairs().colors()
+		img.ecmColors = newBitpairsFromBPColors(img.bpc).colors()
 		return nil
 	}
 	if len(img.ecmColors) > 0 {
@@ -548,7 +530,7 @@ func (img *sourceImage) findECMColors() error {
 	}
 
 	if img.opt.VeryVerbose {
-		log.Printf("findECMColors sorted len %d: %v", len(colors), colors)
+		log.Printf("findECMColors sorted len %d: %s", len(colors), colors)
 		for i, v := range colors {
 			log.Printf("  %d: %v", i, *v)
 		}
@@ -578,7 +560,7 @@ PERMUTE:
 				continue PERMUTE
 			}
 		}
-		bpc := []*Color{}
+		bpc := BPColors{}
 		for _, v := range s {
 			if v == nil {
 				continue
@@ -587,7 +569,7 @@ PERMUTE:
 			bpc = append(bpc, &v.Color)
 		}
 		if !img.opt.Quiet {
-			fmt.Printf("ecm color solution found: %v\n", BPCString(bpc))
+			fmt.Printf("ecm color solution found: %s\n", bpc)
 		}
 		return nil
 	}
@@ -697,7 +679,7 @@ func (img *sourceImage) makeCharColors() error {
 }
 
 // colorsFromChar returns the Colors of the specific char.
-func (img *sourceImage) colorsFromChar(char int) (cc []Color) {
+func (img *sourceImage) colorsFromChar(char int) (cc Colors) {
 	pixelWidth := 2
 	if img.hiresPixels {
 		pixelWidth = 1
@@ -713,7 +695,7 @@ func (img *sourceImage) colorsFromChar(char int) (cc []Color) {
 			m[rgbcol] = struct{}{}
 			col, err := img.p.FromColor(rgbcol)
 			if err != nil {
-				panic("color must always be found")
+				log.Panicf("char %d: color must always be found: %v", char, rgbcol)
 			}
 			cc = append(cc, col)
 		}

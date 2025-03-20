@@ -192,13 +192,13 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		return fmt.Errorf("no color options found to brute-force")
 	}
 	if !c.opt.Quiet {
-		fmt.Printf("brute-force winner %q -bpc %v (%d bytes)\n", c.opt.OutFile, out[0].bpc, out[0].length)
+		fmt.Printf("brute-force winner %q -bpc %s (%d bytes)\n", c.opt.OutFile, out[0].bpc, out[0].length)
 	}
 	c.opt.BitpairColorsString = out[0].bpc
 	c.opt.NoPrevCharColors = out[0].noprevcharcols
 	c.opt.NoBitpairCounters = out[0].nobitpaircounters
 	c.images[0].opt.BitpairColorsString = out[0].bpc
-	var bpc []*Color
+	var bpc BPColors
 	var err error
 	if bpc, err = c.images[0].p.ParseBPC(c.opt.BitpairColorsString); err != nil {
 		return fmt.Errorf("p.ParseBPC failed: %w", err)
@@ -287,7 +287,7 @@ NEXTJOB:
 }
 
 // SortedColors returns Colors sorted by number of chars each Color is used in.
-func (img *sourceImage) SortedColors() []Color {
+func (img *sourceImage) SortedColors() Colors {
 	type sumcol struct {
 		col   C64Color
 		count int
@@ -299,7 +299,7 @@ func (img *sourceImage) SortedColors() []Color {
 		}
 	}
 	sort.Slice(sc, func(i, j int) bool { return sc[i].count > sc[j].count })
-	result := make([]Color, len(sc))
+	result := make(Colors, len(sc))
 	for i, scol := range sc {
 		result[i] = img.p.FromC64NoErr(scol.col)
 	}

@@ -16,7 +16,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -173,15 +172,15 @@ type sourceImage struct {
 	height          int
 	graphicsType    GraphicsType
 	p               Palette
-	bpc             []*Color
+	bpc             BPColors
 	bpcCache        [FullScreenChars]map[C64Color]byte
 	bpcBitpairCount [MaxColors]map[byte]int
 	border          Color
 	bg              Color
-	bgCandidates    []Color
-	charColors      [FullScreenChars][]Color
+	bgCandidates    Colors
+	charColors      [FullScreenChars]Colors
 	sumColors       [MaxColors]int
-	ecmColors       []Color
+	ecmColors       Colors
 }
 
 func (img *sourceImage) At(x, y int) color.Color {
@@ -195,24 +194,6 @@ func (img *sourceImage) ColorModel() color.Model {
 
 func (img *sourceImage) Bounds() image.Rectangle {
 	return img.image.Bounds()
-}
-
-func (img *sourceImage) BPCString() (s string) {
-	return BPCString(img.bpc)
-}
-
-func BPCString(bpc []*Color) (s string) {
-	for i, col := range bpc {
-		if col == nil {
-			s += "-1"
-		} else {
-			s += strconv.Itoa(int(col.C64Color))
-		}
-		if i < len(bpc)-1 {
-			s += ","
-		}
-	}
-	return s
 }
 
 type MultiColorChar struct {
@@ -344,7 +325,6 @@ type SingleColorCharset struct {
 	D800Color       [1000]byte
 	BackgroundColor byte
 	BorderColor     byte
-	used            int
 	opt             Options
 }
 
