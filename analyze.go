@@ -614,10 +614,10 @@ func (img *sourceImage) findBorderColor() error {
 		}
 		return nil
 	}
-	if img.xOffset == 0 || img.yOffset == 0 {
+	if img.xOffset < 1 || img.yOffset < 1 {
 		return fmt.Errorf("border color not found, no border in image")
 	}
-	if col, err := img.p.FromColor(img.At(-10, -10)); err == nil {
+	if col, err := img.p.FromColor(img.At(-1, -1)); err == nil {
 		img.border = col
 		if img.opt.Verbose {
 			log.Printf("findBorderColor found: %s", img.border)

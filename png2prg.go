@@ -667,13 +667,6 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 				opt:            opt,
 				image:          rawImage,
 			}
-			img.p, img.hiresPixels, err = NewPalette(img.image, false, opt.Verbose)
-			if err != nil {
-				return nil, fmt.Errorf("NewPalette failed: %w", err)
-			}
-			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
-				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
-			}
 			switch {
 			case i == 0:
 				if err = img.checkBounds(); err != nil {
@@ -682,6 +675,13 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 			case i > 0:
 				img.xOffset, img.yOffset = imgs[0].xOffset, imgs[0].yOffset
 				img.width, img.height = imgs[0].width, imgs[0].height
+			}
+			img.p, img.hiresPixels, err = NewPalette(&img, false, opt.Verbose)
+			if err != nil {
+				return nil, fmt.Errorf("NewPalette failed: %w", err)
+			}
+			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
+				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 			}
 			imgs = append(imgs, img)
 		}
@@ -699,7 +699,7 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 	if err = img.checkBounds(); err != nil {
 		return nil, fmt.Errorf("img.checkBounds failed: %w", err)
 	}
-	img.p, img.hiresPixels, err = NewPalette(img.image, false, opt.Verbose)
+	img.p, img.hiresPixels, err = NewPalette(&img, false, opt.Verbose)
 	if err != nil {
 		return nil, fmt.Errorf("NewPalette failed: %w", err)
 	}
@@ -717,14 +717,14 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 		opt:            opt,
 		image:          in,
 	}
-	if img.p, img.hiresPixels, err = NewPalette(img.image, false, opt.Verbose); err != nil {
+	if err = img.checkBounds(); err != nil {
+		return img, fmt.Errorf("img.checkBounds failed: %w", err)
+	}
+	if img.p, img.hiresPixels, err = NewPalette(&img, false, opt.Verbose); err != nil {
 		return img, fmt.Errorf("NewPalette failed: %w", err)
 	}
 	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 		return img, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
-	}
-	if err = img.checkBounds(); err != nil {
-		return img, fmt.Errorf("img.checkBounds failed: %w", err)
 	}
 	return img, nil
 }

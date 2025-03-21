@@ -412,6 +412,7 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println(" - Play NTSC .sid tunes at the right speed (thanks Acrouzet).")
 	fmt.Println(" - Bugfix: palette detection must detect all hires colors, also on odd pixels.")
+	fmt.Println(" - Bugfix: dont look at border area to determine hires pixels.")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.10")
 	fmt.Println()

@@ -3,7 +3,6 @@ package png2prg
 import (
 	_ "embed"
 	"fmt"
-	"image"
 	"image/color"
 	"math"
 	"sort"
@@ -159,7 +158,7 @@ type Palette struct {
 }
 
 // NewPalette parses the img and determins the img's c64 color Palette.
-func NewPalette(img image.Image, looseMatching, verbose bool) (p Palette, hires bool, err error) {
+func NewPalette(img *sourceImage, looseMatching, verbose bool) (p Palette, hires bool, err error) {
 	cols, hires := imageColors(img, verbose)
 	if len(cols) > MaxColors {
 		return Palette{}, hires, fmt.Errorf("too many colors: %d while the max is %d", len(cols), MaxColors)
@@ -277,12 +276,12 @@ func (p Palette) Convert(c color.Color) color.Color {
 	return found
 }
 
-// imageColors returns a slice of unique colors present in the image.
+// imageColors returns a slice of unique color.Color's used in the image.
 // returns the hires bool as true if hires pixels have been detected.
-func imageColors(img image.Image, verbose bool) (cc []color.Color, hires bool) {
+func imageColors(img *sourceImage, verbose bool) (cc []color.Color, hires bool) {
 	m := map[color.Color]struct{}{}
-	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
-		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x += 2 {
+	for y := 0; y < img.height; y++ {
+		for x := 0; x < img.width; x += 2 {
 			col := img.At(x, y)
 			if _, ok := m[col]; !ok {
 				m[col] = struct{}{}
@@ -299,6 +298,14 @@ func imageColors(img image.Image, verbose bool) (cc []color.Color, hires bool) {
 				}
 			}
 		}
+	}
+	if img.xOffset < 1 || img.yOffset < 1 {
+		return cc, hires
+	}
+	col := img.At(-1, -1)
+	if _, ok := m[col]; !ok {
+		m[col] = struct{}{}
+		cc = append(cc, col)
 	}
 	return cc, hires
 }
