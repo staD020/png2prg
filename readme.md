@@ -1,4 +1,4 @@
-# PNG2PRG 1.11.0-dev by burg
+# PNG2PRG 1.10.1 by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -396,7 +396,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.11.0-dev
+## Changes for version 1.10.1
 
  - Play NTSC .sid tunes at the right speed (thanks Acrouzet).
  - Bugfix: palette detection must detect all hires colors, also on odd pixels.
