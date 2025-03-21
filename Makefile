@@ -101,11 +101,11 @@ dist: $(ALLTARGETS) $(TARGET) readme.md $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(T
 	./$(TARGET) -d -q -bf -o dist/17.dragonslair.prg testdata/dragonslair320x200.png
 	./$(TARGET) -d -q -bf -nbc -o dist/18.scorpion.prg testdata/sir_scorpion320x200.png
 	./$(TARGET) -d -q -bf -o dist/19.joe.prg testdata/joe_hatching320x200.png
-	./$(TARGET) -d -q -bf -o dist/superscope.prg -sid testdata/pocket_universe_8580.sid testdata/petscii/anim/rebel1_superscope.gif
-	./$(TARGET) -d -q -bf -o dist/oceanborn.prg -sid testdata/Ocean_Reloaded_90.sid testdata/petscii/anim/oceanborn?.png
-	./$(TARGET) -d -q -bf -o dist/rose.prg -sid testdata/petscii/anim/English_Rose.sid testdata/petscii/anim/rose?.png testdata/petscii/anim/rose5.png testdata/petscii/anim/rose4.png testdata/petscii/anim/rose3.png testdata/petscii/anim/rose2.png testdata/petscii/anim/rose1.png
+	./$(TARGET) -d -q -o dist/superscope.prg -sid testdata/pocket_universe_8580.sid testdata/petscii/anim/rebel1_superscope.gif
+	./$(TARGET) -d -q -o dist/oceanborn.prg -sid testdata/Ocean_Reloaded_90.sid testdata/petscii/anim/oceanborn?.png
+	./$(TARGET) -d -q -o dist/rose.prg -sid testdata/petscii/anim/English_Rose.sid testdata/petscii/anim/rose?.png testdata/petscii/anim/rose5.png testdata/petscii/anim/rose4.png testdata/petscii/anim/rose3.png testdata/petscii/anim/rose2.png testdata/petscii/anim/rose1.png
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/0?.*.prg dist/1?.*.prg dist/superscope.prg dist/oceanborn.prg dist/rose.prg
+	d64 -add dist/examples.d64 dist/superscope.prg dist/oceanborn.prg dist/rose.prg dist/0?.*.prg dist/1?.*.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme

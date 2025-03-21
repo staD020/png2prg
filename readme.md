@@ -401,6 +401,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Play NTSC .sid tunes at the right speed (thanks Acrouzet).
  - Bugfix: palette detection must detect all hires colors, also on odd pixels.
  - Bugfix: dont look at border area to determine hires pixels.
+ - Bugfix: fix -frame-delay for charset anim displayers.
 
 ## Changes for version 1.10
 

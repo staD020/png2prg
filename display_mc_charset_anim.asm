@@ -172,12 +172,7 @@ smc_yval:	ldy #steps-1
 
 loop_anim:
 		ldx frame_delay
-!loop:	//jsr vblank
-		lda #$e0
-	!:	cmp $d012
-		bne !-
-	!:	cmp $d012
-		beq !-
+!loop:	jsr vblank
 		dex
 		bne !loop-
 
