@@ -213,8 +213,16 @@ loop_anim:
 		jsr anim_play
 		.if (DEBUG) dec $d020
 
-		lda $dc01
-		cmp #$ef
+		ldx $dc01
+		cpx #$df
+		bne !++
+		lda $d018
+		eor #%00000010
+		sta $d018
+	!:	ldx $dc01
+		cpx #$df
+		beq !-
+	!:	cpx #$ef
 		bne loop_anim
 		lda no_fade
 		bne !done+

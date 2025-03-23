@@ -6,7 +6,7 @@ ASMFLAGS=-showmem -time
 X64=x64sc
 UPX=upx
 UPXFLAGS=--best
-EXO=exomizer
+EXO=exomizer312
 
 LDFLAGS=-s -w
 CGO=0

@@ -34,10 +34,10 @@ func (bp bitpairs) color(bitpair byte) (Color, bool) {
 // add adds bitpair/Color to bitpairs.
 func (bp *bitpairs) add(bitpair byte, col Color) {
 	if bp.bitpair2color == nil {
-		bp.bitpair2color = make(map[byte]Color)
+		bp.bitpair2color = map[byte]Color{}
 	}
 	if bp.rgb2bitpair == nil {
-		bp.rgb2bitpair = make(map[colorKey]byte)
+		bp.rgb2bitpair = map[colorKey]byte{}
 	}
 	bp.bitpair2color[bitpair] = col
 	bp.rgb2bitpair[ColorKey(col)] = bitpair
@@ -81,16 +81,16 @@ func (bp bitpairs) colors() (cc Colors) {
 // forcePreferred is used with interlaced pictures.
 func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*bitpairs, error) {
 	bp := &bitpairs{
-		rgb2bitpair:   make(map[colorKey]byte, MaxColors),
-		bitpair2color: make(map[byte]Color, MaxColors),
+		rgb2bitpair:   map[colorKey]byte{},
+		bitpair2color: map[byte]Color{},
 	}
 	// init caches
 	if img.bpcCache[char] == nil {
-		img.bpcCache[char] = make(map[C64Color]byte, MaxColors)
+		img.bpcCache[char] = map[C64Color]byte{}
 	}
 	for c64col := 0; c64col < MaxColors; c64col++ {
 		if img.bpcBitpairCount[c64col] == nil {
-			img.bpcBitpairCount[c64col] = make(map[byte]int, 4)
+			img.bpcBitpairCount[c64col] = map[byte]int{}
 		}
 	}
 
@@ -530,7 +530,7 @@ LOOP:
 		}
 	}
 
-	truecount := make(map[charBytes]int, MaxChars)
+	truecount := map[charBytes]int{}
 	for char := 0; char < FullScreenChars; char++ {
 		bp := &bitpairs{bitpairs: []byte{0, 1}}
 		for _, col := range img.charColors[char] {

@@ -144,10 +144,18 @@ smc_yval:	ldy #steps-1
 		cmp #(steps/2)-1
 		bne fade_loop
 
-		lda #$ef
-	!:	cmp $dc01
-		bne !-
+	!:	lda $dc01
+		cmp #$ef
 		beq fade_loop
+		cmp #$df
+		bne !-
+		lda $d018
+		eor #%00000010
+		sta $d018
+	!:	lda $dc01
+		cmp #$df
+		beq !-
+		jmp !--
 !done:
 	.if (LOOP) {
 		lda #$ef
