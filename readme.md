@@ -399,6 +399,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 ## Changes for version 1.11.0-dev
 
  - Press CBM key in petscii (animation) displayers to switch charset case.
+ - Add -brute-force support to all charset modes.
 
 ## Changes for version 1.10.1
 

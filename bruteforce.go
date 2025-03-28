@@ -30,7 +30,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 	}
 	origOpt := c.opt
 	num := c.opt.NumWorkers
-	jobs := make(chan *sourceImage, num)
+	jobs := make(chan sourceImage, num)
 	result := make(chan bruteResult, num)
 	wg := &sync.WaitGroup{}
 	wg.Add(num)
@@ -120,8 +120,8 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		opt.VeryVerbose = false
 		opt.Quiet = true
 		// prefilled NewSourceImage, no need to redo the same work
-		img := &sourceImage{
-			sourceFilename: fmt.Sprintf("png2prg_%02d", count),
+		img := sourceImage{
+			sourceFilename: fmt.Sprintf("png2prg_bf_%d", count),
 			opt:            opt,
 			image:          c.images[0].image,
 			p:              c.images[0].p,
@@ -192,7 +192,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		return fmt.Errorf("no color options found to brute-force")
 	}
 	if !c.opt.Quiet {
-		fmt.Printf("brute-force winner %q -bpc %s (%d bytes)\n", c.opt.OutFile, out[0].bpc, out[0].length)
+		fmt.Printf("\nbrute-force winner %q -bpc %s (%d bytes)\n\n", c.opt.OutFile, out[0].bpc, out[0].length)
 	}
 	c.opt.BitpairColorsString = out[0].bpc
 	c.opt.NoPrevCharColors = out[0].noprevcharcols
@@ -212,12 +212,15 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 }
 
 // bruteWorker is launched to receive sourceImages, process and crunch them and deliver results to the result channel.
-func (c *Converter) bruteWorker(i int, wg *sync.WaitGroup, jobs <-chan *sourceImage, result chan bruteResult) {
+func (c *Converter) bruteWorker(i int, wg *sync.WaitGroup, jobs <-chan sourceImage, result chan bruteResult) {
 	defer wg.Done()
 NEXTJOB:
 	for img := range jobs {
-		err := img.analyze()
-		if err != nil {
+		if img.opt.Verbose {
+			fmt.Printf("worker %d received: -bpc %s\n", i, img.bpc)
+		}
+		var err error
+		if err = img.analyze(); err != nil {
 			if img.opt.VeryVerbose {
 				log.Printf("img.analyze %q failed: %v", img.sourceFilename, err)
 				continue NEXTJOB
@@ -239,10 +242,24 @@ NEXTJOB:
 				}
 				continue NEXTJOB
 			}
+		case singleColorCharset:
+			if wt, err = img.SingleColorCharset(nil); err != nil {
+				if img.opt.VeryVerbose {
+					log.Printf("worker %d img.SingleColorCharset %q failed: %v", i, img.sourceFilename, err)
+				}
+				continue NEXTJOB
+			}
 		case multiColorCharset:
 			if wt, err = img.MultiColorCharset(nil); err != nil {
 				if img.opt.VeryVerbose {
 					log.Printf("img.MultiColorCharset %q failed: %v", img.sourceFilename, err)
+				}
+				continue NEXTJOB
+			}
+		case ecmCharset:
+			if wt, err = img.ECMCharset(nil); err != nil {
+				if img.opt.VeryVerbose {
+					log.Printf("img.ECMCharset %q failed: %v", img.sourceFilename, err)
 				}
 				continue NEXTJOB
 			}

@@ -411,6 +411,7 @@ func PrintHelp() {
 	fmt.Printf("## Changes for version %s\n", Version)
 	fmt.Println()
 	fmt.Println(" - Press CBM key in petscii (animation) displayers to switch charset case.")
+	fmt.Println(" - Add -brute-force support to all charset modes.")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.10.1")
 	fmt.Println()

@@ -343,14 +343,18 @@ func (img *sourceImage) maxColorsPerChar() (cc Colors) {
 	max := 0
 	for i := range img.charColors {
 		if len(img.charColors[i]) > max {
-			cc = img.charColors[i]
-			max = len(cc)
+			max = len(img.charColors[i])
 			char = i
 		}
 	}
 	if img.opt.VeryVerbose {
 		x, y := xyFromChar(char)
 		log.Printf("char %d (x %d y %d) maxColorsPerChar: %d cc: %v", char, x, y, max, cc)
+	}
+	// must return copy, so that the caller can modify the slice.
+	// fixes a nasty racecondition in bruteforce mode.
+	for _, col := range img.charColors[char] {
+		cc = append(cc, col)
 	}
 	return cc
 }

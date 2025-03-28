@@ -817,14 +817,14 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 	var wt io.WriterTo
 	switch img.graphicsType {
 	case multiColorBitmap:
-		if err = bruteforce(multiColorBitmap, 4); err != nil {
+		if err = bruteforce(img.graphicsType, 4); err != nil {
 			return 0, err
 		}
 		if wt, err = img.Koala(); err != nil {
 			return 0, fmt.Errorf("img.Koala %q failed: %w", img.sourceFilename, err)
 		}
 	case singleColorBitmap:
-		if err = bruteforce(singleColorBitmap, 2); err != nil {
+		if err = bruteforce(img.graphicsType, 2); err != nil {
 			return 0, err
 		}
 		if wt, err = img.Hires(); err != nil {
@@ -832,11 +832,17 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		}
 	case singleColorCharset:
 		if c.opt.GraphicsMode != "" {
+			if err = bruteforce(img.graphicsType, 1); err != nil {
+				return 0, err
+			}
 			if wt, err = img.SingleColorCharset(nil); err != nil {
 				return 0, fmt.Errorf("img.SingleColorCharset %q failed: %w", img.sourceFilename, err)
 			}
 		} else {
 			if wt, err = img.PETSCIICharset(); err != nil {
+				if err = bruteforce(img.graphicsType, 1); err != nil {
+					return 0, err
+				}
 				if wt, err = img.SingleColorCharset(nil); err != nil {
 					fmt.Printf("falling back to %s because img.SingleColorCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
 					img.graphicsType = singleColorBitmap
@@ -857,13 +863,23 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			return 0, fmt.Errorf("img.PETSCIICharset %q failed: %w", img.sourceFilename, err)
 		}
 	case ecmCharset:
+		if err = bruteforce(img.graphicsType, 4); err != nil {
+			fmt.Printf("falling back to %s because bruteforce %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
+			img.graphicsType = singleColorBitmap
+			if err = bruteforce(img.graphicsType, 2); err != nil {
+				return 0, err
+			}
+			if wt, err = img.Hires(); err != nil {
+				return 0, fmt.Errorf("img.Hires %q failed: %w", img.sourceFilename, err)
+			}
+		}
 		if wt, err = img.ECMCharset(nil); err != nil {
 			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("img.ECMCharset %q failed: %w", img.sourceFilename, err)
 			}
 			fmt.Printf("falling back to %s because img.ECMCharset %q failed: %v\n", singleColorBitmap, img.sourceFilename, err)
 			img.graphicsType = singleColorBitmap
-			if err = bruteforce(singleColorBitmap, 2); err != nil {
+			if err = bruteforce(img.graphicsType, 2); err != nil {
 				return 0, err
 			}
 			if wt, err = img.Hires(); err != nil {
@@ -871,7 +887,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			}
 		}
 	case multiColorCharset:
-		if err = bruteforce(multiColorCharset, 4); err != nil {
+		if err = bruteforce(img.graphicsType, 4); err != nil {
 			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("img.MultiColorCharset %q failed: %w", img.sourceFilename, err)
 			}
@@ -881,7 +897,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			if err != nil {
 				return 0, fmt.Errorf("findBackgroundColor %q failed: %w", img.sourceFilename, err)
 			}
-			if err = bruteforce(multiColorBitmap, 4); err != nil {
+			if err = bruteforce(img.graphicsType, 4); err != nil {
 				return 0, err
 			}
 			if wt, err = img.Koala(); err != nil {
@@ -898,7 +914,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			if err != nil {
 				return 0, fmt.Errorf("findBackgroundColor %q failed: %w", img.sourceFilename, err)
 			}
-			if err = bruteforce(multiColorBitmap, 4); err != nil {
+			if err = bruteforce(img.graphicsType, 4); err != nil {
 				return 0, err
 			}
 			if wt, err = img.Koala(); err != nil {
@@ -914,7 +930,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			return 0, fmt.Errorf("img.MultiColorSprites %q failed: %w", img.sourceFilename, err)
 		}
 	case mixedCharset:
-		if err = bruteforce(mixedCharset, 4); err != nil {
+		if err = bruteforce(img.graphicsType, 4); err != nil {
 			if c.opt.GraphicsMode != "" {
 				return 0, fmt.Errorf("img.MixedCharset %q failed: %w", img.sourceFilename, err)
 			}
@@ -924,7 +940,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			if err = img.findBackgroundColor(); err != nil {
 				return 0, fmt.Errorf("img.findBackgroundColor %q failed: %w", img.sourceFilename, err)
 			}
-			if err = bruteforce(multiColorBitmap, 4); err != nil {
+			if err = bruteforce(img.graphicsType, 4); err != nil {
 				return 0, err
 			}
 			if wt, err = img.Koala(); err != nil {
@@ -941,7 +957,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 			if err = img.findBackgroundColor(); err != nil {
 				return 0, fmt.Errorf("img.findBackgroundColor %q failed: %w", img.sourceFilename, err)
 			}
-			if err = bruteforce(multiColorBitmap, 4); err != nil {
+			if err = bruteforce(img.graphicsType, 4); err != nil {
 				return 0, err
 			}
 			if wt, err = img.Koala(); err != nil {
