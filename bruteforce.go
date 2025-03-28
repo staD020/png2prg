@@ -66,15 +66,9 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		if len(s) > maxColors {
 			s = s[:maxColors]
 		}
-		if len(s) < maxColors {
-			if c.opt.Verbose {
-				log.Printf("skipping permutation %v as it does not contain %d colors", s, maxColors)
-			}
-			continue
-		}
 		tmp := [4]C64Color{}
 		for i := range tmp {
-			if i < maxColors {
+			if i < len(s) {
 				tmp[i] = s[i].C64Color
 			}
 		}
@@ -97,8 +91,10 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		}
 		if gfxtype == multiColorCharset || gfxtype == mixedCharset {
 			// skip impossible d800 colors
-			if s[3].C64Color > 7 {
-				continue
+			if len(s) > 3 {
+				if s[3].C64Color > 7 {
+					continue
+				}
 			}
 		}
 
