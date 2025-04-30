@@ -129,6 +129,10 @@ Swap some -bpc colors around and retry.
 There can also be cases where manual -bpc colors can influence char-count or
 packed size.
 
+You may want to add the -brute-force flag so most color options will be tried.
+The best packed result wins, not necessarily the version with the least amount
+of chars.
+
     ./png2prg -m mixedcharset testdata/mixedcharset/hein_neo.png
     ./png2prg -m mixedcharset testdata/mixedcharset/huntress.gif
     ./png2prg -m mixedcharset -bpc 3 testdata/mixedcharset/shine.png
