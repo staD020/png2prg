@@ -180,23 +180,6 @@ It's also possible to explicitly skip certain bitpair preferences with -1:
 When multiple files are added, they are treated as animation frames.
 You can also supply an animated .gif.
 
-### Animation csv
-
-Since version 1.12 the -anim-csv flag has been added to give more
-freedom to users wanting to create animation displayers.
-It is now possible to have a custom -frame-delay per frame.
-
-The csv should simply look like this, rows of frame delay value and image:
-
-    10,frame0.png
-    50,frame1.png
-    10,frame2.png
-
-Examples can be found here: [Évoluer by The Sarge](https://github.com/staD020/png2prg/blob/master/testdata/evoluer/evoluer.csv) and [Rose by Sander](https://github.com/staD020/png2prg/blob/master/testdata/petscii/anim/rose.csv)
-
-    png2prg -d -o evoluer.prg -sid testdata/evoluer/Evoluer.sid -anim-csv testdata/evoluer/evoluer.csv
-    png2prg -d -o rose.prg -anim-csv testdata/petscii/anim/rose.csv
-
 ## Sprite Animation
 
 Each frame will be concatenated in the output .prg.
@@ -258,6 +241,23 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
     .byte 6      // wait for 6 frames
     ...          // next frame(s)
     .byte $ff    // end of all frames
+
+## Animation csv
+
+Since version 1.11.1 the -anim-csv flag has been added to give more
+freedom to users wanting to create animation displayers.
+It is now possible to have a custom -frame-delay per frame.
+
+The csv should simply look like this, rows of frame delay value and image:
+
+    10,frame0.png
+    50,frame1.png
+    10,frame2.png
+
+Examples can be found here: [Évoluer by The Sarge](https://github.com/staD020/png2prg/blob/master/testdata/evoluer/evoluer.csv) and [Rose by Sander](https://github.com/staD020/png2prg/blob/master/testdata/petscii/anim/rose.csv)
+
+    png2prg -d -o evoluer.prg -sid testdata/evoluer/Evoluer.sid -anim-csv testdata/evoluer/evoluer.csv
+    png2prg -d -o rose.prg -anim-csv testdata/petscii/anim/rose.csv
 
 ## Displayer
 
@@ -417,14 +417,14 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 
 ## Changes for version 1.11.1-dev
 
- - Bugfix: fix regression with handling mixedcharsets that was increasing
+ - Bugfix: Fix regression with handling mixedcharsets that was increasing
    char usage count in some cases (thanks Shine).
  - Feature: Press CBM key in petscii (animation) displayers to switch
    charset case.
  - Feature: Add -brute-force support to all charset modes.
  - Feature: Improve ECM handling by searching for invertable characters to
    reduce char usage.
- - Feature: Add -anim-csv support to allow for per frame delays.
+ - Feature: Add -anim-csv support to allow for custom delays per frame.
  - Feature: Allow sids to use all memory below $0400 (thanks kbs).
 
 ## Changes for version 1.10.1
