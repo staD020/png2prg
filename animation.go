@@ -659,7 +659,6 @@ func processAnimation(opt Options, imgs []Charer) ([][]byte, error) {
 }
 
 func (c *Converter) WriteFrameDelayByte(w io.Writer, frameIndex, totalFrames int) (n int64, err error) {
-	fmt.Printf("DEBUG: WriteFrameDelayByte frameIndex %d totalFrames %d\n", frameIndex, totalFrames)
 	frameDelay := c.opt.FrameDelay
 	if len(c.AnimItems) > 0 {
 		if len(c.AnimItems) != totalFrames {
@@ -672,8 +671,6 @@ func (c *Converter) WriteFrameDelayByte(w io.Writer, frameIndex, totalFrames int
 	}
 	if c.opt.Verbose {
 		fmt.Printf("frame %d will be shown for %d frames\n", frameIndex, frameDelay)
-	} else {
-		fmt.Printf("DEBUG: frame %d will be shown for %d frames\n", frameIndex, frameDelay)
 	}
 	return n, nil
 }

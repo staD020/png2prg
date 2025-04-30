@@ -180,6 +180,20 @@ It's also possible to explicitly skip certain bitpair preferences with -1:
 When multiple files are added, they are treated as animation frames.
 You can also supply an animated .gif.
 
+### Animation csv
+
+Since version 1.12 the -anim-csv flag has been added to give more
+freedom to users wanting to create animation displayers.
+It is now possible to have a custom -frame-delay per frame.
+
+The csv should simply look like this, rows of frame delay value and image:
+
+    10,frame0.png
+    50,frame1.png
+    10,frame2.png
+
+Examples can be found here: [Évoluer by The Sarge](https://github.com/staD020/png2prg/blob/master/testdata/evoluer/evoluer.csv) and [Rose by Sander](https://github.com/staD020/png2prg/blob/master/testdata/petscii/anim/rose.csv)
+
 ## Sprite Animation
 
 Each frame will be concatenated in the output .prg.
