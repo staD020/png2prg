@@ -1026,7 +1026,7 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 					flipChar := slices.Index(charset, tmpchar)
 					if flipChar >= 0 {
 						if img.opt.VeryVerbose {
-							log.Printf("ecmColors: in char %d (x=%d y=%d): flip char %d ecmindex: %d ecm: %s bp: %s match:\n%s ", char, x, y, flipChar, ecmindex, img.ecmColors, bp.colors().BPColors(), tmpchar)
+							log.Printf("ecmColors: in char %d (x=%d y=%d): flip char %d ecmindex: %d ecm: %s bp: %s", char, x, y, flipChar, ecmindex, img.ecmColors, bp.colors().BPColors())
 						}
 						curChar = flipChar
 						bgcol, _ := bp.color(0)
