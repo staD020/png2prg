@@ -681,16 +681,11 @@ func (c *Converter) WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, e
 	bgBorder := kk[0].BackgroundColor | kk[0].BorderColor<<4
 	opt := kk[0].opt
 
-	fmt.Printf("len(kk): %d\n", len(kk))
-	fmt.Printf("kk[0]: %v\n", kk[0].SourceFilename)
-
 	frames := makeCharer(kk)
-	fmt.Printf("len(frames): %d\n", len(frames))
 	framePrgs, err := processAnimation(opt, frames)
 	if err != nil {
 		return n, err
 	}
-	fmt.Printf("len(framePrgs): %d\n", len(framePrgs))
 
 	displayer := koalaDisplayAnim
 	if opt.AlternativeFade {

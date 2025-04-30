@@ -194,6 +194,9 @@ The csv should simply look like this, rows of frame delay value and image:
 
 Examples can be found here: [Évoluer by The Sarge](https://github.com/staD020/png2prg/blob/master/testdata/evoluer/evoluer.csv) and [Rose by Sander](https://github.com/staD020/png2prg/blob/master/testdata/petscii/anim/rose.csv)
 
+    png2prg -d -o evoluer.prg -sid testdata/evoluer/Evoluer.sid -anim-csv testdata/evoluer/evoluer.csv
+    png2prg -d -o rose.prg -anim-csv testdata/petscii/anim/rose.csv
+
 ## Sprite Animation
 
 Each frame will be concatenated in the output .prg.
