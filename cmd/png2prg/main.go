@@ -48,10 +48,6 @@ func main() {
 		png2prg.PrintHelp()
 		return
 	}
-	if len(filenames) == 0 {
-		png2prg.PrintUsage()
-		return
-	}
 	if opt.IncludeSID != "" && !opt.Display {
 		log.Printf("ignoring sid %q, it makes no sense without the -display flag set.\n", opt.IncludeSID)
 	}
@@ -60,8 +56,9 @@ func main() {
 	if err != nil {
 		log.Printf("expandWildcards failed: %v", err)
 	}
-	if len(filenames) == 0 {
+	if opt.AnimationCSV == "" && len(filenames) == 0 {
 		log.Printf("no files found")
+		png2prg.PrintUsage()
 		return
 	}
 
@@ -84,13 +81,15 @@ func main() {
 // It reads the files(s) from filesystem and stores the resulting .prg.
 // returns error on failure.
 func processAsOne(opt *png2prg.Options, filenames ...string) error {
-	opt.OutFile = png2prg.DestinationFilename(filenames[0], *opt)
+	if len(filenames) > 0 {
+		opt.OutFile = png2prg.DestinationFilename(filenames[0], *opt)
+	}
 	opt.CurrentGraphicsType = png2prg.StringToGraphicsType(opt.GraphicsMode)
 
 	if altOffset {
 		opt.ForceXOffset, opt.ForceYOffset = 32, 36
 		if !opt.Quiet {
-			fmt.Printf("using alternate x, y offset %d, %d\n", 32, 36)
+			fmt.Printf("using alternate x, y offset %d, %d\n", opt.ForceXOffset, opt.ForceYOffset)
 			fmt.Printf("proper vice screenshot offset is %d, %d. please fix your images to convert without the -alt-offset flag.\n", 32, 35)
 		}
 	}
@@ -288,8 +287,10 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.StringVar(&opt.IncludeSID, "sid", "", "include .sid in displayer (see -help for free memory locations)")
 	flag.BoolVar(&opt.NoAnimation, "na", false, "no-anim")
 	flag.BoolVar(&opt.NoAnimation, "no-anim", false, "disable charset animations and store frames as separate screens")
-	flag.IntVar(&opt.FrameDelay, "frame-delay", 6, "frames to wait before displaying next animation frame")
+	var frameDelay int
+	flag.IntVar(&frameDelay, "frame-delay", 6, "frames to wait before displaying next animation frame")
 	flag.IntVar(&opt.WaitSeconds, "wait-seconds", 0, "seconds to wait before animation starts")
+	flag.StringVar(&opt.AnimationCSV, "anim-csv", "", "animation file in csv format")
 	w := int(runtime.NumCPU() / 2)
 	if w < 1 {
 		w = 1
@@ -307,5 +308,10 @@ func initAndParseFlags() (opt png2prg.Options) {
 	if opt.VeryVerbose {
 		opt.Verbose = true
 	}
+	if frameDelay < 1 || frameDelay > 255 {
+		fmt.Printf("invalid -frame-delay %d, the minimum is 1 and the max is 255. now defaulting to 6.\n", frameDelay)
+		frameDelay = 6
+	}
+	opt.FrameDelay = byte(frameDelay)
 	return opt
 }

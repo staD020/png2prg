@@ -9,12 +9,6 @@
 .const colorram      = $d800
 .const colorram_src  = $3c00
 
-.const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
-.const zp_screen_lo = zp_start + 0
-.const zp_screen_hi = zp_start + 1
-.const zp_src_screen_lo = zp_start + 2
-.const zp_src_screen_hi = zp_start + 3
-
 .import source "lib.asm"
 
 .pc = $0801 "basic upstart"
@@ -192,6 +186,18 @@ vblank:
 		:vblank()
 rrts:	rts
 framecount: .byte 0
+// --------------------------------
+// we're using non zeropage addresses here to avoid collissions with .sids
+.pc = * "zp_start"
+zp_start:
+zp_screen_lo: .byte 0
+zp_screen_hi: .byte 0
+zp_d800_lo: .byte 0
+zp_d800_hi: .byte 0
+zp_src_screen_lo: .byte 0
+zp_src_screen_hi: .byte 0
+zp_src_d800_lo: .byte 0
+zp_src_d800_hi: .byte 0
 // --------------------------------
 .pc = * "irq"
 irq:

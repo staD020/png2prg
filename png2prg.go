@@ -75,11 +75,12 @@ type Options struct {
 	ForceBorderColor    int
 	IncludeSID          string
 	NoAnimation         bool
-	FrameDelay          int
+	FrameDelay          byte
 	WaitSeconds         int
 	ForceXOffset        int
 	ForceYOffset        int
 	CurrentGraphicsType GraphicsType
+	AnimationCSV        string
 
 	Trd bool // has side effect of enforcing screenram colors in level area
 }
@@ -219,6 +220,22 @@ type Koala struct {
 	BackgroundColor byte
 	BorderColor     byte
 	opt             Options
+}
+
+type charBytes [8]byte
+
+func (cb charBytes) Invert() (b charBytes) {
+	for i := range cb {
+		b[i] = cb[i] ^ 0xff
+	}
+	return b
+}
+
+func (cb charBytes) String() (s string) {
+	for _, b := range cb {
+		s += fmt.Sprintf("%08b\n", b)
+	}
+	return s
 }
 
 type c64Symbol struct {
@@ -457,7 +474,7 @@ func (img PETSCIICharset) Symbols() []c64Symbol {
 
 type ECMCharset struct {
 	SourceFilename  string
-	Bitmap          [0x200]byte
+	Bitmap          [MaxECMChars * 8]byte
 	Screen          [1000]byte
 	D800Color       [1000]byte
 	BorderColor     byte
@@ -612,6 +629,7 @@ func (t GraphicsType) newHeader() []byte {
 type Converter struct {
 	opt               Options
 	images            []sourceImage
+	AnimItems         []AnimItem
 	Symbols           []c64Symbol
 	FinalGraphicsType GraphicsType
 }
@@ -630,6 +648,23 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 		opt.CurrentGraphicsType = StringToGraphicsType(opt.GraphicsMode)
 	}
 	c := &Converter{opt: opt}
+	if opt.AnimationCSV != "" {
+		if len(pngs) > 0 {
+			return c, fmt.Errorf("Cannot combine -anim-file %q and image filenames on the command-line", opt.AnimationCSV)
+		}
+		var err error
+		if c.AnimItems, err = ExtractAnimationFile(opt.AnimationCSV); err != nil {
+			return c, fmt.Errorf("ExtractAnimationFile %q failed: %w", opt.AnimationCSV, err)
+		}
+		for _, ai := range c.AnimItems {
+			f, err := os.Open(ai.Filename)
+			if err != nil {
+				return c, fmt.Errorf("os.Open %q failed: %w", ai.Filename, err)
+			}
+			defer f.Close()
+			pngs = append(pngs, f)
+		}
+	}
 	for index, ir := range pngs {
 		ii, err := NewSourceImages(opt, index, ir)
 		if err != nil {
@@ -732,7 +767,7 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 // NewFromPath is the convenience New method when input images are on disk.
 // See New for detais.
 func NewFromPath(opt Options, filenames ...string) (*Converter, error) {
-	in := make([]io.Reader, 0, len(filenames))
+	in := []io.Reader{}
 	for _, path := range filenames {
 		f, err := os.Open(path)
 		if err != nil {

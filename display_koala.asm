@@ -13,15 +13,17 @@
 .const src_screenram = $4000
 .const src_colorram = $4400
 
-.const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
-.const zp_screen_lo = zp_start + 0
-.const zp_screen_hi = zp_start + 1
-.const zp_d800_lo = zp_start + 2
-.const zp_d800_hi = zp_start + 3
-.const zp_src_screen_lo = zp_start + 4
-.const zp_src_screen_hi = zp_start + 5
-.const zp_src_d800_lo = zp_start + 6
-.const zp_src_d800_hi = zp_start + 7
+/*
+	.const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
+	.const zp_screen_lo = zp_start + 0
+	.const zp_screen_hi = zp_start + 1
+	.const zp_d800_lo = zp_start + 2
+	.const zp_d800_hi = zp_start + 3
+	.const zp_src_screen_lo = zp_start + 4
+	.const zp_src_screen_hi = zp_start + 5
+	.const zp_src_d800_lo = zp_start + 6
+	.const zp_src_d800_hi = zp_start + 7
+*/
 
 .import source "lib.asm"
 
@@ -225,6 +227,18 @@ smc_yval:	ldy #steps-1
 vblank:
 		:vblank()
 rrts:	rts
+// --------------------------------
+// we're using non zeropage addresses here to avoid collissions with .sids
+.pc = * "zp_start"
+zp_start:
+zp_screen_lo: .byte 0
+zp_screen_hi: .byte 0
+zp_d800_lo: .byte 0
+zp_d800_hi: .byte 0
+zp_src_screen_lo: .byte 0
+zp_src_screen_hi: .byte 0
+zp_src_d800_lo: .byte 0
+zp_src_d800_hi: .byte 0
 // --------------------------------
 .pc = * "irq"
 irq:

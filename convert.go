@@ -220,9 +220,6 @@ func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*
 				for _, avail := range bp.bitpairs {
 					if bitpair == avail {
 						bp.add(bitpair, col)
-						if img.opt.VeryVerbose {
-							log.Printf("char %d: bitpair counter cache hit for col %s with bitpair %d", char, col, bitpair)
-						}
 					}
 				}
 			}
@@ -457,8 +454,6 @@ func (img *sourceImage) Hires() (Hires, error) {
 	return h, nil
 }
 
-type charBytes [8]byte
-
 // SingleColorCharset converts the img to SingleColorCharset and returns it.
 func (img *sourceImage) SingleColorCharset(prebuiltCharset []charBytes) (SingleColorCharset, error) {
 	c := SingleColorCharset{
@@ -646,7 +641,7 @@ func (img *sourceImage) MultiColorCharset(prebuiltCharset []charBytes) (c MultiC
 	}
 
 	if img.opt.Verbose {
-		log.Printf("charset colors: %s\n", cc)
+		log.Printf("charset colors: %s\n", bp.colors())
 		log.Printf("bitpairs: %v\n", bp)
 	}
 	if col, ok := bp.color(3); ok {
@@ -784,16 +779,18 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 			}
 		}
 		if len(fixpref) < len(candidates) {
-			for _, p := range candidates {
-				if In(img.bpc, &p) && !In(fixpref, &p) && len(fixpref) < 3 {
-					fixpref = append(fixpref, &p)
+			for _, col := range candidates {
+				if img.bpc.Contains(col) && !fixpref.Contains(col) && len(fixpref) < 3 {
+					c := col
+					fixpref = append(fixpref, &c)
 				}
 			}
 		}
 		if len(fixpref) < len(candidates) {
-			for _, p := range candidates {
-				if !In(fixpref, &p) && len(fixpref) < 3 {
-					fixpref = append(fixpref, &p)
+			for _, col := range candidates {
+				if !fixpref.Contains(col) && len(fixpref) < 3 {
+					c := col
+					fixpref = append(fixpref, &c)
 				}
 			}
 		}
@@ -855,7 +852,7 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 		hirespixels := false
 		charcol := C64Color(0)
 		x, y := xyFromChar(char)
-		if len(img.charColors[char]) <= 2 && img.hiresPixels {
+		if len(img.charColors[char]) <= 2 {
 			// could be hires
 		LOOP:
 			for y2 := 0; y2 < 8; y2++ {
@@ -885,14 +882,14 @@ func (img *sourceImage) MixedCharset(prebuiltCharset []charBytes) (c MixedCharse
 		}
 
 		if hirespixels && !hires {
-			return c, fmt.Errorf("found hirespixels in char %d (x=%d y=%d), but colors are bad: %v please swap some -bitpair-colors %s", char, x, y, img.charColors[char], img.bpc)
+			return c, fmt.Errorf("found hirespixels in char %d (x=%d y=%d), but colors are bad: %s please swap some -bitpair-colors %s", char, x, y, img.charColors[char], img.bpc)
 		}
 
 		var cbuf charBytes
 		emptyChar := charBytes{}
 		if hires {
 			if img.opt.VeryVerbose {
-				log.Printf("char %d (x=%d y=%d) seems to be hires, charcol %d img.Palette: %v, -bpc %s", char, x, y, charcol, img.charColors[char], img.bpc)
+				log.Printf("char %d (x=%d y=%d) seems to be hires, charcol %d img.charColors: %s -bpc %s", char, x, y, charcol, img.charColors[char], img.bpc)
 			}
 			cbuf, err = img.singleColorCharBytes(char, bp)
 			if err != nil {
@@ -974,26 +971,27 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 	truecount := make(map[charBytes]int, MaxECMChars)
 	for char := 0; char < FullScreenChars; char++ {
 		x, y := xyFromChar(char)
-		orchar := byte(0)
-		foundbg := false
-		emptycharcol := C64Color(0)
+		var orchar byte
+		var foundbg bool
+		var emptycharcol C64Color
 		// when 2 ecm colors are used in the same char, which color to choose for bitpair 00?
 		// good example: testdata/ecm/orion.png testdata/ecm/xpardey.png
 		// so now we sort to at least make it deterministic.
+		// this is a bit later mitigated by trying to detect flippable chars.
 		bp := &bitpairs{bitpairs: []byte{0, 1}}
 		for _, col := range img.charColors[char] {
 			match := false
-			i := 0
-			col2 := Color{}
-			for i, col2 = range img.ecmColors {
+			matchi := 0
+			for i, col2 := range img.ecmColors {
 				if col.C64Color == col2.C64Color {
 					match = true
+					matchi = i
 					break
 				}
 			}
 			if match && !foundbg {
 				bp.add(0, col)
-				orchar = byte(i << 6)
+				orchar = byte(matchi << 6)
 				foundbg = true
 				emptycharcol = col.C64Color
 			} else {
@@ -1018,13 +1016,57 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 			}
 		}
 
-		truecount[cbuf]++
 		curChar := slices.Index(charset, cbuf)
 		if curChar < 0 {
-			charset = append(charset, cbuf)
-			curChar = len(charset) - 1
+			flipped := false
+			if charcol, ok := bp.color(1); ok {
+				if ecmindex := slices.Index(img.ecmColors, charcol); ecmindex >= 0 {
+					// try to find a bitflipped char as both background and foreground colors are ecmcolors.
+					tmpchar := cbuf.Invert()
+					flipChar := slices.Index(charset, tmpchar)
+					if flipChar >= 0 {
+						if img.opt.VeryVerbose {
+							log.Printf("ecmColors: in char %d (x=%d y=%d): flip char %d ecmindex: %d ecm: %s bp: %s match:\n%s ", char, x, y, flipChar, ecmindex, img.ecmColors, bp.colors().BPColors(), tmpchar)
+						}
+						curChar = flipChar
+						bgcol, _ := bp.color(0)
+						c.D800Color[char] = byte(bgcol.C64Color)
+						orchar = byte(ecmindex << 6)
+						flipped = true
+					}
+				}
+			}
+			if !flipped {
+				truecount[cbuf]++
+				charset = append(charset, cbuf)
+				curChar = len(charset) - 1
+			}
 		}
 		c.Screen[char] = byte(curChar) + orchar
+	}
+
+	// detect flippers
+	for i, char := range charset {
+		tmpchar := char.Invert()
+		if other := slices.Index(charset, tmpchar); other >= 0 {
+			_ = i
+			//fmt.Printf("could flip char %d with char %d\n", i, other)
+			//fmt.Print(char)
+			//fmt.Println("----")
+			//fmt.Print(tmpchar)
+			//fmt.Printf("char:\n%s\n", char)
+			//fmt.Printf("inverted char:\n%s\n", tmpchar)
+			/*
+				for k := range c.Screen {
+					if c.Screen[k] == byte(i) {
+						ink := img.p.FromC64NoErr(C64Color(c.D800Color[k]))
+						if In(img.ecmColors, ink) {
+							fmt.Printf("char %d (num %d) ink %s ecm %s\n", k, c.Screen[k], ink, img.ecmColors)
+						}
+					}
+				}
+			*/
+		}
 	}
 
 	if len(charset) > MaxECMChars {

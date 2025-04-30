@@ -396,7 +396,7 @@ func (img *sourceImage) findBgCandidates(hires bool) {
 		}
 	}
 	img.bgCandidates = candidates.SortColors()
-	if img.opt.Verbose {
+	if img.opt.Verbose && len(img.bgCandidates) > 0 {
 		log.Printf("final BackgroundColor candidates: %s", img.bgCandidates)
 	}
 	return

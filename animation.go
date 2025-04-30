@@ -2,9 +2,11 @@ package png2prg
 
 import (
 	"bytes"
+	"encoding/csv"
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -61,6 +63,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	c.FinalGraphicsType = imgs[0].graphicsType
 	currentBitpairColors := BPColors{}
 	charset := []charBytes{}
+
 	for i, img := range imgs {
 		if !c.opt.Quiet {
 			fmt.Printf("processing %q frame %d\n", img.sourceFilename, i)
@@ -202,6 +205,11 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			if err != nil {
 				return n, fmt.Errorf("Write failed: %w", err)
 			}
+			n2, err := c.WriteFrameDelayByte(w, i, len(prgs))
+			n += n2
+			if err != nil {
+				return n, fmt.Errorf("Write failed: %w", err)
+			}
 		}
 		return n, nil
 	case len(hh) > 0:
@@ -224,6 +232,11 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		for i := range prgs {
 			m, err := w.Write(prgs[i])
 			n += int64(m)
+			if err != nil {
+				return n, fmt.Errorf("Write failed: %w", err)
+			}
+			n2, err := c.WriteFrameDelayByte(w, i, len(prgs))
+			n += n2
 			if err != nil {
 				return n, fmt.Errorf("Write failed: %w", err)
 			}
@@ -280,7 +293,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		for i := 0; i < len(mcCharsets); i++ {
 			c.Symbols = append(c.Symbols, c64Symbol{"screen" + strconv.Itoa(i), 0x4800 + i*0x400})
 		}
-		if _, err = WriteMultiColorCharsetAnimationTo(w, mcCharsets); err != nil {
+		if _, err = c.WriteMultiColorCharsetAnimationTo(w, mcCharsets); err != nil {
 			return n, fmt.Errorf("WriteMultiColorCharsetAnimationTo failed: %w", err)
 		}
 		return n, nil
@@ -313,7 +326,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		for i := 0; i < len(mixCharsets); i++ {
 			c.Symbols = append(c.Symbols, c64Symbol{"screen" + strconv.Itoa(i), 0x4800 + i*0x400})
 		}
-		if _, err = WriteMixedCharsetAnimationTo(w, mixCharsets); err != nil {
+		if _, err = c.WriteMixedCharsetAnimationTo(w, mixCharsets); err != nil {
 			return n, fmt.Errorf("WriteMixedCharsetAnimationTo failed: %w", err)
 		}
 		return n, nil
@@ -339,7 +352,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 				c64Symbol{"d021color", int(scCharsets[0].BackgroundColor)},
 			)
 		}
-		if _, err = WriteSingleColorCharsetAnimationTo(w, scCharsets); err != nil {
+		if _, err = c.WriteSingleColorCharsetAnimationTo(w, scCharsets); err != nil {
 			return n, fmt.Errorf("WriteSingleColorCharsetAnimationTo failed: %w", err)
 		}
 		return n, nil
@@ -352,7 +365,7 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 			c64Symbol{"d021color", int(petCharsets[0].BackgroundColor)},
 			c64Symbol{"lowercase", int(petCharsets[0].Lowercase)},
 		)
-		if _, err = WritePETSCIICharsetAnimationTo(w, petCharsets); err != nil {
+		if _, err = c.WritePETSCIICharsetAnimationTo(w, petCharsets); err != nil {
 			return n, fmt.Errorf("WritePETSCIICharsetAnimationTo failed: %w", err)
 		}
 		return n, nil
@@ -369,14 +382,14 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 		c.Symbols = append(c.Symbols, kk[0].Symbols()...)
 		c.Symbols = append(c.Symbols, c64Symbol{"animation", koalaAnimationStart})
 		if c.opt.NoCrunch {
-			m, err := WriteKoalaDisplayAnimTo(w, kk)
+			m, err := c.WriteKoalaDisplayAnimTo(w, kk)
 			n += m
 			if err != nil {
 				return n, fmt.Errorf("WriteKoalaDisplayAnimTo failed: %w", err)
 			}
 			return n, nil
 		}
-		if _, err = WriteKoalaDisplayAnimTo(buf, kk); err != nil {
+		if _, err = c.WriteKoalaDisplayAnimTo(buf, kk); err != nil {
 			return n, fmt.Errorf("WriteKoalaDisplayAnimTo buf failed: %w", err)
 		}
 	case len(hh) > 0:
@@ -384,14 +397,14 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 		c.Symbols = append(c.Symbols, hh[0].Symbols()...)
 		c.Symbols = append(c.Symbols, c64Symbol{"animation", hiresAnimationStart})
 		if c.opt.NoCrunch {
-			m, err := WriteHiresDisplayAnimTo(w, hh)
+			m, err := c.WriteHiresDisplayAnimTo(w, hh)
 			n += m
 			if err != nil {
 				return n, fmt.Errorf("WriteHiresDisplayAnimTo failed: %w", err)
 			}
 			return n, nil
 		}
-		if _, err = WriteHiresDisplayAnimTo(buf, hh); err != nil {
+		if _, err = c.WriteHiresDisplayAnimTo(buf, hh); err != nil {
 			return n, fmt.Errorf("WriteHiresDisplayAnimTo buf failed: %w", err)
 		}
 	case len(mcCharsets) > 0:
@@ -420,14 +433,14 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 			c.Symbols = append(c.Symbols, c64Symbol{"screen" + strconv.Itoa(i), 0x4800 + i*0x400})
 		}
 		if c.opt.NoCrunch {
-			m, err := WriteMultiColorCharsetAnimationTo(w, mcCharsets)
+			m, err := c.WriteMultiColorCharsetAnimationTo(w, mcCharsets)
 			n += m
 			if err != nil {
 				return n, fmt.Errorf("WriteMultiColorCharsetAnimationTo failed: %w", err)
 			}
 			return n, nil
 		}
-		if _, err = WriteMultiColorCharsetAnimationTo(buf, mcCharsets); err != nil {
+		if _, err = c.WriteMultiColorCharsetAnimationTo(buf, mcCharsets); err != nil {
 			return n, fmt.Errorf("WriteMultiColorCharsetAnimationTo buf failed: %w", err)
 		}
 	case len(mixCharsets) > 0:
@@ -456,14 +469,14 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 			c.Symbols = append(c.Symbols, c64Symbol{"screen" + strconv.Itoa(i), 0x4800 + i*0x400})
 		}
 		if c.opt.NoCrunch {
-			m, err := WriteMixedCharsetAnimationTo(w, mixCharsets)
+			m, err := c.WriteMixedCharsetAnimationTo(w, mixCharsets)
 			n += m
 			if err != nil {
 				return n, fmt.Errorf("WriteMixedCharsetAnimationTo failed: %w", err)
 			}
 			return n, nil
 		}
-		if _, err = WriteMixedCharsetAnimationTo(buf, mixCharsets); err != nil {
+		if _, err = c.WriteMixedCharsetAnimationTo(buf, mixCharsets); err != nil {
 			return n, fmt.Errorf("WriteMixedCharsetAnimationTo buf failed: %w", err)
 		}
 	case len(scCharsets) > 0:
@@ -489,14 +502,14 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 			)
 		}
 		if c.opt.NoCrunch {
-			m, err := WriteSingleColorCharsetAnimationTo(w, scCharsets)
+			m, err := c.WriteSingleColorCharsetAnimationTo(w, scCharsets)
 			n += m
 			if err != nil {
 				return n, fmt.Errorf("WriteSingleColorCharsetAnimationTo failed: %w", err)
 			}
 			return n, nil
 		}
-		if _, err = WriteSingleColorCharsetAnimationTo(buf, scCharsets); err != nil {
+		if _, err = c.WriteSingleColorCharsetAnimationTo(buf, scCharsets); err != nil {
 			return n, fmt.Errorf("WriteSingleColorCharsetAnimationTo buf failed: %w", err)
 		}
 	case len(petCharsets) > 0:
@@ -508,14 +521,14 @@ func (c *Converter) writeAnimationDisplayerTo(w io.Writer, imgs []sourceImage, k
 			c64Symbol{"d021color", int(petCharsets[0].BackgroundColor)},
 		)
 		if c.opt.NoCrunch {
-			m, err := WritePETSCIICharsetAnimationTo(w, petCharsets)
+			m, err := c.WritePETSCIICharsetAnimationTo(w, petCharsets)
 			n += m
 			if err != nil {
 				return n, fmt.Errorf("WritePETSCIICharsetAnimationTo failed: %w", err)
 			}
 			return n, nil
 		}
-		if _, err = WritePETSCIICharsetAnimationTo(buf, petCharsets); err != nil {
+		if _, err = c.WritePETSCIICharsetAnimationTo(buf, petCharsets); err != nil {
 			return n, fmt.Errorf("WritePETSCIICharsetAnimationTo buf failed: %w", err)
 		}
 	default:
@@ -571,13 +584,11 @@ func processFramesOfChars(opt Options, frames [][]Char) ([][]byte, error) {
 	if len(frames) < 2 {
 		return nil, fmt.Errorf("insufficient number of images %d < 2", len(frames))
 	}
-
 	prgs := make([][]byte, 0)
 	for i, frame := range frames {
 		if opt.Verbose {
 			log.Printf("frame %d length in changed chars: %d", i, len(frame))
 		}
-
 		curChar := -10
 		curChunk := chunk{}
 		prg := []byte{}
@@ -606,7 +617,6 @@ func processFramesOfChars(opt Options, frames [][]Char) ([][]byte, error) {
 			}
 			prg = append(prg, curChunk.export()...)
 		}
-
 		// end of chunk marker
 		prg = append(prg, 0x00)
 		prgs = append(prgs, prg)
@@ -632,6 +642,8 @@ func processAnimation(opt Options, imgs []Charer) ([][]byte, error) {
 
 	for i := 0; i < 1000; i++ {
 		for j := 0; j < len(imgs); j++ {
+			// use last frame as previous frame for first frame
+			// ensures clean loop
 			k := len(imgs) - 1
 			if j > 0 {
 				k = j - 1
@@ -646,16 +658,42 @@ func processAnimation(opt Options, imgs []Charer) ([][]byte, error) {
 	return processFramesOfChars(opt, charFrames)
 }
 
+func (c *Converter) WriteFrameDelayByte(w io.Writer, frameIndex, totalFrames int) (n int64, err error) {
+	fmt.Printf("DEBUG: WriteFrameDelayByte frameIndex %d totalFrames %d\n", frameIndex, totalFrames)
+	frameDelay := c.opt.FrameDelay
+	if len(c.AnimItems) > 0 {
+		if len(c.AnimItems) != totalFrames {
+			return n, fmt.Errorf("anim-file has %d lines, but there are %d frames, this should be equal?", len(c.AnimItems), totalFrames)
+		}
+		frameDelay = c.AnimItems[frameIndex].FrameDelay
+	}
+	if _, err = w.Write([]byte{frameDelay}); err != nil {
+		return n, fmt.Errorf("w.Write error: %w", err)
+	}
+	if c.opt.Verbose {
+		fmt.Printf("frame %d will be shown for %d frames\n", frameIndex, frameDelay)
+	} else {
+		fmt.Printf("DEBUG: frame %d will be shown for %d frames\n", frameIndex, frameDelay)
+	}
+	return n, nil
+}
+
 // WriteKoalaDisplayAnimTo processes kk and writes the converted animation and displayer to w.
-func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
+// Optionally uses c.AnimItems for timing.
+func (c *Converter) WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	bgBorder := kk[0].BackgroundColor | kk[0].BorderColor<<4
 	opt := kk[0].opt
 
+	fmt.Printf("len(kk): %d\n", len(kk))
+	fmt.Printf("kk[0]: %v\n", kk[0].SourceFilename)
+
 	frames := makeCharer(kk)
+	fmt.Printf("len(frames): %d\n", len(frames))
 	framePrgs, err := processAnimation(opt, frames)
 	if err != nil {
 		return n, err
 	}
+	fmt.Printf("len(framePrgs): %d\n", len(framePrgs))
 
 	displayer := koalaDisplayAnim
 	if opt.AlternativeFade {
@@ -685,11 +723,19 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 	}
 
 	link.SetCursor(koalaAnimationStart)
-	framePrgs = append(framePrgs, []byte{0xff})
-	for _, bin := range framePrgs {
+	for i, bin := range framePrgs {
 		if _, err = link.Write(bin); err != nil {
 			return n, fmt.Errorf("link.Write error: %w", err)
 		}
+		if _, err = c.WriteFrameDelayByte(link, i, len(framePrgs)); err != nil {
+			return n, fmt.Errorf("WriteFrameDelayByte failed: %w", err)
+		}
+	}
+	if _, err = link.Write([]byte{0xff}); err != nil {
+		return n, fmt.Errorf("link.Write error: %w", err)
+	}
+	if len(c.AnimItems) > 0 {
+		link.SetByte(DisplayerSettingsStart+7, c.AnimItems[0].FrameDelay)
 	}
 
 	if !opt.Quiet {
@@ -715,7 +761,8 @@ func WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, err error) {
 // total bytes: 5 + 10 * charcount
 
 // WriteHiresDisplayAnimTo processes hh and writes the converted animation and displayer to w.
-func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
+// Optionally uses c.AnimItems for timing.
+func (c *Converter) WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	opt := hh[0].opt
 	frames := makeCharer(hh)
 	framePrgs, err := processAnimation(opt, frames)
@@ -747,13 +794,19 @@ func WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, err error) {
 	}
 
 	link.SetCursor(hiresAnimationStart)
-	for _, bin := range framePrgs {
+	for i, bin := range framePrgs {
 		if _, err = link.Write(bin); err != nil {
 			return n, fmt.Errorf("link.Write error: %w", err)
+		}
+		if _, err = c.WriteFrameDelayByte(link, i, len(framePrgs)); err != nil {
+			return n, fmt.Errorf("WriteFrameDelayByte failed: %w", err)
 		}
 	}
 	if _, err = link.Write([]byte{0xff}); err != nil {
 		return n, fmt.Errorf("link.Write error: %w", err)
+	}
+	if len(c.AnimItems) > 0 {
+		link.SetByte(DisplayerSettingsStart+7, c.AnimItems[0].FrameDelay)
 	}
 	if !opt.Quiet {
 		fmt.Printf("memory usage for animations: %#04x - %s\n", hiresAnimationStart, link.EndAddress())
@@ -831,7 +884,7 @@ func (h Hires) Char(charIndex int) Char {
 }
 
 // WriteMultiColorCharsetAnimationTo writes the MultiColorCharsets to w, optionally with displayer code.
-func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n int64, err error) {
+func (c *Converter) WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n int64, err error) {
 	if len(cc) < 2 {
 		return n, fmt.Errorf("not enough images %d < 2", len(cc))
 	}
@@ -866,7 +919,7 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 		if err != nil {
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
-		buf := []byte{}
+		buf := &bytes.Buffer{}
 		curChunk := charChunk{charIndex: -10}
 		flushedtotal := 0
 		flushedchartotal := 0
@@ -875,20 +928,29 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 				if opt.VeryVerbose {
 					log.Printf("got chunk: %v", curChunk)
 				}
-				buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
-				buf = append(buf, curChunk.bytes...)
+				b := []byte{}
+				b = append(b, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
+				b = append(b, curChunk.bytes...)
+				if _, err = buf.Write(b); err != nil {
+					log.Printf("buf.Write failed: %v", err)
+					return
+				}
 				flushedchartotal += int(curChunk.charCount)
 				flushedtotal++
 				curChunk = charChunk{charIndex: -10}
 			}
 		}
-		cc = append(cc, cc[0]) // for clean loop
-		for i := 1; i < len(cc); i++ {
+		for i := 0; i < len(cc); i++ {
+			// for clean loop
+			prv := len(cc) - 1
+			if i > 0 {
+				prv = i - 1
+			}
 			for char := 0; char < FullScreenChars; char++ {
-				if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
+				if cc[i].Screen[char] != cc[prv].Screen[char] || cc[i].D800Color[char] != cc[prv].D800Color[char] {
 					if opt.VeryVerbose {
-						log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
-						log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+						log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[prv].Screen[char])
+						log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[prv].D800Color[char])
 					}
 					if curChunk.charCount == 0 {
 						curChunk = charChunk{
@@ -909,10 +971,17 @@ func WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiColorCharset) (n i
 				flushChunk()
 			}
 			flushChunk()
-			buf = append(buf, 0x00) // end of chunks and frame
+			if _, err = buf.Write([]byte{0x00}); err != nil { // end of frame
+				return n, fmt.Errorf("buf.Write failed: %w", err)
+			}
+			if _, err = c.WriteFrameDelayByte(buf, i, len(cc)); err != nil {
+				return n, fmt.Errorf("WriteFrameDelayByte failed: %w", err)
+			}
 		}
-		buf = append(buf, 0xff) // end of frames
-		_, err = link.WriteMap(LinkMap{0x3000: buf})
+		if _, err = buf.Write([]byte{0xff}); err != nil { // end of frames
+			return n, fmt.Errorf("buf.Write failed: %w", err)
+		}
+		_, err = link.WriteMap(LinkMap{0x3000: buf.Bytes()})
 		if err != nil {
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
@@ -948,7 +1017,7 @@ func (cc charChunk) ScreenHigh() byte {
 }
 
 // WriteSingleColorCharsetAnimationTo writes the SingleColorCharset to w, optionally with displayer code.
-func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n int64, err error) {
+func (c *Converter) WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n int64, err error) {
 	if len(cc) < 2 {
 		return n, fmt.Errorf("not enough images %d < 2", len(cc))
 	}
@@ -987,8 +1056,7 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
 
-		cc = append(cc, cc[0]) // for clean loop
-		buf := []byte{}
+		buf := &bytes.Buffer{}
 		curChunk := charChunk{charIndex: -10}
 		flushedtotal := 0
 		flushedchartotal := 0
@@ -997,20 +1065,31 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 				if cc[0].opt.VeryVerbose {
 					log.Printf("got chunk: %v", curChunk)
 				}
-				buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
-				buf = append(buf, curChunk.bytes...)
+				b := append([]byte{curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh()}, curChunk.bytes...)
+				if _, err = buf.Write(b); err != nil {
+					log.Printf("buf.Write failed: %v", err)
+					return
+				}
 				flushedchartotal += int(curChunk.charCount)
 				flushedtotal++
 				curChunk = charChunk{charIndex: -10}
 			}
 		}
-		for i := 1; i < len(cc); i++ {
-			buf = append(buf, cc[i].BackgroundColor|cc[i].BorderColor<<4) // bgBorder
+		for i := 0; i < len(cc); i++ {
+			if _, err = buf.Write([]byte{cc[i].BackgroundColor | cc[i].BorderColor<<4}); err != nil {
+				log.Printf("buf.Write failed: %v", err)
+				return
+			}
+			// for clean loop
+			prv := len(cc) - 1
+			if i > 0 {
+				prv = i - 1
+			}
 			for char := 0; char < FullScreenChars; char++ {
-				if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
+				if cc[i].Screen[char] != cc[prv].Screen[char] || cc[i].D800Color[char] != cc[prv].D800Color[char] {
 					if cc[0].opt.VeryVerbose {
-						log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
-						log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+						log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[prv].Screen[char])
+						log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[prv].D800Color[char])
 					}
 					if curChunk.charCount == 0 {
 						curChunk = charChunk{
@@ -1031,10 +1110,17 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 				flushChunk()
 			}
 			flushChunk()
-			buf = append(buf, 0x00) // end of chunks and frame
+			if _, err = buf.Write([]byte{0x00}); err != nil { // end of frame
+				return n, fmt.Errorf("buf.Write failed: %w", err)
+			}
+			if _, err = c.WriteFrameDelayByte(buf, i, len(cc)); err != nil {
+				return n, fmt.Errorf("Write failed: %w", err)
+			}
 		}
-		buf = append(buf, 0xff) // end of frames
-		_, err = link.WriteMap(LinkMap{0x3000: buf})
+		if _, err = buf.Write([]byte{0xff}); err != nil { // end of frames
+			return n, fmt.Errorf("buf.Write failed: %w", err)
+		}
+		_, err = link.WriteMap(LinkMap{0x3000: buf.Bytes()})
 		if err != nil {
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
@@ -1059,7 +1145,7 @@ func WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleColorCharset) (n
 }
 
 // WritePETSCIICharsetAnimationTo writes the PETSCIICharset to w, optionally with displayer code.
-func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, err error) {
+func (c *Converter) WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, err error) {
 	if len(cc) < 2 {
 		return n, fmt.Errorf("not enough images %d < 2", len(cc))
 	}
@@ -1073,9 +1159,7 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
 
-	cc = append(cc, cc[0]) // for clean loop
-	pos := Word(0x3000)
-	buf := []byte{}
+	buf := &bytes.Buffer{}
 	curChunk := charChunk{charIndex: -10}
 	flushedtotal := 0
 	flushedchartotal := 0
@@ -1084,20 +1168,32 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 			if cc[0].opt.VeryVerbose {
 				log.Printf("got chunk: %v", curChunk)
 			}
-			buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
-			buf = append(buf, curChunk.bytes...)
+			b := append([]byte{curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh()}, curChunk.bytes...)
+			if _, err = buf.Write(b); err != nil {
+				log.Printf("buf.Write failed: %v", err)
+				return
+			}
 			flushedchartotal += int(curChunk.charCount)
 			flushedtotal++
 			curChunk = charChunk{charIndex: -10}
 		}
 	}
-	for i := 1; i < len(cc); i++ {
-		buf = append(buf, cc[i].BackgroundColor|cc[i].BorderColor<<4) // bgBorder
+
+	for i := 0; i < len(cc); i++ {
+		if _, err = buf.Write([]byte{cc[i].BackgroundColor | cc[i].BorderColor<<4}); err != nil {
+			return n, fmt.Errorf("buf.Write failed: %w", err)
+		}
+
+		// for clean loop
+		prv := len(cc) - 1
+		if i > 0 {
+			prv = i - 1
+		}
 		for char := 0; char < FullScreenChars; char++ {
-			if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
+			if cc[i].Screen[char] != cc[prv].Screen[char] || cc[i].D800Color[char] != cc[prv].D800Color[char] {
 				if cc[0].opt.VeryVerbose {
-					log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
-					log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+					log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[prv].Screen[char])
+					log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[prv].D800Color[char])
 				}
 				if curChunk.charCount == 0 {
 					curChunk = charChunk{
@@ -1118,11 +1214,17 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 			flushChunk()
 		}
 		flushChunk()
-		buf = append(buf, 0x00) // end of chunks and frame
+		if _, err = buf.Write([]byte{0x00}); err != nil { // end of chunks and frame
+			return n, fmt.Errorf("buf.Write failed: %w", err)
+		}
+		if _, err = c.WriteFrameDelayByte(buf, i, len(cc)); err != nil {
+			return n, fmt.Errorf("WriteFrameDelayByte failed: %w", err)
+		}
 	}
-	buf = append(buf, 0xff) // end of frames
-	_, err = link.WriteMap(LinkMap{pos: buf})
-	if err != nil {
+	if _, err = buf.Write([]byte{0xff}); err != nil { // end of frames
+		return n, fmt.Errorf("buf.Write failed: %w", err)
+	}
+	if _, err = link.WriteMap(LinkMap{0x3000: buf.Bytes()}); err != nil {
 		return n, fmt.Errorf("link.WriteMap failed: %w", err)
 	}
 	if cc[0].opt.Verbose {
@@ -1140,12 +1242,15 @@ func WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIICharset) (n int64, 
 		if err = injectSID(link, cc[0].opt.IncludeSID, cc[0].opt.Quiet); err != nil {
 			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
+		if len(c.AnimItems) > 0 {
+			link.SetByte(DisplayerSettingsStart+8, c.AnimItems[0].FrameDelay)
+		}
 	}
 	return link.WriteTo(w)
 }
 
 // WriteMixedCharsetAnimationTo writes the MixedCharset to w, optionally with displayer code.
-func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err error) {
+func (c *Converter) WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err error) {
 	if len(cc) < 2 {
 		return n, fmt.Errorf("not enough images %d < 2", len(cc))
 	}
@@ -1183,8 +1288,7 @@ func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err 
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
 
-		cc = append(cc, cc[0]) // for clean loop
-		buf := []byte{}
+		buf := &bytes.Buffer{}
 		curChunk := charChunk{charIndex: -10}
 		flushedtotal := 0
 		flushedchartotal := 0
@@ -1193,19 +1297,29 @@ func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err 
 				if cc[0].opt.VeryVerbose {
 					log.Printf("got chunk: %v", curChunk)
 				}
-				buf = append(buf, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
-				buf = append(buf, curChunk.bytes...)
+				b := []byte{}
+				b = append(b, curChunk.charCount, curChunk.ScreenLow(), curChunk.ScreenHigh())
+				b = append(b, curChunk.bytes...)
+				if _, err = buf.Write(b); err != nil {
+					log.Printf("buf.Write failed: %v", err)
+					return
+				}
 				flushedchartotal += int(curChunk.charCount)
 				flushedtotal++
 				curChunk = charChunk{charIndex: -10}
 			}
 		}
-		for i := 1; i < len(cc); i++ {
+		for i := 0; i < len(cc); i++ {
+			// for clean loop
+			prv := len(cc) - 1
+			if i > 0 {
+				prv = i - 1
+			}
 			for char := 0; char < FullScreenChars; char++ {
-				if cc[i].Screen[char] != cc[i-1].Screen[char] || cc[i].D800Color[char] != cc[i-1].D800Color[char] {
+				if cc[i].Screen[char] != cc[prv].Screen[char] || cc[i].D800Color[char] != cc[prv].D800Color[char] {
 					if cc[0].opt.VeryVerbose {
-						log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[i-1].Screen[char])
-						log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[i-1].D800Color[char])
+						log.Printf("%d %d: cc.Screen[char] = %d | prevscreen[char] = %d", i, char, cc[i].Screen[char], cc[prv].Screen[char])
+						log.Printf("%d %d: cc.D800Color[char] = %d | prevcolram[char] = %d", i, char, cc[i].D800Color[char], cc[prv].D800Color[char])
 					}
 					if curChunk.charCount == 0 {
 						curChunk = charChunk{
@@ -1226,10 +1340,19 @@ func WriteMixedCharsetAnimationTo(w io.Writer, cc []MixedCharset) (n int64, err 
 				flushChunk()
 			}
 			flushChunk()
-			buf = append(buf, 0x00) // end of chunks and frame
+			if _, err = buf.Write([]byte{0x00}); err != nil { // end of chunks and frame
+				log.Printf("buf.Write failed: %v", err)
+				return
+			}
+			if _, err = c.WriteFrameDelayByte(buf, i, len(cc)); err != nil {
+				return n, fmt.Errorf("WriteFrameDelayByte failed: %w", err)
+			}
 		}
-		buf = append(buf, 0xff) // end of frames
-		_, err = link.WriteMap(LinkMap{0x3000: buf})
+		if _, err = buf.Write([]byte{0xff}); err != nil { // end of frames
+			log.Printf("buf.Write failed: %v", err)
+			return
+		}
+		_, err = link.WriteMap(LinkMap{0x3000: buf.Bytes()})
 		if err != nil {
 			return n, fmt.Errorf("link.WriteMap failed: %w", err)
 		}
@@ -1257,4 +1380,39 @@ func makeCharer[S []E, E Koala | Hires](s S) []Charer {
 		frames[i] = Charer(s[i])
 	}
 	return frames
+}
+
+type AnimItem struct {
+	FrameDelay byte
+	Filename   string
+}
+
+func ExtractAnimationFile(filename string) (result []AnimItem, err error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return result, err
+	}
+	defer f.Close()
+	r := csv.NewReader(f)
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return result, err
+		}
+		if len(record) < 2 {
+			return result, fmt.Errorf("csv row does not contain >= 2  columns, but %d", len(record))
+		}
+		c, err := strconv.Atoi(record[0])
+		if err != nil {
+			return result, err
+		}
+		if c < 1 || c > 255 {
+			return result, fmt.Errorf("invalid frame delay %d, the minimum is 1 and the max is 255", c)
+		}
+		result = append(result, AnimItem{FrameDelay: byte(c), Filename: record[1]})
+	}
+	return result, nil
 }

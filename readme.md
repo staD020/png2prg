@@ -212,6 +212,7 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
     ...          // next chunks
     .byte 0      // end of frame
+    .byte 6      // wait for 6 frames
     ...          // next frame(s)
     .byte $ff    // end of all frames
 
@@ -237,6 +238,7 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
     ...          // next chunks
     .byte 0      // end of frame
+    .byte 6      // wait for 6 frames
     ...          // next frame(s)
     .byte $ff    // end of all frames
 
@@ -398,8 +400,15 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 
 ## Changes for version 1.11.0-dev
 
- - Press CBM key in petscii (animation) displayers to switch charset case.
- - Add -brute-force support to all charset modes.
+ - Bugfix: fix regression with handling mixedcharsets that was increasing
+   char usage count in some cases (thanks Shine).
+ - Feature: Press CBM key in petscii (animation) displayers to switch
+   charset case.
+ - Feature: Add -brute-force support to all charset modes.
+ - Feature: Improve ECM handling by searching for invertable characters to
+   reduce char usage.
+ - Feature: Add -anim-csv support to allow for per frame delays.
+ - Feature: Allow sids to use all memory below $0400 (thanks kbs).
 
 ## Changes for version 1.10.1
 
@@ -520,6 +529,8 @@ and Acrouzet.
 ```
   -alt-offset
     	use alternate screenshot offset with x,y = 32,36
+  -anim-csv string
+    	animation file in csv format
   -ao
     	alt-offset
   -bf

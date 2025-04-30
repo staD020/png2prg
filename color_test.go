@@ -12,15 +12,17 @@ import (
 
 const testImageFile = "testdata/the_sarge_timeout.png"
 
-func testImage(t *testing.T) image.Image {
+func testImage(t *testing.T) *sourceImage {
 	f, err := os.Open(testImageFile)
 	require.Nil(t, err)
 	defer f.Close()
 	require.NotNil(t, f)
-	img, _, err := image.Decode(f)
+	png, _, err := image.Decode(f)
 	require.Nil(t, err)
-	require.NotNil(t, img)
-	return img
+	require.NotNil(t, png)
+	img, err := NewSourceImage(Options{}, 0, png)
+	require.Nil(t, err)
+	return &img
 }
 
 func TestNewPalette(t *testing.T) {

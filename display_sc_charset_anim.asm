@@ -13,14 +13,6 @@
 .const animations        = $3000
 .const fade_pass_address = $ac00
 
-.const zp_start = $0334		// displaycode will be shorter if this is <$f9, but we prefer zeropage-less code to allow most sids to play.
-.const zp_screen_lo = zp_start + 0
-.const zp_screen_hi = zp_start + 1
-.const zp_src_screen_lo = zp_start + 2
-.const zp_src_screen_hi = zp_start + 3
-.const zp_src_d800_lo = zp_start + 4
-.const zp_src_d800_hi = zp_start + 5
-
 .const zp_anim_start  = $08
 .const zp_anim_lo     = zp_anim_start + 0
 .const zp_anim_hi     = zp_anim_start + 1
@@ -201,11 +193,6 @@ smc_yval:	ldy #steps-1
 		bne !waitloop-
 
 loop_anim:
-		ldx frame_delay
-!loop:	jsr vblank
-		dex
-		bne !loop-
-
 		.if (DEBUG) inc $d020
 		jsr anim_play
 		.if (DEBUG) dec $d020
@@ -245,6 +232,16 @@ loop_anim:
 vblank:
 		:vblank()
 rrts:	rts
+// --------------------------------
+// we're using non zeropage addresses here to avoid collissions with .sids
+.pc = * "zp_start"
+zp_start:
+zp_screen_lo: .byte 0
+zp_screen_hi: .byte 0
+zp_src_screen_lo: .byte 0
+zp_src_screen_hi: .byte 0
+zp_src_d800_lo: .byte 0
+zp_src_d800_hi: .byte 0
 // --------------------------------
 .pc = * "irq"
 irq:
@@ -392,6 +389,14 @@ next_chunk:
 		ldy #0
 		lax (zp_anim_lo),y
 		bne plot_chunk          // #$00 = end of frame
+		inc zp_anim_lo
+		bne !+
+		inc zp_anim_hi
+	!:
+		lax (zp_anim_lo),y      // framedelay
+	!:	jsr vblank
+		dex
+		bne !-
 		inc zp_anim_lo
 		bne !+
 		inc zp_anim_hi

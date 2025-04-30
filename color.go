@@ -80,6 +80,14 @@ func (cc Colors) String() (s string) {
 	return s
 }
 
+func (cc Colors) BPColors() (bpc BPColors) {
+	for i := range cc {
+		c := cc[i]
+		bpc = append(bpc, &c)
+	}
+	return bpc
+}
+
 type BPColors []*Color
 
 func (cc BPColors) String() (s string) {
@@ -96,14 +104,6 @@ func (cc BPColors) String() (s string) {
 	return s
 }
 
-func (cc Colors) BPColors() (bpc BPColors) {
-	for i := range cc {
-		c := cc[i]
-		bpc = append(bpc, &c)
-	}
-	return bpc
-}
-
 func (bpc BPColors) Colors() (cc Colors) {
 	for _, c := range bpc {
 		if c != nil {
@@ -111,6 +111,17 @@ func (bpc BPColors) Colors() (cc Colors) {
 		}
 	}
 	return cc
+}
+
+func (bpc BPColors) Contains(col Color) bool {
+	for _, c := range bpc {
+		if c != nil {
+			if c.C64Color == col.C64Color {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 type colorKey [3]byte

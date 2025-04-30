@@ -203,6 +203,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		if bpc[0] != nil {
 			c.images[0].bg = *bpc[0]
 		}
+		c.images[0].ecmColors = bpc.Colors()
 	}
 	return nil
 }
