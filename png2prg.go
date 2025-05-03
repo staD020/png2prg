@@ -650,7 +650,7 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 	c := &Converter{opt: opt}
 	if opt.AnimationCSV != "" {
 		if len(pngs) > 0 {
-			return c, fmt.Errorf("Cannot combine -anim-file %q and image filenames on the command-line", opt.AnimationCSV)
+			return c, fmt.Errorf("Cannot combine -anim-csv %q and image filenames on the command-line", opt.AnimationCSV)
 		}
 		var err error
 		if c.AnimItems, err = ExtractAnimationFile(opt.AnimationCSV); err != nil {
@@ -666,7 +666,7 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 		}
 	}
 	for index, ir := range pngs {
-		ii, err := NewSourceImages(opt, index, ir)
+		ii, err := c.NewSourceImages(opt, index, ir)
 		if err != nil {
 			return c, fmt.Errorf("NewSourceImages failed: %w", err)
 		}
@@ -678,7 +678,7 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 // NewSourceImages decodes r into one or more sourceImages and returns them.
 // Also validates the resolution of the images.
 // Generally imgs contain 1 image, unless an animated .gif was supplied in r.
-func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, err error) {
+func (c *Converter) NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, err error) {
 	path := fmt.Sprintf("png2prg_%02d", index)
 	if n, isNamer := r.(interface{ Name() string }); isNamer {
 		path = n.Name()
@@ -688,6 +688,23 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 		return nil, fmt.Errorf("io.ReadAll %q failed: %w", path, err)
 	}
 
+	/*
+		if c.AnimItems, err = ExtractAnimationCSV(bytes.NewReader(bin)); err == nil {
+			for index, ai := range c.AnimItems {
+				f, err := os.Open(ai.Filename)
+				if err != nil {
+					return imgs, fmt.Errorf("os.Open %q failed: %w", ai.Filename, err)
+				}
+				defer f.Close()
+				img, err := c.NewSourceImages(opt, index, f)
+				if err != nil {
+					return imgs, fmt.Errorf("NewSourceImages %q failed: %w", ai.Filename, err)
+				}
+				imgs = append(imgs, img...)
+			}
+			return imgs, nil
+		}
+	*/
 	// try gif first
 	if g, err := gif.DecodeAll(bytes.NewReader(bin)); err == nil {
 		if opt.Verbose {
@@ -814,11 +831,11 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 
 			i0, err := NewSourceImage(c.opt, 0, rgba0)
 			if err != nil {
-				return n, fmt.Errorf("NewSourceImages %q failed: %w", img.sourceFilename, err)
+				return n, fmt.Errorf("NewSourceImage %q failed: %w", img.sourceFilename, err)
 			}
 			i1, err := NewSourceImage(c.opt, 1, rgba1)
 			if err != nil {
-				return n, fmt.Errorf("NewSourceImages %q failed: %w", img.sourceFilename, err)
+				return n, fmt.Errorf("NewSourceImage %q failed: %w", img.sourceFilename, err)
 			}
 			c.images = []sourceImage{i0, i1}
 		}

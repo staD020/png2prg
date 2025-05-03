@@ -732,7 +732,9 @@ func (c *Converter) WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, e
 
 	if !opt.Quiet {
 		fmt.Printf("memory usage for animations: %s - %s\n", Word(koalaAnimationStart), link.EndAddress())
-		fmt.Printf("memory usage for generated fadecode: %s - %s\n", Word(koalaFadePassStart), Word(0xcfff))
+		if !opt.NoFade {
+			fmt.Printf("memory usage for generated fadecode: %s - %s\n", Word(koalaFadePassStart), Word(0xcfff))
+		}
 	}
 
 	if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
@@ -802,7 +804,9 @@ func (c *Converter) WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, e
 	}
 	if !opt.Quiet {
 		fmt.Printf("memory usage for animations: %#04x - %s\n", hiresAnimationStart, link.EndAddress())
-		fmt.Printf("memory usage for generated fadecode: %#04x - %#04x\n", hiresFadePassStart, 0xcfff)
+		if !opt.NoFade {
+			fmt.Printf("memory usage for generated fadecode: %#04x - %#04x\n", hiresFadePassStart, 0xcfff)
+		}
 	}
 
 	if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
@@ -1385,6 +1389,10 @@ func ExtractAnimationFile(filename string) (result []AnimItem, err error) {
 		return result, err
 	}
 	defer f.Close()
+	return ExtractAnimationCSV(f)
+}
+
+func ExtractAnimationCSV(f io.Reader) (result []AnimItem, err error) {
 	r := csv.NewReader(f)
 	for {
 		record, err := r.Read()
