@@ -56,7 +56,7 @@ func main() {
 	if err != nil {
 		log.Printf("expandWildcards failed: %v", err)
 	}
-	if opt.AnimationCSV == "" && len(filenames) == 0 {
+	if len(filenames) == 0 {
 		log.Printf("no files found")
 		png2prg.PrintUsage()
 		return
@@ -290,7 +290,6 @@ func initAndParseFlags() (opt png2prg.Options) {
 	var frameDelay int
 	flag.IntVar(&frameDelay, "frame-delay", 6, "frames to wait before displaying next animation frame")
 	flag.IntVar(&opt.WaitSeconds, "wait-seconds", 0, "seconds to wait before animation starts")
-	flag.StringVar(&opt.AnimationCSV, "anim-csv", "", "animation file in csv format")
 	w := int(runtime.NumCPU() / 2)
 	if w < 1 {
 		w = 1

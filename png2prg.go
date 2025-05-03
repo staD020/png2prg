@@ -80,7 +80,6 @@ type Options struct {
 	ForceXOffset        int
 	ForceYOffset        int
 	CurrentGraphicsType GraphicsType
-	AnimationCSV        string
 
 	Trd bool // has side effect of enforcing screenram colors in level area
 }
@@ -648,21 +647,25 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 		opt.CurrentGraphicsType = StringToGraphicsType(opt.GraphicsMode)
 	}
 	c := &Converter{opt: opt}
-	if opt.AnimationCSV != "" {
-		if len(pngs) > 0 {
-			return c, fmt.Errorf("Cannot combine -anim-csv %q and image filenames on the command-line", opt.AnimationCSV)
+	if len(pngs) == 1 {
+		bin, err := io.ReadAll(pngs[0])
+		if err != nil {
+			return nil, fmt.Errorf("io.ReadAll failed: %w", err)
 		}
-		var err error
-		if c.AnimItems, err = ExtractAnimationFile(opt.AnimationCSV); err != nil {
-			return c, fmt.Errorf("ExtractAnimationFile %q failed: %w", opt.AnimationCSV, err)
-		}
-		for _, ai := range c.AnimItems {
-			f, err := os.Open(ai.Filename)
-			if err != nil {
-				return c, fmt.Errorf("os.Open %q failed: %w", ai.Filename, err)
+		c.AnimItems, err = ExtractAnimationCSV(bytes.NewReader(bin))
+		switch {
+		case err == nil:
+			pngs = []io.Reader{}
+			for _, ai := range c.AnimItems {
+				f, err := os.Open(ai.Filename)
+				if err != nil {
+					return nil, fmt.Errorf("os.Open %q failed: %w", ai.Filename, err)
+				}
+				defer f.Close()
+				pngs = append(pngs, f)
 			}
-			defer f.Close()
-			pngs = append(pngs, f)
+		case err != nil:
+			pngs[0] = bytes.NewReader(bin)
 		}
 	}
 	for index, ir := range pngs {
@@ -688,23 +691,6 @@ func (c *Converter) NewSourceImages(opt Options, index int, r io.Reader) (imgs [
 		return nil, fmt.Errorf("io.ReadAll %q failed: %w", path, err)
 	}
 
-	/*
-		if c.AnimItems, err = ExtractAnimationCSV(bytes.NewReader(bin)); err == nil {
-			for index, ai := range c.AnimItems {
-				f, err := os.Open(ai.Filename)
-				if err != nil {
-					return imgs, fmt.Errorf("os.Open %q failed: %w", ai.Filename, err)
-				}
-				defer f.Close()
-				img, err := c.NewSourceImages(opt, index, f)
-				if err != nil {
-					return imgs, fmt.Errorf("NewSourceImages %q failed: %w", ai.Filename, err)
-				}
-				imgs = append(imgs, img...)
-			}
-			return imgs, nil
-		}
-	*/
 	// try gif first
 	if g, err := gif.DecodeAll(bytes.NewReader(bin)); err == nil {
 		if opt.Verbose {

@@ -16,15 +16,15 @@ This tool can be used in all buildchains on all common platforms.
 
 ## What is new
 
-Png2prg 1.10 introduces petscii animation support, including unique border and
-background color per frame.
+Png2prg 1.11 introduces animation.csv support for custom delays per frame.
+See 'Animation csv' below for details.
+This release also contains an important bugfix related to mixedcharsets,
+where in some cases, png2prg would require more unique chars than necessary.
 
-The -no-fade flag was added to skip fullscreen fade and not waste a ton of RAM
-in koala/hires/petscii displayers.
-The -no-anim flag was added to allow storing each frame's screenram of charset
-animations in full. Especially useful when converting a multi-screen charset.
+ECM conversion has been improved, now png2prg also searches for potential
+char reduction by searching for invertable characters.
 
-See 'Changes for version 1.10' below for more details.
+See 'Changes for version 1.11' below for more details.
 
 ## What it is *not*
 
@@ -248,9 +248,9 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
 ## Animation csv
 
-Since version 1.11.1 the -anim-csv flag has been added to give more
+Since version 1.12 animation.csv support has been added to give more
 freedom to users wanting to create animation displayers.
-It is now possible to have a custom -frame-delay per frame.
+It is now possible to use a custom -frame-delay per frame.
 
 The csv should simply look like this, rows of frame delay value and image:
 
@@ -260,8 +260,8 @@ The csv should simply look like this, rows of frame delay value and image:
 
 Examples can be found here: [Évoluer by The Sarge](https://github.com/staD020/png2prg/blob/master/testdata/evoluer/evoluer.csv) and [Rose by Sander](https://github.com/staD020/png2prg/blob/master/testdata/petscii/anim/rose.csv)
 
-    png2prg -d -o evoluer.prg -sid testdata/evoluer/Evoluer.sid -anim-csv testdata/evoluer/evoluer.csv
-    png2prg -d -o rose.prg -anim-csv testdata/petscii/anim/rose.csv
+    png2prg -d -o evoluer.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/evoluer.csv
+    png2prg -d -o rose.prg testdata/petscii/anim/rose.csv
 
 ## Displayer
 
@@ -428,7 +428,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Feature: Add -brute-force support to all charset modes.
  - Feature: Improve ECM handling by searching for invertable characters to
    reduce char usage.
- - Feature: Add -anim-csv support to allow for custom delays per frame.
+ - Feature: Add animation.csv support to allow for custom delays per frame.
  - Feature: Allow sids to use all memory below $0400 (thanks kbs).
  - Feature: Add -no-fade support to other displayers (thanks Shine).
 
@@ -551,8 +551,6 @@ and Acrouzet.
 ```
   -alt-offset
     	use alternate screenshot offset with x,y = 32,36
-  -anim-csv string
-    	animation file in csv format
   -ao
     	alt-offset
   -bf
