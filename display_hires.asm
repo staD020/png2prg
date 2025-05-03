@@ -32,6 +32,9 @@ frame_delay:
 .pc = * "wait_seconds"
 wait_seconds:
 		.byte 0
+.pc = * "no_fade"
+no_fade:
+		.byte 0
 
 .pc = basicsys() "start"
 start:
@@ -80,7 +83,10 @@ start:
 		sta $dc0e
 		cli
 
+		lda no_fade
+		bne !+
 		jsr generate_fade_pass
+	!:
 		lax #0
 	!:
 	.for (var i=0; i<4; i++) {
@@ -89,18 +95,23 @@ start:
 		inx
 		bne !-
 
+		lda no_fade
+		beq !prep_fade+
+		lda #>(screenram+$300)
+		sta smc_src_screen+2
+!prep_fade:
 		ldy #4
 		ldx #$e8
 	!:
 smc_koalasrc_col:
 		lda koala_source+$1f40+$300,x
-smc_src_col:
+smc_src_screen:
 		sta src_screenram+$300,x
 		dex
 		cpx #$ff
 		bne !-
 		dec smc_koalasrc_col+2
-		dec smc_src_col+2
+		dec smc_src_screen+2
 		dey
 		bne !-
 
@@ -112,6 +123,9 @@ smc_src_col:
 		sta $d016
 		lda #$3b
 		sta $d011
+
+		lda no_fade
+		bne !skip_fade+
 
 .pc = * "fade_loop"
 fade_loop:
@@ -145,10 +159,15 @@ smc_yval:	ldy #steps-1
 		beq !done+
 		cmp #(steps/2)-1
 		bne fade_loop
+!skip_fade:
+		lda $4328
+		sta $d020
 
 		lda #$ef
 	!:	cmp $dc01
 		bne !-
+		lda no_fade
+		bne !done+
 		beq fade_loop
 !done:
 	.if (LOOP) {

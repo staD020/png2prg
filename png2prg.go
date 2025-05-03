@@ -1121,10 +1121,13 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	if !k.opt.Display {
 		return link.WriteTo(w)
 	}
-	link.Block(0x4800, 0x8e50)
 
 	if _, err = link.WritePrg(multiColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
+	}
+	link.SetByte(DisplayerSettingsStart+9, byte(k.opt.NoFadeByte()))
+	if !k.opt.NoFade {
+		link.Block(0x4800, 0x8e50)
 	}
 	if err = injectSID(link, k.opt.IncludeSID, k.opt.Quiet); err != nil {
 		return n, fmt.Errorf("injectSID failed: %w", err)
@@ -1145,10 +1148,14 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	if !h.opt.Display {
 		return link.WriteTo(w)
 	}
-	link.Block(0x4800, 0x6b29)
 
 	if _, err = link.WritePrg(singleColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
+	}
+	if h.opt.NoFade {
+		link.SetByte(DisplayerSettingsStart+9, byte(h.opt.NoFadeByte()))
+	} else {
+		link.Block(0x4800, 0x6b29)
 	}
 	if err = injectSID(link, h.opt.IncludeSID, h.opt.Quiet); err != nil {
 		return n, fmt.Errorf("injectSID failed: %w", err)
@@ -1173,6 +1180,9 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
+	if c.opt.NoFade {
+		link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
+	}
 	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
 		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
@@ -1193,9 +1203,12 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if !c.opt.Display {
 		return link.WriteTo(w)
 	}
-	link.Block(0xac00, 0xcf28)
 	if _, err = link.WritePrg(singleColorCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
+	}
+	link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
+	if !c.opt.NoFade {
+		link.Block(0xac00, 0xcf28)
 	}
 	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
 		return n, fmt.Errorf("injectSID failed: %w", err)
@@ -1220,6 +1233,9 @@ func (c MixedCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
+	if c.opt.NoFade {
+		link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
+	}
 	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
 		return 0, fmt.Errorf("injectSID failed: %w", err)
 	}
@@ -1239,11 +1255,14 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 	if !c.opt.Display {
 		return link.WriteTo(w)
 	}
-	link.Block(0xac00, 0xcf28)
 	if _, err = link.WritePrg(petsciiCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
 	link.SetByte(DisplayerSettingsStart+7, c.Lowercase)
+	link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
+	if !c.opt.NoFade {
+		link.Block(0xac00, 0xcf28)
+	}
 	if !c.opt.Quiet {
 		if c.Lowercase == 1 {
 			fmt.Println("lowercase rom charset found")
@@ -1271,9 +1290,12 @@ func (c ECMCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if !c.opt.Display {
 		return link.WriteTo(w)
 	}
-	link.Block(0xac00, 0xcf28)
 	if _, err = link.WritePrg(ecmCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
+	}
+	link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
+	if !c.opt.NoFade {
+		link.Block(0xac00, 0xcf28)
 	}
 	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
 		return 0, fmt.Errorf("injectSID failed: %w", err)

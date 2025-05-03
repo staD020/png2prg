@@ -46,6 +46,9 @@ frame_delay:
 .pc = * "wait_seconds"
 wait_seconds:
 		.byte 0
+.pc = * "no_fade"
+no_fade:
+		.byte 0
 
 .pc = basicsys() "start"
 start:
@@ -116,6 +119,9 @@ start:
 		lda #$1b
 		sta $d011
 
+		lda no_fade
+		bne !skip_fade+
+
 .pc = * "fade_loop"
 fade_loop:
 smc_yval:	ldy #steps-1
@@ -149,6 +155,13 @@ smc_yval:	ldy #steps-1
 		cmp #(steps/2)-1
 		bne fade_loop
 
+!skip_fade:
+		ldy #3
+	!:	lda src_colorram+$3e8,y
+		sta $d020,y
+		dey
+		bpl !-
+
 		jsr anim_init
 
 		// optional wait before anim start
@@ -175,7 +188,9 @@ loop_anim:
 		lda $dc01
 		cmp #$ef
 		bne loop_anim
-		jmp fade_loop
+		lda no_fade
+		bne !done+
+		beq fade_loop
 !done:
 	.if (LOOP) {
 		lda #$ef

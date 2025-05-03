@@ -149,11 +149,13 @@ func (c *Converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		return link.WriteTo(w)
 	}
 
-	link.Block(0x7f50, 0xc5b0)
 	if _, err = link.WritePrg(multiColorInterlaceBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-
+	link.SetByte(DisplayerSettingsStart+9, k0.opt.NoFadeByte())
+	if !k0.opt.NoFade {
+		link.Block(0x7f50, 0xc5b0)
+	}
 	_, err = link.WriteMap(LinkMap{
 		BitmapAddress: k0.Bitmap[:],
 		0x4000:        k0.ScreenColor[:],

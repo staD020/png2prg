@@ -442,6 +442,7 @@ func PrintHelp() {
 	fmt.Println("   reduce char usage.")
 	fmt.Println(" - Feature: Add -anim-csv support to allow for custom delays per frame.")
 	fmt.Println(" - Feature: Allow sids to use all memory below $0400 (thanks kbs).")
+	fmt.Println(" - Feature: Add -no-fade support to other displayers (thanks Shine).")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.10.1")
 	fmt.Println()

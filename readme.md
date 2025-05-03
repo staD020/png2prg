@@ -430,6 +430,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
    reduce char usage.
  - Feature: Add -anim-csv support to allow for custom delays per frame.
  - Feature: Allow sids to use all memory below $0400 (thanks kbs).
+ - Feature: Add -no-fade support to other displayers (thanks Shine).
 
 ## Changes for version 1.10.1
 
@@ -608,7 +609,7 @@ and Acrouzet.
   -no-crunch
     	do not TSCrunch displayer
   -no-fade
-    	do not use fade in/out for animation displayers and free up a lot of memory
+    	do not use fade in/out and free up a lot of memory
   -no-guess
     	do not guess preferred bitpair-colors
   -no-pack

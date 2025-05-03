@@ -986,7 +986,7 @@ func (c *Converter) WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiCol
 		if _, err = link.WritePrg(displayer); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds))
+		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), cc[0].opt.NoFadeByte())
 		if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
 			return n, fmt.Errorf("injectSID failed: %w", err)
 		}

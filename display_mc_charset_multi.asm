@@ -32,7 +32,9 @@ frame_delay:
 .pc = * "wait_seconds"
 wait_seconds:
 		.byte 0
-
+.pc = * "no_fade"
+no_fade:
+		.byte 0
 
 .pc = basicsys() "start"
 start:
@@ -108,6 +110,9 @@ start:
 		lda #$1b
 		sta $d011
 
+		lda no_fade
+		bne !skip_fade+
+
 .pc = * "fade_loop"
 fade_loop:
 smc_yval:	ldy #steps-1
@@ -134,6 +139,13 @@ smc_yval:	ldy #steps-1
 		cmp #(steps/2)-1
 		bne fade_loop
 
+!skip_fade:
+		ldy #3
+	!:	lda colorram_src+$3e8,y
+		sta $d020,y
+		dey
+		bpl !-
+
 		ldx #0
 	!:
 	.for (var i=0; i<4; i++) {
@@ -147,6 +159,8 @@ smc_yval:	ldy #steps-1
 		lda #$ef
 	!:	cmp $dc01
 		bne !-
+		lda no_fade
+		bne !done+
 
 		jsr vblank
 		ldx #0
@@ -158,7 +172,7 @@ smc_yval:	ldy #steps-1
 		inx
 		bne !-
 	}
-		beq fade_loop
+		jmp fade_loop
 !done:
 
 		// screen is black, show new screen
