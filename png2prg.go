@@ -81,7 +81,8 @@ type Options struct {
 	ForceYOffset        int
 	CurrentGraphicsType GraphicsType
 
-	Trd bool // has side effect of enforcing screenram colors in level area
+	Trd                           bool // has side effect of enforcing screenram colors in level area
+	disableRepeatingBitpairColors bool // koala/hires animations should not want this optimization
 }
 
 func (o Options) NoFadeByte() byte {
@@ -669,7 +670,7 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 		}
 	}
 	for index, ir := range pngs {
-		ii, err := c.NewSourceImages(opt, index, ir)
+		ii, err := NewSourceImages(opt, index, ir)
 		if err != nil {
 			return c, fmt.Errorf("NewSourceImages failed: %w", err)
 		}
@@ -681,7 +682,7 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 // NewSourceImages decodes r into one or more sourceImages and returns them.
 // Also validates the resolution of the images.
 // Generally imgs contain 1 image, unless an animated .gif was supplied in r.
-func (c *Converter) NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, err error) {
+func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, err error) {
 	path := fmt.Sprintf("png2prg_%02d", index)
 	if n, isNamer := r.(interface{ Name() string }); isNamer {
 		path = n.Name()

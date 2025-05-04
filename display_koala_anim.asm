@@ -233,9 +233,7 @@ smc_yval:	ldy #steps-1
 !skip:
 
 loop_anim:
-		.if (DEBUG) inc $d020
 		jsr anim_play
-		.if (DEBUG) dec $d020
 
 		lda $dc01
 		cmp #$ef
@@ -436,6 +434,7 @@ smc_totpercol:
 // ------------------------------
 .pc = * "anim_play"
 anim_play:
+		.if (DEBUG) inc $d020
 next_chunk:
 		ldy #0
 		lax (zp_anim_lo),y      //  a = x = number of chars in chunk
@@ -444,6 +443,7 @@ next_chunk:
 		bne !+
 		inc zp_anim_hi
 	!:
+		.if (DEBUG) dec $d020
 		lax (zp_anim_lo),y      // framedelay
 	!:	jsr vblank
 		dex

@@ -35,6 +35,10 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 	if len(imgs) < 1 {
 		return n, fmt.Errorf("no sourceImage given")
 	}
+	c.opt.disableRepeatingBitpairColors = true
+	for i := range imgs {
+		imgs[i].opt.disableRepeatingBitpairColors = true
+	}
 
 	bruteforce := func(gfxtype GraphicsType, maxColors int) error {
 		if !c.opt.BruteForce {

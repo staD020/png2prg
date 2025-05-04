@@ -431,6 +431,9 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Feature: Add animation.csv support to allow for custom delays per frame.
  - Feature: Allow sids to use all memory below $0400 (thanks kbs).
  - Feature: Add -no-fade support to other displayers (thanks Shine).
+ - Feature: Disable repeating color optimization for koala & hires anims.
+   This reduces animation size & runtime processing at the cost of initial
+   image optimization.
 
 ## Changes for version 1.10.1
 

@@ -127,7 +127,7 @@ func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*
 					continue
 				}
 				if len(bp.bitpairs) == 0 {
-					return nil, fmt.Errorf("too many colors, no bitpairs left")
+					return nil, fmt.Errorf("too many colors in char %d, no bitpairs left", char)
 				}
 				bp.add(3, col)
 			}
@@ -163,12 +163,11 @@ func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*
 			}
 			// find spot
 			if len(bp.bitpairs) == 0 {
-				return nil, fmt.Errorf("too many colors, no bitpairs left")
+				return nil, fmt.Errorf("too many colors in char %d, no bitpairs left", char)
 			}
 			// take first spot
 			bp.add(bp.bitpairs[0], col)
 		}
-		//fmt.Printf("char %d: bp: %v\n", char, bp)
 		return bp, nil
 	}
 
@@ -197,7 +196,7 @@ func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*
 				continue
 			}
 			if len(bp.bitpairs) == 0 {
-				return nil, fmt.Errorf("too many colors in char, no bitpairs left")
+				return nil, fmt.Errorf("too many colors in char %d, no bitpairs left", char)
 			}
 			if len(bp.bitpairs) > 1 {
 				bpcount := img.bpcBitpairCount[byte(col.C64Color)]
@@ -234,7 +233,7 @@ func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*
 				continue
 			}
 			if len(bp.bitpairs) == 0 {
-				return nil, fmt.Errorf("too many colors in char, no bitpairs left")
+				return nil, fmt.Errorf("too many colors in char %d, no bitpairs left", char)
 			}
 			if prevbp, ok := img.bpcCache[char-1][col.C64Color]; ok {
 				if _, ok := bp.color(prevbp); !ok {
@@ -372,7 +371,7 @@ func (img *sourceImage) Koala() (Koala, error) {
 		if col, ok := bp.color(1); ok {
 			k.ScreenColor[char] = byte(col.C64Color) << 4
 		} else {
-			if !k.opt.Trd {
+			if !k.opt.Trd && !k.opt.disableRepeatingBitpairColors {
 				pcol, _ := prevbp.color(1)
 				k.ScreenColor[char] = byte(pcol.C64Color) << 4
 			}
@@ -380,14 +379,14 @@ func (img *sourceImage) Koala() (Koala, error) {
 		if col, ok := bp.color(2); ok {
 			k.ScreenColor[char] |= byte(col.C64Color)
 		} else {
-			if !k.opt.Trd {
+			if !k.opt.Trd && !k.opt.disableRepeatingBitpairColors {
 				pcol, _ := prevbp.color(2)
 				k.ScreenColor[char] |= byte(pcol.C64Color)
 			}
 		}
 		if col, ok := bp.color(3); ok {
 			k.D800Color[char] = byte(col.C64Color)
-		} else {
+		} else if !k.opt.disableRepeatingBitpairColors {
 			pcol, _ := prevbp.color(3)
 			k.D800Color[char] = byte(pcol.C64Color)
 		}
@@ -439,12 +438,12 @@ func (img *sourceImage) Hires() (Hires, error) {
 
 		if col, ok := bp.color(1); ok {
 			h.ScreenColor[char] = byte(col.C64Color) << 4
-		} else {
+		} else if !h.opt.disableRepeatingBitpairColors {
 			h.ScreenColor[char] = byte(prevbp.bitpair2color[1].C64Color) << 4
 		}
 		if col, ok := bp.color(0); ok {
 			h.ScreenColor[char] |= byte(col.C64Color)
-		} else {
+		} else if !h.opt.disableRepeatingBitpairColors {
 			h.ScreenColor[char] |= byte(prevbp.bitpair2color[0].C64Color)
 		}
 		for bitp, col := range bp.bitpair2color {
