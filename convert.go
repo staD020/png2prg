@@ -185,6 +185,26 @@ func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*
 		}
 	}
 
+	// prefill secondary preferred and used colors
+	if len(img.bpc2) > 0 {
+		for preferBitpair, preferColor := range img.bpc2 {
+			if preferColor == nil {
+				continue
+			}
+			if _, ok := bp.color(byte(preferBitpair)); ok {
+				continue
+			}
+			for _, col := range cc {
+				if preferColor.C64Color == col.C64Color {
+					bp.add(byte(preferBitpair), col)
+					//if img.opt.VeryVerbose {
+					//	log.Printf("char %d: bpc2 match for bitpair %d color %s", char, preferBitpair, col)
+					//}
+				}
+			}
+		}
+	}
+
 	// bp includes bgcol, which may not be used in the char.
 	if bp.numColors() > len(cc) {
 		return bp, nil

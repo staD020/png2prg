@@ -50,36 +50,37 @@ const (
 // The default empty/false settings are in general fine.
 // You may want to set Quiet to suppress logging to stdout and Display to true if you want include the displayer.
 type Options struct {
-	OutFile             string
-	TargetDir           string
-	Verbose             bool
-	VeryVerbose         bool
-	Quiet               bool
-	Display             bool
-	BruteForce          bool
-	NumWorkers          int
-	NoPackChars         bool
-	NoPackEmptyChar     bool
-	ForcePackEmptyChar  bool
-	NoPrevCharColors    bool
-	NoBitpairCounters   bool
-	NoCrunch            bool
-	Symbols             bool
-	AlternativeFade     bool
-	NoFade              bool
-	BitpairColorsString string
-	NoGuess             bool
-	GraphicsMode        string
-	Interlace           bool
-	D016Offset          int
-	ForceBorderColor    int
-	IncludeSID          string
-	NoAnimation         bool
-	FrameDelay          byte
-	WaitSeconds         int
-	ForceXOffset        int
-	ForceYOffset        int
-	CurrentGraphicsType GraphicsType
+	OutFile              string
+	TargetDir            string
+	Verbose              bool
+	VeryVerbose          bool
+	Quiet                bool
+	Display              bool
+	BruteForce           bool
+	NumWorkers           int
+	NoPackChars          bool
+	NoPackEmptyChar      bool
+	ForcePackEmptyChar   bool
+	NoPrevCharColors     bool
+	NoBitpairCounters    bool
+	NoCrunch             bool
+	Symbols              bool
+	AlternativeFade      bool
+	NoFade               bool
+	BitpairColorsString  string
+	BitpairColorsString2 string
+	NoGuess              bool
+	GraphicsMode         string
+	Interlace            bool
+	D016Offset           int
+	ForceBorderColor     int
+	IncludeSID           string
+	NoAnimation          bool
+	FrameDelay           byte
+	WaitSeconds          int
+	ForceXOffset         int
+	ForceYOffset         int
+	CurrentGraphicsType  GraphicsType
 
 	Trd                           bool // has side effect of enforcing screenram colors in level area
 	disableRepeatingBitpairColors bool // koala/hires animations should not want this optimization
@@ -174,6 +175,7 @@ type sourceImage struct {
 	graphicsType    GraphicsType
 	p               Palette
 	bpc             BPColors
+	bpc2            BPColors
 	bpcCache        [FullScreenChars]map[C64Color]byte
 	bpcBitpairCount [MaxColors]map[byte]int
 	border          Color
@@ -722,6 +724,11 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 			}
+			if opt.BitpairColorsString2 != "" {
+				if img.bpc2, err = img.p.ParseBPC(opt.BitpairColorsString2); err != nil {
+					return nil, fmt.Errorf("p.ParseBPC %q failed: %w", opt.BitpairColorsString2, err)
+				}
+			}
 			imgs = append(imgs, img)
 		}
 		return imgs, nil
@@ -745,6 +752,11 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 		return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
 	}
+	if opt.BitpairColorsString2 != "" {
+		if img.bpc2, err = img.p.ParseBPC(opt.BitpairColorsString2); err != nil {
+			return nil, fmt.Errorf("p.ParseBPC %q failed: %w", opt.BitpairColorsString2, err)
+		}
+	}
 	imgs = append(imgs, img)
 	return imgs, nil
 }
@@ -764,6 +776,11 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 	}
 	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
 		return img, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
+	}
+	if opt.BitpairColorsString2 != "" {
+		if img.bpc2, err = img.p.ParseBPC(opt.BitpairColorsString2); err != nil {
+			return img, fmt.Errorf("p.ParseBPC %q failed: %w", opt.BitpairColorsString2, err)
+		}
 	}
 	return img, nil
 }
@@ -849,6 +866,11 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		}
 		if err = img.setPreferredBitpairColors(c.opt.BitpairColorsString); err != nil {
 			return fmt.Errorf("img.setPreferredBitpairColors %q failed: %w", c.opt.BitpairColorsString, err)
+		}
+		if c.opt.BitpairColorsString2 != "" {
+			if img.bpc2, err = img.p.ParseBPC(c.opt.BitpairColorsString2); err != nil {
+				return fmt.Errorf("p.ParseBPC %q failed: %w", c.opt.BitpairColorsString2, err)
+			}
 		}
 		return nil
 	}

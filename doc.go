@@ -446,6 +446,8 @@ func PrintHelp() {
 	fmt.Println(" - Feature: Disable repeating color optimization for koala & hires anims.")
 	fmt.Println("   This reduces animation size & runtime processing at the cost of initial")
 	fmt.Println("   image optimization.")
+	fmt.Println(" - Experimental: Add secondary preferred bitpair colors with -bpc2 (thanks")
+	fmt.Println("   Fungus).")
 	fmt.Println()
 	fmt.Println("## Changes for version 1.10.1")
 	fmt.Println()
