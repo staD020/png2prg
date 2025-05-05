@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	Version              = "1.11.3-dev"
+	Version              = "1.11.4-dev"
 	MaxColors            = 16
 	MaxChars             = 256
 	MaxECMChars          = 64

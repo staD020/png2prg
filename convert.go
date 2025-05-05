@@ -268,9 +268,6 @@ func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*
 						}
 					}
 				}
-				if img.opt.VeryVerbose {
-					log.Printf("char %d: match for color %s not found prevbitpair %d (from bitpairs %v)", char, col, prevbp, bp.bitpairs)
-				}
 			}
 		}
 	}
@@ -282,9 +279,6 @@ func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*
 		}
 		if len(bp.bitpairs) == 0 {
 			return bp, fmt.Errorf("too many colors in char %d, no bitpairs left", char)
-		}
-		if img.opt.VeryVerbose {
-			log.Printf("char %d: could not guess bitpair for col %d from bitpairs %v", char, col, bp.bitpairs)
 		}
 		//works for all general cases, but prefers bitpair 11 should be replaced first
 		//bp.add(bp.bitpairs[len(bp.bitpairs)-1], col)
