@@ -47,8 +47,8 @@ func (c *Converter) WriteAnimationTo(w io.Writer) (n int64, err error) {
 		if err = c.BruteForceBitpairColors(gfxtype, maxColors); err != nil {
 			return fmt.Errorf("BruteForceBitpairColors %q failed: %w", imgs[0].sourceFilename, err)
 		}
-		if err = imgs[0].setPreferredBitpairColors(c.opt.BitpairColorsString, c.opt.BitpairColorsString2); err != nil {
-			return fmt.Errorf("setPreferredBitpairColors -bpc %q -bpc2 %q failed: %w", c.opt.BitpairColorsString, c.opt.BitpairColorsString2, err)
+		if err = imgs[0].setPreferredBitpairColors(); err != nil {
+			return fmt.Errorf("setPreferredBitpairColors failed: %w", err)
 		}
 		return nil
 	}

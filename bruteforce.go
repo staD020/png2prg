@@ -132,7 +132,7 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 			}
 			continue
 		}
-		if err := img.setPreferredBitpairColors(opt.BitpairColorsString, opt.BitpairColorsString2); err != nil {
+		if err := img.setPreferredBitpairColors(); err != nil {
 			if c.opt.Verbose {
 				log.Printf("skipping permutation %q because setPreferredBitpairColors failed: %v", bitpaircols, err)
 			}

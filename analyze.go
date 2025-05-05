@@ -9,25 +9,25 @@ import (
 )
 
 // setPreferredBitpairColors sets img.preferredBitpairColors according to v in format "0,1,6,7".
-func (img *sourceImage) setPreferredBitpairColors(bpc1, bpc2 string) (err error) {
-	if bpc1 == "" {
+func (img *sourceImage) setPreferredBitpairColors() (err error) {
+	if img.opt.BitpairColorsString == "" {
 		return nil
 	}
-	if img.bpc, err = img.p.ParseBPC(bpc1); err != nil {
-		return fmt.Errorf("p.ParseBPC %q failed: %w", bpc1, err)
+	if img.bpc, err = img.p.ParseBPC(img.opt.BitpairColorsString); err != nil {
+		return fmt.Errorf("p.ParseBPC %q failed: %w", img.opt.BitpairColorsString, err)
 	}
 	if img.graphicsType == singleColorBitmap {
 		if len(img.bpc) > 2 {
 			img.bpc = img.bpc[0:2]
 		}
 	}
-	if bpc2 != "" {
-		if img.bpc2, err = img.p.ParseBPC(bpc2); err != nil {
-			return fmt.Errorf("p.ParseBPC %q failed: %w", bpc2, err)
+	if img.opt.BitpairColorsString2 != "" {
+		if img.bpc2, err = img.p.ParseBPC(img.opt.BitpairColorsString2); err != nil {
+			return fmt.Errorf("p.ParseBPC %q failed: %w", img.opt.BitpairColorsString2, err)
 		}
 	}
 	if img.opt.Verbose {
-		if bpc2 != "" {
+		if img.opt.BitpairColorsString2 != "" {
 			log.Printf("will prefer bitpair colors: -bpc %s -bpc2 %s", img.bpc, img.bpc2)
 		} else {
 			log.Printf("will prefer bitpair colors: -bpc %s", img.bpc)

@@ -721,7 +721,7 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 			if err != nil {
 				return nil, fmt.Errorf("NewPalette failed: %w", err)
 			}
-			if err = img.setPreferredBitpairColors(opt.BitpairColorsString, opt.BitpairColorsString2); err != nil {
+			if err = img.setPreferredBitpairColors(); err != nil {
 				return nil, fmt.Errorf("setPreferredBitpairColors -bpc %q -bpc2 %q failed: %w", opt.BitpairColorsString, opt.BitpairColorsString2, err)
 			}
 			imgs = append(imgs, img)
@@ -744,7 +744,7 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 	if err != nil {
 		return nil, fmt.Errorf("NewPalette failed: %w", err)
 	}
-	if err = img.setPreferredBitpairColors(opt.BitpairColorsString, opt.BitpairColorsString2); err != nil {
+	if err = img.setPreferredBitpairColors(); err != nil {
 		return nil, fmt.Errorf("setPreferredBitpairColors -bpc %q -bpc2 %q failed: %w", opt.BitpairColorsString, opt.BitpairColorsString2, err)
 	}
 	imgs = append(imgs, img)
@@ -764,7 +764,7 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 	if img.p, img.hiresPixels, err = NewPalette(&img, false, opt.Verbose); err != nil {
 		return img, fmt.Errorf("NewPalette failed: %w", err)
 	}
-	if err = img.setPreferredBitpairColors(opt.BitpairColorsString, opt.BitpairColorsString2); err != nil {
+	if err = img.setPreferredBitpairColors(); err != nil {
 		return img, fmt.Errorf("setPreferredBitpairColors -bpc %q -bpc2 %q failed: %w", opt.BitpairColorsString, opt.BitpairColorsString2, err)
 	}
 	return img, nil
@@ -849,7 +849,7 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		if err = c.BruteForceBitpairColors(gfxtype, maxColors); err != nil {
 			return fmt.Errorf("BruteForceBitpairColors %q failed: %w", img.sourceFilename, err)
 		}
-		if err = img.setPreferredBitpairColors(c.opt.BitpairColorsString, c.opt.BitpairColorsString2); err != nil {
+		if err = img.setPreferredBitpairColors(); err != nil {
 			return fmt.Errorf("setPreferredBitpairColors -bpc %q -bpc2 %q failed: %w", c.opt.BitpairColorsString, c.opt.BitpairColorsString2, err)
 		}
 		return nil

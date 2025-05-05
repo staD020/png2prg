@@ -187,6 +187,11 @@ func (img *sourceImage) newBitpairs(char int, cc Colors, forcePreferred bool) (*
 
 	// prefill secondary preferred and used colors
 	if len(img.bpc2) > 0 {
+		if len(img.bpc) > 0 {
+			if img.bpc[0].C64Color != img.bpc2[0].C64Color {
+				return nil, fmt.Errorf("cannot use different colors for bitpair 00 with -bpc %s -bpc2 %s", img.bpc, img.bpc2)
+			}
+		}
 		for preferBitpair, preferColor := range img.bpc2 {
 			if preferColor == nil {
 				continue
