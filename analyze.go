@@ -9,20 +9,29 @@ import (
 )
 
 // setPreferredBitpairColors sets img.preferredBitpairColors according to v in format "0,1,6,7".
-func (img *sourceImage) setPreferredBitpairColors(v string) (err error) {
-	if v == "" {
+func (img *sourceImage) setPreferredBitpairColors(bpc1, bpc2 string) (err error) {
+	if bpc1 == "" {
 		return nil
 	}
-	if img.bpc, err = img.p.ParseBPC(v); err != nil {
-		return fmt.Errorf("p.ParseBPC %q failed: %w", v, err)
+	if img.bpc, err = img.p.ParseBPC(bpc1); err != nil {
+		return fmt.Errorf("p.ParseBPC %q failed: %w", bpc1, err)
 	}
 	if img.graphicsType == singleColorBitmap {
 		if len(img.bpc) > 2 {
 			img.bpc = img.bpc[0:2]
 		}
 	}
+	if bpc2 != "" {
+		if img.bpc2, err = img.p.ParseBPC(bpc2); err != nil {
+			return fmt.Errorf("p.ParseBPC %q failed: %w", bpc2, err)
+		}
+	}
 	if img.opt.Verbose {
-		log.Printf("will prefer bitpair colors: %s", img.bpc)
+		if bpc2 != "" {
+			log.Printf("will prefer bitpair colors: -bpc %s -bpc2 %s", img.bpc, img.bpc2)
+		} else {
+			log.Printf("will prefer bitpair colors: -bpc %s", img.bpc)
+		}
 	}
 	return nil
 }

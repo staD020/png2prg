@@ -721,13 +721,8 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 			if err != nil {
 				return nil, fmt.Errorf("NewPalette failed: %w", err)
 			}
-			if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
-				return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
-			}
-			if opt.BitpairColorsString2 != "" {
-				if img.bpc2, err = img.p.ParseBPC(opt.BitpairColorsString2); err != nil {
-					return nil, fmt.Errorf("p.ParseBPC %q failed: %w", opt.BitpairColorsString2, err)
-				}
+			if err = img.setPreferredBitpairColors(opt.BitpairColorsString, opt.BitpairColorsString2); err != nil {
+				return nil, fmt.Errorf("setPreferredBitpairColors -bpc %q -bpc2 %q failed: %w", opt.BitpairColorsString, opt.BitpairColorsString2, err)
 			}
 			imgs = append(imgs, img)
 		}
@@ -749,13 +744,8 @@ func NewSourceImages(opt Options, index int, r io.Reader) (imgs []sourceImage, e
 	if err != nil {
 		return nil, fmt.Errorf("NewPalette failed: %w", err)
 	}
-	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
-		return nil, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
-	}
-	if opt.BitpairColorsString2 != "" {
-		if img.bpc2, err = img.p.ParseBPC(opt.BitpairColorsString2); err != nil {
-			return nil, fmt.Errorf("p.ParseBPC %q failed: %w", opt.BitpairColorsString2, err)
-		}
+	if err = img.setPreferredBitpairColors(opt.BitpairColorsString, opt.BitpairColorsString2); err != nil {
+		return nil, fmt.Errorf("setPreferredBitpairColors -bpc %q -bpc2 %q failed: %w", opt.BitpairColorsString, opt.BitpairColorsString2, err)
 	}
 	imgs = append(imgs, img)
 	return imgs, nil
@@ -774,13 +764,8 @@ func NewSourceImage(opt Options, index int, in image.Image) (img sourceImage, er
 	if img.p, img.hiresPixels, err = NewPalette(&img, false, opt.Verbose); err != nil {
 		return img, fmt.Errorf("NewPalette failed: %w", err)
 	}
-	if err = img.setPreferredBitpairColors(opt.BitpairColorsString); err != nil {
-		return img, fmt.Errorf("setPreferredBitpairColors %q failed: %w", opt.BitpairColorsString, err)
-	}
-	if opt.BitpairColorsString2 != "" {
-		if img.bpc2, err = img.p.ParseBPC(opt.BitpairColorsString2); err != nil {
-			return img, fmt.Errorf("p.ParseBPC %q failed: %w", opt.BitpairColorsString2, err)
-		}
+	if err = img.setPreferredBitpairColors(opt.BitpairColorsString, opt.BitpairColorsString2); err != nil {
+		return img, fmt.Errorf("setPreferredBitpairColors -bpc %q -bpc2 %q failed: %w", opt.BitpairColorsString, opt.BitpairColorsString2, err)
 	}
 	return img, nil
 }
@@ -864,13 +849,8 @@ func (c *Converter) WriteTo(w io.Writer) (n int64, err error) {
 		if err = c.BruteForceBitpairColors(gfxtype, maxColors); err != nil {
 			return fmt.Errorf("BruteForceBitpairColors %q failed: %w", img.sourceFilename, err)
 		}
-		if err = img.setPreferredBitpairColors(c.opt.BitpairColorsString); err != nil {
-			return fmt.Errorf("img.setPreferredBitpairColors %q failed: %w", c.opt.BitpairColorsString, err)
-		}
-		if c.opt.BitpairColorsString2 != "" {
-			if img.bpc2, err = img.p.ParseBPC(c.opt.BitpairColorsString2); err != nil {
-				return fmt.Errorf("p.ParseBPC %q failed: %w", c.opt.BitpairColorsString2, err)
-			}
+		if err = img.setPreferredBitpairColors(c.opt.BitpairColorsString, c.opt.BitpairColorsString2); err != nil {
+			return fmt.Errorf("setPreferredBitpairColors -bpc %q -bpc2 %q failed: %w", c.opt.BitpairColorsString, c.opt.BitpairColorsString2, err)
 		}
 		return nil
 	}

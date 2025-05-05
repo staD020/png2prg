@@ -56,10 +56,10 @@ func (c *Converter) WriteInterlaceTo(w io.Writer) (n int64, err error) {
 		if err = c.BruteForceBitpairColors(multiColorBitmap, 4); err != nil {
 			return 0, fmt.Errorf("BruteForceBitpairColors %q failed: %w", img0.sourceFilename, err)
 		}
-		if err = img0.setPreferredBitpairColors(c.opt.BitpairColorsString); err != nil {
+		if err = img0.setPreferredBitpairColors(c.opt.BitpairColorsString, c.opt.BitpairColorsString2); err != nil {
 			return 0, fmt.Errorf("img.setPreferredBitpairColors %q failed: %w", c.opt.BitpairColorsString, err)
 		}
-		if err = img1.setPreferredBitpairColors(c.opt.BitpairColorsString); err != nil {
+		if err = img1.setPreferredBitpairColors(c.opt.BitpairColorsString, c.opt.BitpairColorsString2); err != nil {
 			return 0, fmt.Errorf("img.setPreferredBitpairColors %q failed: %w", c.opt.BitpairColorsString, err)
 		}
 	}
