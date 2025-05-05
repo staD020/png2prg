@@ -26,10 +26,18 @@ func (img *sourceImage) setPreferredBitpairColors() (err error) {
 			return fmt.Errorf("p.ParseBPC %q failed: %w", img.opt.BitpairColorsString2, err)
 		}
 	}
+	if img.opt.BitpairColorsString3 != "" {
+		if img.bpc3, err = img.p.ParseBPC(img.opt.BitpairColorsString3); err != nil {
+			return fmt.Errorf("p.ParseBPC %q failed: %w", img.opt.BitpairColorsString3, err)
+		}
+	}
 	if img.opt.Verbose {
-		if img.opt.BitpairColorsString2 != "" {
+		switch {
+		case img.opt.BitpairColorsString2 != "" && img.opt.BitpairColorsString3 != "":
+			log.Printf("will prefer bitpair colors: -bpc %s -bpc2 %s -bpc3 %s", img.bpc, img.bpc2, img.bpc3)
+		case img.opt.BitpairColorsString2 != "":
 			log.Printf("will prefer bitpair colors: -bpc %s -bpc2 %s", img.bpc, img.bpc2)
-		} else {
+		default:
 			log.Printf("will prefer bitpair colors: -bpc %s", img.bpc)
 		}
 	}

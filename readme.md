@@ -434,8 +434,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Feature: Disable repeating color optimization for koala & hires anims.
    This reduces animation size & runtime processing at the cost of initial
    image optimization.
- - Experimental: Add secondary preferred bitpair colors with -bpc2 (thanks
-   Fungus).
+ - Experimental: Add secondary+tertiary preferred bitpair colors with -bpc2
+   and -bpc3 (thanks Fungus).
 
 ## Changes for version 1.10.1
 
@@ -566,6 +566,8 @@ and Acrouzet.
     	bitpair-colors
   -bpc2 string
     	secondary bitpair colors eg 0,2,10,7
+  -bpc3 string
+    	tertiary bitpair colors eg 0,11,12,15
   -brute-force
     	brute force bitpair-colors
   -cpuprofile file

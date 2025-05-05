@@ -69,6 +69,7 @@ type Options struct {
 	NoFade               bool
 	BitpairColorsString  string
 	BitpairColorsString2 string
+	BitpairColorsString3 string
 	NoGuess              bool
 	GraphicsMode         string
 	Interlace            bool
@@ -176,6 +177,7 @@ type sourceImage struct {
 	p               Palette
 	bpc             BPColors
 	bpc2            BPColors
+	bpc3            BPColors
 	bpcCache        [FullScreenChars]map[C64Color]byte
 	bpcBitpairCount [MaxColors]map[byte]int
 	border          Color
