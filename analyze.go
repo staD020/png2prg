@@ -366,7 +366,7 @@ func (img *sourceImage) maxColorsPerChar() (cc Colors) {
 	}
 	if img.opt.VeryVerbose {
 		x, y := xyFromChar(char)
-		log.Printf("char %d (x %d y %d) maxColorsPerChar: %d cc: %v", char, x, y, max, cc)
+		log.Printf("char %d (x %d y %d) maxColorsPerChar: %d cc: %s", char, x, y, max, img.charColors[char])
 	}
 	// must return copy, so that the caller can modify the slice.
 	// fixes a nasty racecondition in bruteforce mode.

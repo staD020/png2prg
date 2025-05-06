@@ -20,7 +20,7 @@ type bruteResult struct {
 }
 
 // BruteForceBitpairColors bruteforces all possible bitpair color combinations.
-// Sets img.bpc to the best result.
+// Sets c.images[0].bpc to the best result.
 func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int) error {
 	if maxColors > 4 {
 		return fmt.Errorf("maxColors has a max of 4, but it is %d", maxColors)
@@ -205,6 +205,39 @@ func (c *Converter) BruteForceBitpairColors(gfxtype GraphicsType, maxColors int)
 		}
 		c.images[0].ecmColors = bpc.Colors()
 	}
+	if gfxtype != multiColorBitmap {
+		return nil
+	}
+	/*
+		// populate img.bpcBitpairCount
+		img := c.images[0]
+		if _, err = img.Koala(); err != nil {
+			return fmt.Errorf("img.Koala failed: %w", err)
+		}
+		maxbp01col := C64Color(0)
+		maxbp01count := 0
+		for c64col, m := range img.bpcBitpairCount {
+			if len(m) < 2 {
+				continue
+			}
+			col, err := img.p.FromC64(C64Color(c64col))
+			if err != nil {
+				return fmt.Errorf("p.FromC64 %d failed: %w", c64col, err)
+			}
+			if bpc.Contains(col) {
+				continue
+			}
+			if _, ok := m[1]; ok {
+				if m[1] > maxbp01count {
+					maxbp01col = C64Color(c64col)
+					maxbp01count = m[1]
+				}
+			}
+		}
+		if maxbp01count > 0 {
+			fmt.Printf("you may want to try -bpc %s -bpc2 %d,%d\n", bpc, img.bg.C64Color, maxbp01col)
+		}
+	*/
 	return nil
 }
 
