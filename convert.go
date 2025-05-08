@@ -1014,6 +1014,9 @@ func (img *sourceImage) ECMCharset(prebuiltCharset []charBytes) (ECMCharset, err
 	truecount := make(map[charBytes]int, MaxECMChars)
 	for char := 0; char < FullScreenChars; char++ {
 		x, y := xyFromChar(char)
+		if len(img.charColors[char]) > 2 {
+			return c, fmt.Errorf("too many colors for ecm in char %d (x=%d y=%d): %s", char, x, y, img.charColors[char])
+		}
 		var orchar byte
 		var foundbg bool
 		var emptycharcol C64Color
