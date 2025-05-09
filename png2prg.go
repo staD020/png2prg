@@ -389,7 +389,7 @@ func (c SingleColorCharset) UsedChars() int {
 			}
 		}
 	}
-	return (int(max) + 1)
+	return int(max) + 1
 }
 
 func (c SingleColorCharset) CharBytes() (cbs []charBytes) {

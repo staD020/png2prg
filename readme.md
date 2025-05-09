@@ -7,6 +7,8 @@ your source images or configure a palette.
 
 Vice screenshots with default borders (384x272) are automatically cropped.
 Vice's main screen offset is at x=32, y=35.
+Quite a few people (and possibly tools too) use the incorrect 32,36 offset.
+Use the -alt-offset or -ao flag to use 32,36 as offset.
 Images in sprite dimensions will be converted to sprites.
 
 The resulting .prg includes the 2-byte start address and optional displayer.
@@ -14,17 +16,22 @@ The displayers can optionally play a .sid tune.
 
 This tool can be used in all buildchains on all common platforms.
 
-## What is new
+## What Is New
 
 Png2prg 1.11 introduces animation.csv support for custom delays per frame.
 See 'Animation csv' below for details.
-This release also contains an important bugfix related to mixedcharsets,
+The -no-loop flag causes animations to only display once.
+
+This release contains an important bugfix related to mixedcharsets,
 where in some cases, png2prg would require more unique chars than necessary.
 
 ECM conversion has been improved, now png2prg also searches for potential
 char reduction by searching for invertable characters.
 
-See 'Changes for version 1.11' below for more details.
+And finally Trident added [devcontainer files](https://github.com/staD020/png2prg/commit/6cb6c48a2804fa5210cf704e0af4cff3313398fe) for setting up a Docker
+development environment to compile the code directly from within VSCode.
+
+See 'Changes for version 1.11' below for more features and details.
 
 ## What it is *not*
 
@@ -433,13 +440,13 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
    reduce char usage.
  - Feature: Add animation.csv support to allow for custom delays per frame.
  - Feature: Add -no-loop support for animations (thanks jab).
- - Feature: Allow sids to use all memory below $0400 (thanks kbs).
  - Feature: Add -no-fade support to other displayers (thanks Shine).
  - Feature: Disable repeating color optimization for koala & hires anims.
    This reduces animation size & runtime processing at the cost of initial
    image optimization.
+ - Feature: Allow sids to use all memory below $0400 (thanks kbs).
  - Feature: VSCode Docker build support for a devcontainer was added by
-   Trident (thanks!)
+   Trident (thanks!).
  - Experimental: Add secondary+tertiary preferred bitpair colors with -bpc2
    and -bpc3 (thanks Fungus).
 
@@ -555,7 +562,7 @@ an image with a displayer.
 
 Apollyon, Spider-J, Brush, The Sarge, Fungus, Jab, Shine, Raistlin, Perplex,
 Map, Youth, IcePic, Sander, Guinea Pig, Krill, Christopher Jam, Sparta,
-Acrouzet, Trident and Worrior1.
+Acrouzet, Trident, Worrior1 and Antonio Savona.
 
 ## Options
 
