@@ -679,15 +679,15 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 				pngs = append(pngs, f)
 			}
 		case errors.Is(err, ErrInvalidFrameDelay):
-			return c, fmt.Errorf("ExtractAnimationCSV failed: %w", err)
-		case err != nil:
+			return nil, fmt.Errorf("ExtractAnimationCSV failed: %w", err)
+		case errors.Is(err, ErrInvalidCSV):
 			pngs[0] = bytes.NewReader(bin)
 		}
 	}
 	for index, ir := range pngs {
 		ii, err := NewSourceImages(opt, index, ir)
 		if err != nil {
-			return c, fmt.Errorf("NewSourceImages failed: %w", err)
+			return nil, fmt.Errorf("NewSourceImages failed: %w", err)
 		}
 		c.images = append(c.images, ii...)
 	}

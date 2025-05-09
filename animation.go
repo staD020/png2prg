@@ -1387,7 +1387,8 @@ type AnimItem struct {
 	Filename   string
 }
 
-var ErrInvalidFrameDelay = errors.New("invalid frame delay, the minimum is 1 and the max is 255")
+var ErrInvalidFrameDelay = errors.New("invalid frame delay, the minimum is 0 and the max is 255")
+var ErrInvalidCSV = errors.New("invalid csv")
 
 func ExtractAnimationCSV(f io.Reader) (result []AnimItem, err error) {
 	r := csv.NewReader(f)
@@ -1397,16 +1398,16 @@ func ExtractAnimationCSV(f io.Reader) (result []AnimItem, err error) {
 			break
 		}
 		if err != nil {
-			return result, err
+			return result, ErrInvalidCSV
 		}
 		if len(record) < 2 {
-			return result, fmt.Errorf("csv row does not contain >= 2  columns, but %d", len(record))
+			return result, ErrInvalidCSV
 		}
 		c, err := strconv.Atoi(record[0])
 		if err != nil {
-			return result, err
+			return result, ErrInvalidCSV
 		}
-		if c < 1 || c > 255 {
+		if c < 0 || c > 255 {
 			return result, ErrInvalidFrameDelay
 		}
 		result = append(result, AnimItem{FrameDelay: byte(c), Filename: record[1]})

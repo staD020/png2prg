@@ -300,7 +300,7 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.IntVar(&opt.NumWorkers, "w", w, "workers")
 	flag.IntVar(&opt.NumWorkers, "workers", w, "number of concurrent workers in -parallel or -brute-force mode")
 	flag.BoolVar(&parallel, "p", false, "parallel")
-	flag.BoolVar(&parallel, "parallel", false, "run number of workers in parallel for fast conversion, treat each image as a standalone, not to be used for animations")
+	flag.BoolVar(&parallel, "parallel", false, "run number of workers in parallel for fast conversion, treat each image as a standalone, not to be used for animations, unless an anim.csv is used")
 	flag.BoolVar(&altOffset, "ao", false, "alt-offset")
 	flag.BoolVar(&altOffset, "alt-offset", false, "use alternate screenshot offset with x,y = 32,36")
 
@@ -310,8 +310,8 @@ func initAndParseFlags() (opt png2prg.Options) {
 	if opt.VeryVerbose {
 		opt.Verbose = true
 	}
-	if frameDelay < 1 || frameDelay > 255 {
-		fmt.Printf("invalid -frame-delay %d, the minimum is 1 and the max is 255. now defaulting to 6.\n", frameDelay)
+	if frameDelay < 0 || frameDelay > 255 {
+		fmt.Printf("invalid -frame-delay %d, the minimum is 0 and the max is 255. now defaulting to 6.\n", frameDelay)
 		frameDelay = 6
 	}
 	opt.FrameDelay = byte(frameDelay)

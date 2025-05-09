@@ -460,10 +460,11 @@ next_chunk:
 	!:
 		.if (DEBUG) dec $d020
 		lax (zp_anim_lo),y      // framedelay
+		beq !++
 	!:	jsr vblank
 		dex
 		bne !-
-		inc zp_anim_lo
+	!:	inc zp_anim_lo
 		bne !+
 		inc zp_anim_hi
 	!:

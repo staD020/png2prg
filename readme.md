@@ -253,8 +253,9 @@ freedom to users wanting to create animation displayers.
 It is now possible to use a custom frame-delay per frame.
 
 The csv should contain rows of frame delay value and image, where the
-delay can be any value from 1 till 255. The highest delay is a little
+delay can be any value from 0 till 255. The highest delay is a little
 over 5 seconds on PAL systems.
+If you want longer delays, just copy a row.
 
     10,frame0.png
     50,frame1.png
@@ -644,7 +645,7 @@ and Acrouzet.
     	specify outfile.prg, by default it changes extension to .prg
   -p	parallel
   -parallel
-    	run number of workers in parallel for fast conversion, treat each image as a standalone, not to be used for animations
+    	run number of workers in parallel for fast conversion, treat each image as a standalone, not to be used for animations, unless an anim.csv is used
   -q	quiet
   -quiet
     	quiet, only display errors
