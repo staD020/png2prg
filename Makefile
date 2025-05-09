@@ -82,30 +82,16 @@ dist: $(ALLTARGETS) $(TARGET) readme.md $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(T
 	cp testdata/sir_scorpion320x200.png dist/testdata/
 	cp testdata/joe_hatching320x200.png dist/testdata/
 	cp testdata/the_sarge_1337*.gif dist/testdata/
-	./$(TARGET) -d -q -bf -nbc -o dist/01.floris.prg testdata/floris_untitled.png
-	./$(TARGET) -d -q -bf -o dist/02.mermaid.prg testdata/mermaid_song_of_the_sunset.png
-	./$(TARGET) -d -q -bf -o dist/03.shortcircuit.prg testdata/short_circuit.png
-	./$(TARGET) -d -q -bf -nbc -o dist/04.sander.prg testdata/sander_ld.png
-	./$(TARGET) -d -q -bpc 15,12,3,5 -o dist/05.mermaid2.prg testdata/mermaid_weee.png
-	./$(TARGET) -d -q -bf -o dist/06.robinlevy.prg testdata/robinlevy_deadlock.png
-	./$(TARGET) -d -q -bf -npcc -o dist/07.veto.prg testdata/veto_room_with_view.png
-	./$(TARGET) -d -q -bf -o dist/08.talent.prg testdata/talent_vangelis320x200.png
-	./$(TARGET) -d -q -bf -o dist/09.hend.prg testdata/hend_temple320x200.png
-	./$(TARGET) -d -q -bf -npcc -o dist/10.jonegg.prg testdata/jonegg_thanos320x200.png
-	./$(TARGET) -d -q -bf -o dist/11.leon.prg testdata/leon_solar.png
-	./$(TARGET) -d -q -bf -o dist/12.ciscoheat.prg testdata/cisco_heat.png
-	./$(TARGET) -d -q -bf -o dist/13.sulevi.prg testdata/sulevi_daylight.png
-	./$(TARGET) -d -q -bf -o dist/14.yiear.prg testdata/yiearkungfu.png
-	./$(TARGET) -d -q -bf -nbc -o dist/15.thesarge.prg testdata/the_sarge_lee320x200.png
-	./$(TARGET) -d -q -bf -o dist/16.mirage.prg testdata/mirage_parrot320x200.png
-	./$(TARGET) -d -q -bf -o dist/17.dragonslair.prg testdata/dragonslair320x200.png
-	./$(TARGET) -d -q -bf -nbc -o dist/18.scorpion.prg testdata/sir_scorpion320x200.png
-	./$(TARGET) -d -q -bf -o dist/19.joe.prg testdata/joe_hatching320x200.png
+	mkdir -p dist/testdata/ecm
+	cp testdata/ecm/sakamoto.png dist/testdata/ecm/sakamoto.png
+	./$(TARGET) -d -q -o dist/evoluer.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/evoluer.csv
+	./$(TARGET) -d -q -o dist/rose.prg -sid testdata/petscii/anim/English_Rose.sid testdata/petscii/anim/rose.csv
 	./$(TARGET) -d -q -o dist/superscope.prg -sid testdata/pocket_universe_8580.sid testdata/petscii/anim/rebel1_superscope.gif
 	./$(TARGET) -d -q -o dist/oceanborn.prg -sid testdata/Ocean_Reloaded_90.sid testdata/petscii/anim/oceanborn?.png
-	./$(TARGET) -d -q -frame-delay 8 -o dist/rose.prg -sid testdata/petscii/anim/English_Rose.sid testdata/petscii/anim/rose?.png testdata/petscii/anim/rose5.png testdata/petscii/anim/rose4.png testdata/petscii/anim/rose3.png testdata/petscii/anim/rose2.png testdata/petscii/anim/rose1.png
+	./$(TARGET) -d -q -o dist/last_ninja.prg -bpc 0,15,12,11 -bpc2 0,15,10,9 testdata/dokk_last_ninja.png
+	./$(TARGET) -d -q -o dist/sakamoto.prg -bf testdata/ecm/sakamoto.png
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/superscope.prg dist/oceanborn.prg dist/rose.prg dist/0?.*.prg dist/1?.*.prg
+	d64 -add dist/examples.d64 dist/evoluer.prg dist/rose.prg dist/superscope.prg dist/oceanborn.prg dist/last_ninja.prg dist/sakamoto.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
@@ -610,6 +596,30 @@ alien:$(ALIEN) $(TARGET)
 	Png2prg-1.6 -o $@_p2p16.prg $<
 	dali -o $@_p2p16.prg.dali $@_p2p16.prg
 	ls -l $@_*
+
+olddist: $(TARGET)
+	./$(TARGET) -d -q -bf -nbc -o dist/01.floris.prg testdata/floris_untitled.png
+	./$(TARGET) -d -q -bf -o dist/02.mermaid.prg testdata/mermaid_song_of_the_sunset.png
+	./$(TARGET) -d -q -bf -o dist/03.shortcircuit.prg testdata/short_circuit.png
+	./$(TARGET) -d -q -bf -nbc -o dist/04.sander.prg testdata/sander_ld.png
+	./$(TARGET) -d -q -bpc 15,12,3,5 -o dist/05.mermaid2.prg testdata/mermaid_weee.png
+	./$(TARGET) -d -q -bf -o dist/06.robinlevy.prg testdata/robinlevy_deadlock.png
+	./$(TARGET) -d -q -bf -npcc -o dist/07.veto.prg testdata/veto_room_with_view.png
+	./$(TARGET) -d -q -bf -o dist/08.talent.prg testdata/talent_vangelis320x200.png
+	./$(TARGET) -d -q -bf -o dist/09.hend.prg testdata/hend_temple320x200.png
+	./$(TARGET) -d -q -bf -npcc -o dist/10.jonegg.prg testdata/jonegg_thanos320x200.png
+	./$(TARGET) -d -q -bf -o dist/11.leon.prg testdata/leon_solar.png
+	./$(TARGET) -d -q -bf -o dist/12.ciscoheat.prg testdata/cisco_heat.png
+	./$(TARGET) -d -q -bf -o dist/13.sulevi.prg testdata/sulevi_daylight.png
+	./$(TARGET) -d -q -bf -o dist/14.yiear.prg testdata/yiearkungfu.png
+	./$(TARGET) -d -q -bf -nbc -o dist/15.thesarge.prg testdata/the_sarge_lee320x200.png
+	./$(TARGET) -d -q -bf -o dist/16.mirage.prg testdata/mirage_parrot320x200.png
+	./$(TARGET) -d -q -bf -o dist/17.dragonslair.prg testdata/dragonslair320x200.png
+	./$(TARGET) -d -q -bf -nbc -o dist/18.scorpion.prg testdata/sir_scorpion320x200.png
+	./$(TARGET) -d -q -bf -o dist/19.joe.prg testdata/joe_hatching320x200.png
+	./$(TARGET) -d -q -o dist/superscope.prg -sid testdata/pocket_universe_8580.sid testdata/petscii/anim/rebel1_superscope.gif
+	./$(TARGET) -d -q -o dist/oceanborn.prg -sid testdata/Ocean_Reloaded_90.sid testdata/petscii/anim/oceanborn?.png
+	./$(TARGET) -d -q -frame-delay 8 -o dist/rose.prg -sid testdata/petscii/anim/English_Rose.sid testdata/petscii/anim/rose?.png testdata/petscii/anim/rose5.png testdata/petscii/anim/rose4.png testdata/petscii/anim/rose3.png testdata/petscii/anim/rose2.png testdata/petscii/anim/rose1.png
 
 clean:
 	rm -f $(ALLTARGETS) $(TARGET) q*.prg display*.prg *.exo *.dali *.upx *.sym *_p2p.prg *_p2pbest.prg *_spot.kla *_p2p16.prg veto_p2p*.prg
