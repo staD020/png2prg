@@ -642,9 +642,9 @@ type Converter struct {
 	FinalGraphicsType GraphicsType
 }
 
-// New processes the input pngs and the returns the Converter.
+// New processes the input images or anim.csv and returns the Converter.
 // Returns an error if any of the images have non-supported dimensions.
-// Generally a single image is used as input. For animations an animated gif or multiple .pngs will do the trick.
+// Generally a single image is used as input. For animations an anim.csv, animated gif or multiple .pngs will do the trick.
 //
 // The returned Converter implements the io.WriterTo interface.
 func New(opt Options, pngs ...io.Reader) (*Converter, error) {
