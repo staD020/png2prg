@@ -441,6 +441,7 @@ func PrintHelp() {
 	fmt.Println(" - Feature: Improve ECM handling by searching for invertable characters to")
 	fmt.Println("   reduce char usage.")
 	fmt.Println(" - Feature: Add animation.csv support to allow for custom delays per frame.")
+	fmt.Println(" - Feature: Add -no-loop support for animations (thanks jab).")
 	fmt.Println(" - Feature: Allow sids to use all memory below $0400 (thanks kbs).")
 	fmt.Println(" - Feature: Add -no-fade support to other displayers (thanks Shine).")
 	fmt.Println(" - Feature: Disable repeating color optimization for koala & hires anims.")

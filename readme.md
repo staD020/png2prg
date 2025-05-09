@@ -429,6 +429,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Feature: Improve ECM handling by searching for invertable characters to
    reduce char usage.
  - Feature: Add animation.csv support to allow for custom delays per frame.
+ - Feature: Add -no-loop support for animations (thanks jab).
  - Feature: Allow sids to use all memory below $0400 (thanks kbs).
  - Feature: Add -no-fade support to other displayers (thanks Shine).
  - Feature: Disable repeating color optimization for koala & hires anims.
@@ -609,6 +610,8 @@ and Acrouzet.
     	no-fade
   -ng
     	no-guess
+  -nl
+    	no-loop
   -no-anim
     	disable charset animations and store frames as separate screens
   -no-bitpair-counters
@@ -619,6 +622,8 @@ and Acrouzet.
     	do not use fade in/out and free up a lot of memory
   -no-guess
     	do not guess preferred bitpair-colors
+  -no-loop
+    	play animations only once
   -no-pack
     	do not pack chars (only for sc/mc charset)
   -no-pack-empty

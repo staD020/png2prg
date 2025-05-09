@@ -50,6 +50,11 @@ wait_seconds:
 .pc = * "no_fade"
 no_fade:
 		.byte 0
+.pc = * "no_loop"
+no_loop:
+		.byte 0
+
+		.byte 0,0,0
 
 .pc = basicsys() "start"
 start:
@@ -233,11 +238,21 @@ smc_yval:	ldy #steps-1
 !skip:
 
 loop_anim:
+		.if (DEBUG) inc $d020
 		jsr anim_play
+		.if (DEBUG) dec $d020
+		lda no_loop
+		beq !++
+		bcc loop_anim
+!:		lda $dc01
+		cmp #$ef
+		bne !-
+		beq fadeordone
 
-		lda $dc01
+!:		lda $dc01
 		cmp #$ef
 		bne loop_anim
+fadeordone:
 		lda no_fade
 		bne !done+
 		jmp fade_loop
@@ -462,7 +477,10 @@ anim_init:
 		sta zp_anim_lo
 		lda #>anim_frames
 		sta zp_anim_hi
-!skip:	rts
+		sec
+		rts
+!skip:	clc
+		rts
 
 plot_chunk:
 		//tax                     // x = number of chars in chunk

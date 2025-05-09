@@ -43,7 +43,7 @@ const (
 	CharsetColorRAMAddress  = 0x2c00
 
 	DisplayerSettingsStart = 0x081a
-	displayerJumpTo        = "$0828"
+	displayerJumpTo        = "$0829"
 )
 
 // An Options struct contains all settings to be used for an instance of png2prg.
@@ -77,6 +77,7 @@ type Options struct {
 	ForceBorderColor     int
 	IncludeSID           string
 	NoAnimation          bool
+	NoLoop               bool
 	FrameDelay           byte
 	WaitSeconds          int
 	ForceXOffset         int
@@ -89,6 +90,13 @@ type Options struct {
 
 func (o Options) NoFadeByte() byte {
 	if o.NoFade {
+		return 1
+	}
+	return 0
+}
+
+func (o Options) NoLoopByte() byte {
+	if o.NoLoop {
 		return 1
 	}
 	return 0
@@ -1133,7 +1141,7 @@ func (k Koala) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(multiColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	link.SetByte(DisplayerSettingsStart+9, byte(k.opt.NoFadeByte()))
+	link.SetByte(DisplayerSettingsStart+9, k.opt.NoFadeByte(), k.opt.NoLoopByte())
 	if !k.opt.NoFade {
 		link.Block(0x4800, 0x8e50)
 	}
@@ -1160,9 +1168,8 @@ func (h Hires) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(singleColorBitmap.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if h.opt.NoFade {
-		link.SetByte(DisplayerSettingsStart+9, byte(h.opt.NoFadeByte()))
-	} else {
+	link.SetByte(DisplayerSettingsStart+9, h.opt.NoFadeByte(), h.opt.NoLoopByte())
+	if !h.opt.NoFade {
 		link.Block(0x4800, 0x6b29)
 	}
 	if err = injectSID(link, h.opt.IncludeSID, h.opt.Quiet); err != nil {
@@ -1188,9 +1195,7 @@ func (c MultiColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.NoFade {
-		link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
-	}
+	link.SetByte(DisplayerSettingsStart+10, c.opt.NoFadeByte(), c.opt.NoLoopByte())
 	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
 		return n, fmt.Errorf("injectSID failed: %w", err)
 	}
@@ -1214,7 +1219,7 @@ func (c SingleColorCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(singleColorCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
+	link.SetByte(DisplayerSettingsStart+10, c.opt.NoFadeByte(), c.opt.NoLoopByte())
 	if !c.opt.NoFade {
 		link.Block(0xac00, 0xcf28)
 	}
@@ -1241,9 +1246,7 @@ func (c MixedCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(mixedCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	if c.opt.NoFade {
-		link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
-	}
+	link.SetByte(DisplayerSettingsStart+10, c.opt.NoFadeByte(), c.opt.NoLoopByte())
 	if err = injectSID(link, c.opt.IncludeSID, c.opt.Quiet); err != nil {
 		return 0, fmt.Errorf("injectSID failed: %w", err)
 	}
@@ -1267,7 +1270,7 @@ func (c PETSCIICharset) WriteTo(w io.Writer) (n int64, err error) {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
 	link.SetByte(DisplayerSettingsStart+7, c.Lowercase)
-	link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
+	link.SetByte(DisplayerSettingsStart+10, c.opt.NoFadeByte(), c.opt.NoLoopByte())
 	if !c.opt.NoFade {
 		link.Block(0xac00, 0xcf28)
 	}
@@ -1301,7 +1304,7 @@ func (c ECMCharset) WriteTo(w io.Writer) (n int64, err error) {
 	if _, err = link.WritePrg(ecmCharset.newHeader()); err != nil {
 		return n, fmt.Errorf("link.WritePrg failed: %w", err)
 	}
-	link.SetByte(DisplayerSettingsStart+10, byte(c.opt.NoFadeByte()))
+	link.SetByte(DisplayerSettingsStart+10, c.opt.NoFadeByte(), c.opt.NoLoopByte())
 	if !c.opt.NoFade {
 		link.Block(0xac00, 0xcf28)
 	}

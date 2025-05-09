@@ -32,6 +32,11 @@ frame_delay:
 .pc = * "wait_seconds"
 wait_seconds:
 		.byte 0
+.pc = * "no_loop"
+no_loop:
+		.byte 0
+
+		.byte 0,0,0
 
 .pc = basicsys() "start"
 start:

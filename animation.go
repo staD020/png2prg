@@ -699,7 +699,7 @@ func (c *Converter) WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, e
 	if _, err = link.WritePrg(displayer); err != nil {
 		return n, err
 	}
-	link.SetByte(DisplayerSettingsStart+7, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte())
+	link.SetByte(DisplayerSettingsStart+7, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte(), opt.NoLoopByte())
 	if !opt.NoFade {
 		link.Block(koalaFadePassStart, 0xd000)
 	}
@@ -775,7 +775,7 @@ func (c *Converter) WriteHiresDisplayAnimTo(w io.Writer, hh []Hires) (n int64, e
 	if !opt.NoFade {
 		link.Block(hiresFadePassStart, 0xd000)
 	}
-	link.SetByte(DisplayerSettingsStart+7, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte())
+	link.SetByte(DisplayerSettingsStart+7, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte(), opt.NoLoopByte())
 	if !opt.Quiet {
 		fmt.Printf("memory usage for displayer code: %s - %s\n", link.StartAddress(), link.EndAddress())
 	}
@@ -994,7 +994,7 @@ func (c *Converter) WriteMultiColorCharsetAnimationTo(w io.Writer, cc []MultiCol
 		if _, err = link.WritePrg(displayer); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), cc[0].opt.NoFadeByte())
+		link.SetByte(DisplayerSettingsStart+7, byte(opt.FrameDelay), byte(opt.WaitSeconds), opt.NoFadeByte(), opt.NoLoopByte())
 		if err = injectSID(link, opt.IncludeSID, opt.Quiet); err != nil {
 			return n, fmt.Errorf("injectSID failed: %w", err)
 		}
@@ -1133,7 +1133,7 @@ func (c *Converter) WriteSingleColorCharsetAnimationTo(w io.Writer, cc []SingleC
 		if _, err = link.WritePrg(displayer); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), byte(cc[0].opt.NoFadeByte()))
+		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), cc[0].opt.NoFadeByte(), cc[0].opt.NoLoopByte())
 		if !opt.NoFade {
 			link.Block(hiresFadePassStart, 0xcfff)
 		}
@@ -1235,7 +1235,7 @@ func (c *Converter) WritePETSCIICharsetAnimationTo(w io.Writer, cc []PETSCIIChar
 		if _, err = link.WritePrg(petsciiCharsetDisplayAnim); err != nil {
 			return n, fmt.Errorf("link.WritePrg failed: %w", err)
 		}
-		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].Lowercase), byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), cc[0].opt.NoFadeByte())
+		link.SetByte(DisplayerSettingsStart+7, byte(cc[0].Lowercase), byte(cc[0].opt.FrameDelay), byte(cc[0].opt.WaitSeconds), cc[0].opt.NoFadeByte(), cc[0].opt.NoLoopByte())
 		if !cc[0].opt.NoFade {
 			link.Block(hiresFadePassStart, 0xcfff)
 		}

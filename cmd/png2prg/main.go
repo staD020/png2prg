@@ -289,6 +289,8 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.StringVar(&opt.IncludeSID, "sid", "", "include .sid in displayer (see -help for free memory locations)")
 	flag.BoolVar(&opt.NoAnimation, "na", false, "no-anim")
 	flag.BoolVar(&opt.NoAnimation, "no-anim", false, "disable charset animations and store frames as separate screens")
+	flag.BoolVar(&opt.NoLoop, "nl", false, "no-loop")
+	flag.BoolVar(&opt.NoLoop, "no-loop", false, "play animations only once")
 	var frameDelay int
 	flag.IntVar(&frameDelay, "frame-delay", 6, "frames to wait before displaying next animation frame")
 	flag.IntVar(&opt.WaitSeconds, "wait-seconds", 0, "seconds to wait before animation starts")

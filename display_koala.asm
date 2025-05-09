@@ -51,6 +51,11 @@ wait_seconds:
 .pc = * "no_fade"
 no_fade:
 		.byte 0
+.pc = * "no_loop"
+no_loop:
+		.byte 0
+
+		.byte 0,0,0
 
 .pc = basicsys() "start"
 start:

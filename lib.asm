@@ -13,7 +13,7 @@
 }
 
 .function basicsys() {
-	.return 2088
+	.return 2089
 }
 
 .macro vblank() {
