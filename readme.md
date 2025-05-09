@@ -438,7 +438,8 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
  - Feature: Disable repeating color optimization for koala & hires anims.
    This reduces animation size & runtime processing at the cost of initial
    image optimization.
- - Feature: Docker build support was added by Trident (thanks!)
+ - Feature: VSCode Docker build support for a devcontainer was added by
+   Trident (thanks!)
  - Experimental: Add secondary+tertiary preferred bitpair colors with -bpc2
    and -bpc3 (thanks Fungus).
 
