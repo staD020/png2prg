@@ -3,10 +3,10 @@ package png2prg
 import (
 	"bytes"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
@@ -1387,14 +1387,7 @@ type AnimItem struct {
 	Filename   string
 }
 
-func ExtractAnimationFile(filename string) (result []AnimItem, err error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return result, err
-	}
-	defer f.Close()
-	return ExtractAnimationCSV(f)
-}
+var ErrInvalidFrameDelay = errors.New("invalid frame delay, the minimum is 1 and the max is 255")
 
 func ExtractAnimationCSV(f io.Reader) (result []AnimItem, err error) {
 	r := csv.NewReader(f)
@@ -1414,7 +1407,7 @@ func ExtractAnimationCSV(f io.Reader) (result []AnimItem, err error) {
 			return result, err
 		}
 		if c < 1 || c > 255 {
-			return result, fmt.Errorf("invalid frame delay %d, the minimum is 1 and the max is 255", c)
+			return result, ErrInvalidFrameDelay
 		}
 		result = append(result, AnimItem{FrameDelay: byte(c), Filename: record[1]})
 	}

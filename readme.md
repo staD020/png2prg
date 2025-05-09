@@ -250,9 +250,11 @@ Each frame consists of 1 or more chunks. A chunk looks like this:
 
 Since version 1.12 animation.csv support has been added to give more
 freedom to users wanting to create animation displayers.
-It is now possible to use a custom -frame-delay per frame.
+It is now possible to use a custom frame-delay per frame.
 
-The csv should simply look like this, rows of frame delay value and image:
+The csv should contain rows of frame delay value and image, where the
+delay can be any value from 1 till 255. The highest delay is a little
+over 5 seconds on PAL systems.
 
     10,frame0.png
     50,frame1.png

@@ -6,6 +6,7 @@ package png2prg
 import (
 	"bytes"
 	_ "embed"
+	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -677,6 +678,8 @@ func New(opt Options, pngs ...io.Reader) (*Converter, error) {
 				defer f.Close()
 				pngs = append(pngs, f)
 			}
+		case errors.Is(err, ErrInvalidFrameDelay):
+			return c, fmt.Errorf("ExtractAnimationCSV failed: %w", err)
 		case err != nil:
 			pngs[0] = bytes.NewReader(bin)
 		}

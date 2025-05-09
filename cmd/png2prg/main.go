@@ -283,7 +283,6 @@ func initAndParseFlags() (opt png2prg.Options) {
 	flag.BoolVar(&opt.Symbols, "sym", false, "symbols")
 	flag.BoolVar(&opt.Symbols, "symbols", false, "export symbols to .sym")
 
-	// flag.BoolVar(&opt.AlternativeFade, "alt-fade", false, "use alternative (less memory hungry) fade for animation displayers.")
 	flag.BoolVar(&opt.NoFade, "nf", false, "no-fade")
 	flag.BoolVar(&opt.NoFade, "no-fade", false, "do not use fade in/out and free up a lot of memory")
 	flag.StringVar(&opt.IncludeSID, "sid", "", "include .sid in displayer (see -help for free memory locations)")
