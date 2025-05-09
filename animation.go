@@ -692,9 +692,6 @@ func (c *Converter) WriteKoalaDisplayAnimTo(w io.Writer, kk []Koala) (n int64, e
 	}
 
 	displayer := koalaDisplayAnim
-	if opt.AlternativeFade {
-		displayer = koalaDisplayAnimAlternative
-	}
 	link := NewLinker(0, opt.VeryVerbose)
 	if _, err = link.WritePrg(displayer); err != nil {
 		return n, err

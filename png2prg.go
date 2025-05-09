@@ -66,7 +66,6 @@ type Options struct {
 	NoBitpairCounters    bool
 	NoCrunch             bool
 	Symbols              bool
-	AlternativeFade      bool
 	NoFade               bool
 	BitpairColorsString  string
 	BitpairColorsString2 string
@@ -556,7 +555,6 @@ func (img MultiColorSprites) Symbols() []c64Symbol {
 }
 
 var displayers = make(map[GraphicsType][]byte, 0)
-var displayersAlternative = make(map[GraphicsType][]byte, 0)
 
 //go:embed "display_koala.prg"
 var koalaDisplay []byte
@@ -590,9 +588,6 @@ var scSpritesDisplay []byte
 
 //go:embed "display_koala_anim.prg"
 var koalaDisplayAnim []byte
-
-//go:embed "display_koala_anim_alternative.prg"
-var koalaDisplayAnimAlternative []byte
 
 //go:embed "display_hires_anim.prg"
 var hiresDisplayAnim []byte
