@@ -85,14 +85,17 @@ dist: $(ALLTARGETS) $(TARGET) readme.md $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(T
 	cp testdata/dokk_last_ninja320x200clean.png dist/testdata/
 	mkdir -p dist/testdata/ecm
 	cp testdata/ecm/sakamoto.png dist/testdata/ecm/sakamoto.png
+	cp testdata/ecm/xpardey.png dist/testdata/ecm/xpardey.png
 	./$(TARGET) -d -q -o dist/evoluer.prg -sid testdata/evoluer/Evoluer.sid testdata/evoluer/evoluer.csv
 	./$(TARGET) -d -q -o dist/rose.prg -sid testdata/petscii/anim/English_Rose.sid testdata/petscii/anim/rose.csv
 	./$(TARGET) -d -q -o dist/superscope.prg -sid testdata/pocket_universe_8580.sid testdata/petscii/anim/rebel1_superscope.gif
 	./$(TARGET) -d -q -o dist/oceanborn.prg -sid testdata/Ocean_Reloaded_90.sid testdata/petscii/anim/oceanborn?.png
 	./$(TARGET) -d -q -o dist/last\ ninja.prg -bpc 0,15,12,11 -bpc2 0,15,10,9 -bpc3 0,15,8,9 testdata/dokk_last_ninja320x200clean.png
 	./$(TARGET) -d -q -o dist/sakamoto.prg -bf testdata/ecm/sakamoto.png
+	./$(TARGET) -d -q -o dist/xpardey.prg -bf testdata/ecm/xpardey.png
+	./$(TARGET) -d -q -o dist/sumez\ 239.prg -bf testdata/mixedcharset/fox_sumez.gif
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/evoluer.prg dist/rose.prg dist/superscope.prg dist/oceanborn.prg dist/last\ ninja.prg dist/sakamoto.prg
+	d64 -add dist/examples.d64 dist/evoluer.prg dist/rose.prg dist/superscope.prg dist/oceanborn.prg dist/last\ ninja.prg dist/sakamoto.prg dist/xpardey.prg dist/sumez\ 239.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
