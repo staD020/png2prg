@@ -94,8 +94,9 @@ dist: $(ALLTARGETS) $(TARGET) readme.md $(TESTSID) $(TESTSID2) $(TESTSIDMAD) $(T
 	./$(TARGET) -d -q -o dist/sakamoto.prg -bf testdata/ecm/sakamoto.png
 	./$(TARGET) -d -q -o dist/xpardey.prg -bf testdata/ecm/xpardey.png
 	./$(TARGET) -d -q -o dist/sumez\ 239.prg -bf testdata/mixedcharset/fox_sumez.gif
+	./$(TARGET) -d -q -o dist/madonna.prg -nf -bf -sid testdata/madonna/barryleitch_90.sid testdata/madonna/cjam_pure_madonna.png
 	rm -f dist/examples.d64
-	d64 -add dist/examples.d64 dist/evoluer.prg dist/rose.prg dist/superscope.prg dist/oceanborn.prg dist/last\ ninja.prg dist/sakamoto.prg dist/xpardey.prg dist/sumez\ 239.prg
+	d64 -add dist/examples.d64 dist/evoluer.prg dist/rose.prg dist/superscope.prg dist/oceanborn.prg dist/last\ ninja.prg dist/sakamoto.prg dist/xpardey.prg dist/sumez\ 239.prg dist/madonna.prg
 	rm -f dist/*.prg
 
 .PHONY: dist readme
