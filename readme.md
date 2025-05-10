@@ -24,6 +24,8 @@ The -no-loop flag causes animations to only display once.
 
 This release contains an important bugfix related to mixedcharsets,
 where in some cases, png2prg would require more unique chars than necessary.
+There were more issues with png2prg 1.10, which were hotfixed in 1.10.1.
+It is best to delete any 1.10 version and upgrade to 1.12.
 
 ECM conversion has been improved, now png2prg also searches for potential
 char reduction by searching for invertable characters.

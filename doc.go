@@ -36,6 +36,8 @@ func PrintHelp() {
 	fmt.Println()
 	fmt.Println("This release contains an important bugfix related to mixedcharsets,")
 	fmt.Println("where in some cases, png2prg would require more unique chars than necessary.")
+	fmt.Println("There were more issues with png2prg 1.10, which were hotfixed in 1.10.1.")
+	fmt.Println("It is best to delete any 1.10 version and upgrade to 1.12.")
 	fmt.Println()
 	fmt.Println("ECM conversion has been improved, now png2prg also searches for potential")
 	fmt.Println("char reduction by searching for invertable characters.")
