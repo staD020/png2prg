@@ -694,7 +694,7 @@ func (img *sourceImage) makeCharColors() error {
 	}
 	img.sumColors = sumColors
 	if fatalError {
-		return fmt.Errorf("fatal errors were logged, see above")
+		return fmt.Errorf("fatal errors were logged, see above in -verbose mode")
 	}
 	return nil
 }

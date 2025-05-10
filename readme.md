@@ -1,4 +1,4 @@
-# PNG2PRG 1.11.5-dev by burg
+# PNG2PRG 1.12 by burg
 
 Png2prg converts a 320x200 image (png/gif/jpeg) to a c64 hires or
 multicolor bitmap, charset, petscii, ecm or sprites prg. It will find the best
@@ -18,7 +18,7 @@ This tool can be used in all buildchains on all common platforms.
 
 ## What Is New
 
-Png2prg 1.11 introduces animation.csv support for custom delays per frame.
+Png2prg 1.12 introduces animation.csv support for custom delays per frame.
 See 'Animation csv' below for details.
 The -no-loop flag causes animations to only display once.
 
@@ -28,10 +28,10 @@ where in some cases, png2prg would require more unique chars than necessary.
 ECM conversion has been improved, now png2prg also searches for potential
 char reduction by searching for invertable characters.
 
-And finally Trident added [devcontainer files](https://github.com/staD020/png2prg/commit/6cb6c48a2804fa5210cf704e0af4cff3313398fe) for setting up a Docker
-development environment to compile the code directly from within VSCode.
+Trident added [devcontainer files](https://github.com/staD020/png2prg/commit/6cb6c48a2804fa5210cf704e0af4cff3313398fe) for setting up a Docker
+development environment to compile png2prg directly from within VSCode.
 
-See 'Changes for version 1.11' below for more features and details.
+See 'Changes for version 1.12' below for more features and details.
 
 ## What it is *not*
 
@@ -429,7 +429,7 @@ func convertPNG(w io.Writer, png io.Reader) (int64, error) {
 }
 ```
 
-## Changes for version 1.11.5-dev
+## Changes for version 1.12
 
  - Bugfix: Fix regression with handling mixedcharsets that was increasing
    char usage count in some cases (thanks Shine).
